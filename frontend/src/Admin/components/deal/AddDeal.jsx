@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
-import { addDeal } from "../../api/dealApi";
+import { addDeal } from "../../../api/dealApi";
 import { useNavigate } from "react-router-dom";
 
 export default function AddDeal() {

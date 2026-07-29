@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getProductById, updateProduct } from "../../api/productApi";
+import { getProductById, updateProduct } from "../../../api/productApi";
 
 const categories = [
   "Fans",

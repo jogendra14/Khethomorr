@@ -1,4 +1,5 @@
 import { Bell, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Topbar() {
   return (
@@ -14,15 +15,15 @@ export default function Topbar() {
 
         <Bell className="cursor-pointer" />
 
-        <div className="flex items-center gap-3">
-          <img src="https://i.pravatar.cc/100" className="w-10 h-10 rounded-full" alt="" />
+        <Link to="/admin/adminProfile" className="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
+          <img src="https://i.pravatar.cc/100" className="w-10 h-10 rounded-full" alt="Admin" />
 
           <div>
             <h3 className="font-semibold">Admin</h3>
 
             <p className="text-sm text-gray-500">Super Admin</p>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );

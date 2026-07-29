@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
-import { addProduct } from "../../api/productApi";
+import { addProduct } from "../../../api/productApi";
 import { useNavigate } from "react-router-dom";
 
 const categories = [

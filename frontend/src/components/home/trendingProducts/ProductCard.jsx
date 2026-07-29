@@ -15,7 +15,7 @@ const ProductCard = ({ product: productFromApi }) => {
   };
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden border hover:shadow-xl transition duration-300">
+    <div className="max-w-7xl max-auto w-full group border bg-white rounded-2xl overflow-hidden hover:shadow-xl transition duration-300">
 
       {/* Image */}
      <Link to={`/product/${product._id}`}>
@@ -24,7 +24,7 @@ const ProductCard = ({ product: productFromApi }) => {
         <img
           src={product.images?.[0]}
           alt={product.name}
-          className="w-full h-45 md:h-60 object-cover group-hover:scale-105 transition duration-500"
+          className="w-full h-35 sm:h-44 md:h-50 object-cover group-hover:scale-105 transition duration-500"
         />
 
         {discount > 0 && (
@@ -33,19 +33,19 @@ const ProductCard = ({ product: productFromApi }) => {
           </span>
         )}
 
-        <button className="absolute top-3 right-3 w-7 md:w-10 h-7 md:h-10 rounded-full bg-white shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition">
+        <button className="absolute top-2 right-2 md:top-3 md:right-3 w-7 md:w-10 h-7 md:h-10 rounded-full bg-white shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition">
           <FaHeart />
         </button>
 
       </div>
 
       {/* Content */}
-      <div className="px-3 py-2 md:py-3.5">
-        <h3 className="font-semibold text-sm md:text-lg min-h-10 max-h-12 line-clamp-2">
+      <div className="px-2 py-2 md:py-3.5">
+        <h3 className="text-sm md:text-lg min-h-10 md:min-h-14 line-clamp-2">
           {product.name}
         </h3>
 
-        <div className="flex items-center gap-1 mt-1 text-yellow-500">
+        <div className="flex items-center gap-1 mt-1 text-sm md:text-lg text-yellow-500">
           <FaStar />
           <FaStar />
           <FaStar />
@@ -57,7 +57,7 @@ const ProductCard = ({ product: productFromApi }) => {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
 
           <span className="text-lg md:text-2xl font-bold text-red-600">
             ₹{product.price}
@@ -74,7 +74,7 @@ const ProductCard = ({ product: productFromApi }) => {
         <Link>
         <div className="px-2 pb-2">
           <button  onClick={() => addToCart(product)}
-            className="border w-full bg-black hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 transition">
+            className="border w-full bg-black text-sm md:text-base hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 transition">
           <FaShoppingCart />
           Add To Cart
         </button>

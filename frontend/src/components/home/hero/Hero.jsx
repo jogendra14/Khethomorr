@@ -1,11 +1,10 @@
 import { FaCheckCircle } from "react-icons/fa";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import { Autoplay, Pagination} from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
-import "swiper/css/navigation";
 
 import hero1 from "../../../assets/hero/hero1.jpg";
 import hero2 from "../../../assets/hero/hero2.jpg";
@@ -66,7 +65,7 @@ export default function Hero({ slides }) {
     <section className="max-w-7xl mx-auto px-4 mt-6 ">
 
       <Swiper
-        modules={[Autoplay, Pagination, Navigation]}
+        modules={[Autoplay, Pagination]}
         loop={true}
         speed={900}
         grabCursor={true}

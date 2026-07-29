@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { deleteDeal } from "../../api/dealApi";
 
 
-export default function Deals() {
+export default function Offers() {
   const [products, setProducts] = useState([]);
 
   const navigate = useNavigate();

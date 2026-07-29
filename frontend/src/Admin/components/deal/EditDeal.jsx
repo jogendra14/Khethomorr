@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getDealById, updateDeal } from "../../api/dealApi";
+import { getDealById, updateDeal } from "../../../api/dealApi";
 
 export default function EditDeal() {
   const navigate = useNavigate();

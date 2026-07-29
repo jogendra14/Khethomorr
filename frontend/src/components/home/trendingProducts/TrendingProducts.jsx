@@ -22,16 +22,16 @@ const TrendingProducts = () => {
 }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-16">
+    <section className="max-w-7xl mx-auto w-full px-4">
 
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex justify-between items-center mb-6">
 
         <div>
-          <h2 className="text-4xl font-bold">
+          <h2 className="text-2xl md:text-3xl font-bold">
             Trending Products
           </h2>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 mt-1">
             Explore our best-selling collection
           </p>
         </div>
@@ -42,17 +42,16 @@ const TrendingProducts = () => {
 
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-
+      {/*<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">*/}
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2  w-full">
         {products.map((item) => (
-          <ProductCard
-            key={item._id}
-            product={item}
-          />
+          <div key={item._id} className=" flex shrink-0 w-45 sm:w-50 md:w-55 lg:w-60">
+          <ProductCard product={item} />
+          </div>
         ))}
 
         {error && (
-          <p className="col-span-full text-center text-gray-500">
+          <p className="w-full text-center text-gray-500">
             Products are unavailable right now. Please try again shortly.
           </p>
         )}

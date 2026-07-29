@@ -9,10 +9,9 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Shop", path: "/shop" },
     { name: "Deals", path: "/deals" },
-    { name: "Inspiration", path: "/inspiration" },
     { name: "Services", path: "/services" },
-    { name: "About Us", path: "/about" },
-    { name: "Contact Us", path: "/contact" },
+    { name: "About Us", path: "/aboutUs" },
+    { name: "Contact Us", path: "/contactUs" },
   ];
 
   return (
