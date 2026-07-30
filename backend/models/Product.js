@@ -3,16 +3,15 @@ import mongoose from "mongoose";
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, },
     oldPrice: { type: Number, required: true, },
     newPrice: { type: Number, required: true, },
     discount: { type: Number, default: 0, },
     category: { type: String, required: true },
-    subCategory: { type: String, required: true },
+    subCategory: { type: String },
 
-    colors: [{ name: String, code: String, // #556B2F
-    }],
-    sizes: [String],
+    colors: [{ name: String, code: String }],
+    fanSize: { type: String },
 
     stock: { type: Number, required: true },
     images: [{ type: String, required: true }],

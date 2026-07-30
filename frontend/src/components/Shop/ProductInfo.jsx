@@ -14,7 +14,7 @@ export default function ProductInfo({ product }) {
 
   const colors = ["#556B2F", "#1E3A8A", "#F5F5DC", "#111827"];
 
-  const sizes = ["600", "900", "1200", "1400"];
+  const fanSize = ["600", "900", "1200", "1400"];
 
   return (
     <div className="">
@@ -84,7 +84,7 @@ export default function ProductInfo({ product }) {
         </div>
 
         <div className="flex gap-2 md:gap-3 mt-3 flex-wrap">
-          {sizes.map((size) => (
+          {fanSize.map((size) => (
             <button
               key={size}
               onClick={() => setSelectedSize(size)}

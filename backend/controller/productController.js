@@ -25,9 +25,19 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-    const { name, description, oldPrice, newPrice, category, subCategory, stock, brand, discount } = req.body;
-    const images = [];
+    // 1. Sabse pehle req.body se data nikaalein
+    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, colors } = req.body;
 
+    // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
+    oldPrice = Number(oldPrice);
+    newPrice = Number(newPrice);
+    discount = Number(discount);
+    stock = Number(stock);
+    
+     // 3. Colors parse karein
+    const parsedColors = colors ? JSON.parse(colors) : [];
+    
+    const images = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path);
@@ -41,9 +51,11 @@ const createProduct = async (req, res) => {
       newPrice,
       category,
       subCategory,
+      fanSize,
       stock,
       brand,
       discount,
+      colors: parsedColors,
       images,
     });
     const createdProduct = await product.save();
@@ -55,7 +67,15 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { name, description, oldPrice, newPrice, category, subCategory,stock, brand, discount } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, colors } = req.body;
+
+    // 👇 IMPORTANT: Numbers ko forcefully Number banayein
+    if (oldPrice) oldPrice = Number(oldPrice);
+    if (newPrice) newPrice = Number(newPrice);
+    if (discount) discount = Number(discount);
+    if (stock) stock = Number(stock);
+
+    const parsedColors = colors ? JSON.parse(colors) : [];
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
@@ -64,9 +84,11 @@ const updateProduct = async (req, res) => {
       product.newPrice = newPrice || product.newPrice;
       product.category = category || product.category;
       product.subCategory = subCategory || product.subCategory;
+      product.fanSize = fanSize || product.fanSize;
       product.stock = stock || product.stock;
       product.brand = brand || product.brand;
       product.discount = discount || product.discount;
+      product.colors = parsedColors;
 
       if (req.files && req.files.length > 0) {
         const images = [];

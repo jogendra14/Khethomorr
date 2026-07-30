@@ -10,9 +10,6 @@ export default function Products() {
   const fetchProducts = async () => {
     try {
       const data = await getProduct();
-      console.log("API Response:", data);
-      console.log("Is Array:", Array.isArray(data));
-
       setProducts(data);
     } catch (error) {
       console.log(error);

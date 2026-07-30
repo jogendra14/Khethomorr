@@ -27,15 +27,29 @@ export default function AddProduct() {
     oldPrice: "",
     newPrice: "",
     discount: "",
-    size: "",
+    fanSize: "",
     stock: "",
   });
 
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
-  const [feature, setFeature] = useState("");
-  const [colors, setColors] = useState([{ name: "", code: "#000000" }]);
 
+  const [colors, setColors] = useState([]);
+  const [colorName, setColorName] = useState("");
+  const [colorCode, setColorCode] = useState("#000000");
+
+  const addColor = () => {
+    if (colorName.trim() === "") return;
+    setColors([...colors, { name: colorName, code: colorCode }]);
+    setColorName("");
+    setColorCode("#000000");
+  };
+
+  const removeColor = (index) => {
+    const newColors = [...colors];
+    newColors.splice(index, 1);
+    setColors(newColors);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,12 +58,7 @@ export default function AddProduct() {
       ...product,
       [name]: value,
     };
-
-    // Category change hote hi SubCategory reset
-    if (name === "category") {
-      updated.subCategory = "";
-    }
-
+   
     const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
     const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
     const discount = Number(name === "discount" ? value : updated.discount);
@@ -97,12 +106,16 @@ export default function AddProduct() {
       formData.append("name", product.name);
       formData.append("description", product.description);
       formData.append("category", product.category);
-      formData.append("subCategory", product.subSategory);
+      formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
+
       formData.append("oldPrice", product.oldPrice);
       formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
+
+      formData.append("fanSize", product.fanSize);
       formData.append("stock", product.stock);
+      formData.append("colors", JSON.stringify(colors)); 
 
       images.forEach((img) => {
         formData.append("images", img);
@@ -113,7 +126,6 @@ export default function AddProduct() {
       alert("✅ Product Added Successfully");
 
       console.log(data);
-
       // Form Reset
       setProduct({
         name: "",
@@ -123,8 +135,10 @@ export default function AddProduct() {
         brand: "",
         price: "",
         discount: "",
+        fanSize: "",
         stock: "",
       });
+
 
       setImages([]);
       setPreview([]);
@@ -136,8 +150,6 @@ export default function AddProduct() {
       alert(error.response?.data?.message || "Product Add Failed");
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -200,8 +212,7 @@ export default function AddProduct() {
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Sub-Category</option>
-
+                <option value="">Select Sub-Category</option> 
                 {product.category &&
                   categoryData[product.category].map((sub) => (
                     <option key={sub} value={sub}>
@@ -209,6 +220,64 @@ export default function AddProduct() {
                     </option>
                   ))}
               </select>
+            </div>
+
+            
+            <div>
+              <label className="font-semibold">Fan Size</label>
+              <div>
+                <select
+                  type="text"
+                  name="fanSize"
+                  value={product.fanSize}
+                  onChange={handleChange}
+                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Fan Size</option>  /
+                  <option value="600">600</option>
+                  <option value="900">900</option>
+                  <option value="1200">1200</option>
+                  <option value="1400">1400</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-semibold">Fan Color</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="text"
+                  name="fanColor"
+                  placeholder="Color Name"
+                  value={colorName}
+                  onChange={(e) => setColorName(e.target.value)}
+                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="color"
+                  name="fanColor"
+                  value={colorCode}
+                  onChange={(e) => setColorCode(e.target.value)}
+                  className="rounded-full mt-2 h-12 w-30 cursor-pointer appearance-none bg-transparent"
+                />
+                <button type="button" onClick={addColor} className="bg-blue-500 mt-2 w-full hover:bg-blue-600 py-2 text-md font-semibold text-white rounded-xl">
+                  Add Color
+                </button>
+              </div>
+
+              {/* Display added colors */}
+              <div className="mt-4 flex flex-wrap gap-3">
+                {colors.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                    <div className="w-6 h-6 rounded-full" style={{ backgroundColor: item.code }}></div>
+                    <span>{item.name}</span>
+                    <span className="text-gray-500 text-sm">{item.code}</span>
+                    <button type="button" onClick={() => removeColor(index)} className="text-red-500 hover:text-red-700 ml-1">
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -250,23 +319,6 @@ export default function AddProduct() {
               />
             </div>
 
-              <div>
-              <label className="font-semibold">Fan Size</label>
-              <div>
-                <select
-                  value={feature}
-                  onChange={(e) => setFeature(e.target.value)}
-                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-
-                >
-                  <option value="">-- Select --</option>
-                  <option value="Anti Dust">600</option>
-                  <option value="Energy Saving Motors">900</option>
-                  <option value="Smart Controls">1200</option>
-                  <option value="Premium Design">1400</option>
-                </select>  
-              </div>         
-            </div>
 
             <div>
               <label className="font-semibold">Stock</label>
@@ -281,56 +333,22 @@ export default function AddProduct() {
               />
             </div>
 
-            <div>
-              <label className="font-semibold">Fan Color</label>
-              <div className="flex justify-between gap-3">
-              {colors.map((item, index) => (
-                <div key={index} className="flex gap-4 ">
-                  <input
-                    type="text"
-                    placeholder="Color Name"
-                    value={item.name}
-                    onChange={(e) => {
-                      const arr = [...colors];
-                      arr[index].name = e.target.value;
-                      setColors(arr);
-                    }}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                
-                  <input
-                    type="color"
-                    value={item.code}
-                    onChange={(e) => {
-                      const arr = [...colors];
-                      arr[index].code = e.target.value;
-                      setColors(arr);
-                    }}
-                     className="mt-2 rounded-full h-12  cursor-pointer appearance-none bg-transparent" 
-                  />
-                  
-              </div>
-              ))}
-                <button onClick={() => setColors([...colors, { name: "", code: "#000000" }])}
-                  className="bg-blue-500 hover:bg-blue-600 mt-2 px-3 text-md font-semibold text-white rounded-xl"  
-                  >+ Add Color
-                </button>
-              </div>
-            </div>
+            
+
           </div>
 
           <div>
-              <label className="font-semibold">Description</label>
+            <label className="font-semibold">Description</label>
 
-              <textarea
-                rows="3"
-                name="description"
-                value={product.description}
-                onChange={handleChange}
-                placeholder="Write Product Description..."
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <textarea
+              rows="3"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              placeholder="Write Product Description..."
+              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <div>
             <label className="font-semibold">Upload Images</label>
