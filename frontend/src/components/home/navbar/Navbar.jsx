@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiShoppingCart, FiChevronDown } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { CartContext } from "../../../context/CartContext";
 
 const Navbar = () => {
+  const { cart } = useContext(CartContext);
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
@@ -67,23 +75,28 @@ const Navbar = () => {
                 <span className="text-xs">Wishlist</span>
               </div>
 
+            <Link to="/cart">
               <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
                 <FiShoppingCart size={22} />
 
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">0</span>
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{cartCount}</span>
 
                 <span className="text-xs">Cart</span>
               </div>
+            </Link>
             </div>
+          
 
             {/* Mobile */}
             <div className="flex md:hidden items-center gap-5">
               <FiSearch size={22} />
 
+              <Link to="/cart">
               <div className="relative">
                 <FiShoppingCart size={22} />
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]">0</span>
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]">{cartCount}</span>
               </div>
+              </Link>
 
               <button onClick={() => setMenuOpen(true)}>
                 <FiMenu size={28} />

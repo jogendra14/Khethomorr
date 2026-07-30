@@ -1,29 +1,22 @@
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { deleteProduct } from "../../api/productApi";
-
+import { deleteProduct, getProduct } from "../../api/productApi";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
-
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setProducts(data);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+  const fetchProducts = async () => {
+    try {
+      const data = await getProduct();
+      console.log("API Response:", data);
+      console.log("Is Array:", Array.isArray(data));
 
-  const fetchProducts = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((err) => console.log(err));
+      setProducts(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {

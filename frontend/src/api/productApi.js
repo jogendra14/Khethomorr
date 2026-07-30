@@ -1,6 +1,6 @@
 import API from "./axios";
 
-export const getProducts = async () => {
+export const getProduct = async () => {
   const { data } = await API.get("/products");
   return data;
 };
@@ -10,6 +10,7 @@ export const addProduct = async (formData) => {
   const response = await API.post("/products", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
   return response.data;
@@ -18,7 +19,12 @@ export const addProduct = async (formData) => {
 
 // Get Product API server se data mangwana
 export const getProductById = async (id) => {
-  const res = await API.get(`/products/${id}`);
+  const res = await API.get(`/products/${id}`,
+    {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },}
+  );
   return res.data;
 };
 
@@ -27,6 +33,7 @@ export const updateProduct = async (id, data) => {
   const res = await API.put(`/products/${id}`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
   return res.data;
@@ -34,6 +41,10 @@ export const updateProduct = async (id, data) => {
 
 //DeleteProduct API database se data delete krna 
 export const deleteProduct = async (id) => {
-  const res = await API.delete(`/products/${id}`);
+  const res = await API.delete(`/products/${id}`,{
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },}
+  );
   return res.data;
 };

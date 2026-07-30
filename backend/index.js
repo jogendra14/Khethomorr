@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -11,14 +13,13 @@ import paymentsRoutes from "./routes/paymentsRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
 
-dotenv.config();
 
 const app = express();
 
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "http://10.43.39.49:5173",
+    "http://10.189.116.49:5173",
   ],
   credentials: true,
 }));

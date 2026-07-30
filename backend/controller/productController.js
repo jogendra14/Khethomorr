@@ -25,7 +25,7 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock, brand, discount } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory, stock, brand, discount } = req.body;
     const images = [];
 
     if (req.files && req.files.length > 0) {
@@ -37,8 +37,10 @@ const createProduct = async (req, res) => {
     const product = new Product({
       name,
       description,
-      price,
+      oldPrice,
+      newPrice,
       category,
+      subCategory,
       stock,
       brand,
       discount,
@@ -53,13 +55,15 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock, brand, discount } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory,stock, brand, discount } = req.body;
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;
       product.description = description || product.description;
-      product.price = price || product.price;
+      product.oldPrice = oldPrice || product.oldPrice;
+      product.newPrice = newPrice || product.newPrice;
       product.category = category || product.category;
+      product.subCategory = subCategory || product.subCategory;
       product.stock = stock || product.stock;
       product.brand = brand || product.brand;
       product.discount = discount || product.discount;

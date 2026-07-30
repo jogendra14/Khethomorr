@@ -21,8 +21,10 @@ export default function AddProduct() {
     name: "",
     description: "",
     category: "",
+    subCategory: "",
     brand: "",
-    price: "",
+    oldPrice: "",
+    newPrice: "",
     discount: "",
     stock: "",
   });
@@ -31,10 +33,28 @@ export default function AddProduct() {
   const [preview, setPreview] = useState([]);
 
   const handleChange = (e) => {
-    setProduct({
+    const { name, value } = e.target;
+
+    let updated = {
       ...product,
-      [e.target.name]: e.target.value,
-    });
+      [name]: value,
+    };
+
+    const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
+    const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
+    const discount = Number(name === "discount" ? value : updated.discount);
+
+    // Old Price + New Price => Discount
+    if ((name === "oldPrice" || name === "newPrice") && oldPrice > 0 && newPrice > 0) {
+      updated.discount = (((oldPrice - newPrice) / oldPrice) * 100).toFixed(0);
+    }
+
+    // Old Price + Discount => New Price
+    if (name === "discount" && oldPrice > 0) {
+      updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
+    }
+
+    setProduct(updated);
   };
 
   const handleImages = (e) => {
@@ -67,8 +87,10 @@ export default function AddProduct() {
       formData.append("name", product.name);
       formData.append("description", product.description);
       formData.append("category", product.category);
+      formData.append("subCategory", product.subSategory);
       formData.append("brand", product.brand);
-      formData.append("price", product.price);
+      formData.append("oldPrice", product.oldPrice);
+      formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
       formData.append("stock", product.stock);
 
@@ -87,6 +109,7 @@ export default function AddProduct() {
         name: "",
         description: "",
         category: "",
+        subCategory: "",
         brand: "",
         price: "",
         discount: "",
@@ -154,14 +177,44 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="font-semibold">Price</label>
+              <label className="font-semibold">Sub-Category</label>
+
+              <select
+                name="category"
+                value={product.category}
+                onChange={handleChange}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Category</option>
+
+                {categories.map((cat) => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="font-semibold">Old Price</label>
 
               <input
                 type="number"
-                name="price"
-                value={product.price}
+                name="oldPrice"
+                value={product.oldPrice}
                 onChange={handleChange}
-                placeholder="₹ Price"
+                placeholder="₹ Old Price"
+                className="w-full mt-2 border rounded-lg p-3"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold">New Price</label>
+
+              <input
+                type="number"
+                name="newPrice"
+                value={product.newPrice}
+                onChange={handleChange}
+                placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -174,7 +227,7 @@ export default function AddProduct() {
                 name="discount"
                 value={product.discount}
                 onChange={handleChange}
-                placeholder="10"
+                placeholder="Discount"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

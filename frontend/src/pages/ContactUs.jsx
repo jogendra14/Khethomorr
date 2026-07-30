@@ -21,7 +21,7 @@ export default function ContactUs() {
             <div className="border rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition">
               <Phone className="mx-auto text-red-600 mb-4" size={38} />
               <h3 className="font-bold text-lg">Call Us</h3>
-              <p className="text-gray-600 mt-2">+91 98765 43210</p>
+              <p className="text-gray-600 mt-2">+91 9079659815,<br/>+91 7232841690</p>
             </div>
 
             <div className="border rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition">
@@ -33,7 +33,7 @@ export default function ContactUs() {
             <div className="border rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition">
               <MapPin className="mx-auto text-red-600 mb-4" size={38} />
               <h3 className="font-bold text-lg">Address</h3>
-              <p className="text-gray-600 mt-2">Guwahati, Assam, India</p>
+              <p className="text-gray-600 mt-2">BVK lyenger Rd, Basettypet, Huriopet, Chickpet, Bengaluru, Karnataka 560053, India</p>
             </div>
 
             <div className="border rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition">
@@ -80,7 +80,7 @@ export default function ContactUs() {
 
               <iframe
                 title="Google Map"
-                src="https://www.google.com/maps?q=Guwahati,Assam&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.033665436092!2d77.57305077373181!3d12.969697614922723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae160ecd422e53%3A0x4253ddc05308ec55!2sBVK%20Iyengar%20Rd%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1785349219317!5m2!1sen!2sin"
                 className="w-full h-112.5 rounded-xl border"
                 loading="lazy"
               ></iframe>

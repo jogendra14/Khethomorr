@@ -26,6 +26,7 @@ import Deals from "./pages/Deals.jsx"
 import Services from "./pages/Services";
 import AboutUs from "./pages/AboutUs.jsx";
 import ContactUs from "./pages/ContactUs.jsx";
+import Checkout from "./pages/Checkout.jsx";
 
 import ProductDetail from "./pages/ProductDetails.jsx";
 import { CartProvider } from "./context/CartContext";
@@ -55,6 +56,7 @@ const App = () => {
           <Route path="/aboutUs" element={<AboutUs />} />
           <Route path="/contactUs" element={<ContactUs />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/checkout" element={<Checkout/>}/>
           
           {/*ADMIN */}
           <Route path="/admin/login" element={<AdminLogin />} />

@@ -12,6 +12,7 @@ export function CartProvider({ children }) {
 
   // Add product to cart
   const addToCart = (product) => {
+
     const existingProduct = cart.find((item) => item._id === product._id);
 
     if (existingProduct) {

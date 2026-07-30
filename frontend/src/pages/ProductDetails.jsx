@@ -7,6 +7,7 @@ import Footer from "../components/home/footer/Footer";
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { getProductById } from "../api/productApi";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -16,21 +17,19 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/${id}`);
-        const data = await res.json();
-
+        const data = await getProductById(id);
         setProduct(data);
       } catch (err) {
         console.error(err);
       }
     };
-
     fetchProduct();
-    }, [id]);
+  }, [id]);
 
   if (!product) {
     return <h2 className="text-center py-20">Loading...</h2>;
   }
+  
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getProduct } from "../api/productApi.js";
 import ShowProduct from "../components/Shop/ShowProduct.jsx";
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import Category from "../components/Shop/category/Category.jsx";
@@ -7,17 +8,22 @@ import Footer from "../components/home/footer/Footer.jsx";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
-
+  const [error, setError] = useState(false);
+  
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setProducts(data);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+    const fetchProducts = async () => {
+        try {
+          const data = await getProduct();
 
+          setProducts(data);
+        } catch (error) {
+          console.error("Error fetching products:", error);
+          setError(true);
+        }
+      };
+      fetchProducts();
+    }, []);
+    
   const [selectedCategory, setSelectedCategory] = useState(null);
   return (
     <>
@@ -30,12 +36,17 @@ export default function Product() {
             <SubCategory selectedCategory={selectedCategory} />
           </div>*/}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-2 md:gap-3">
+          <div className="grid grid-cols-2 p-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2 md:gap-3">
             {/* </div><div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-7"> */}
             {products.map((product) => (
               <ShowProduct key={product._id} product={product} />
             ))}
           </div>
+          {error && (
+            <p className="w-full text-center text-gray-500">
+              Products are unavailable right now. Please try again shortly.
+            </p>
+          )}
         </div>
       </div>
       <Footer />

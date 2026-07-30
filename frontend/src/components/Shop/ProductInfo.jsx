@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FiHeart, FiDroplet, FiWind, FiBox, FiTruck, FiRefreshCw } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { CartContext } from "../../context/CartContext";
+import { Link } from "react-router-dom";
 
 export default function ProductInfo({ product }) {
   const [selectedColor, setSelectedColor] = useState("#556B2F");
   const [selectedSize, setSelectedSize] = useState("S");
+  const { addToCart } = useContext(CartContext);
 
   const colors = ["#556B2F", "#1E3A8A", "#F5F5DC", "#111827"];
 
@@ -89,8 +92,15 @@ export default function ProductInfo({ product }) {
 
       {/* Buttons */}
 
-      <div className="flex gap-4 mt-7">
-        <button className="flex-1 bg-[#4F6B35] hover:bg-[#3f562b] text-white py-3 rounded-xl font-semibold transition">Add To Cart</button>
+      <Link to="/checkout">
+      <button 
+        className="bg-blue-600 hover:bg-blue-700 font-bold text-white w-full p-3 mt-3 rounded-xl" >
+          Buy Now  
+      </button>
+      </Link>
+
+      <div className="flex gap-4 mt-2">
+        <button onClick={ ()=> addToCart(product) } className="flex-1 bg-[#4F6B35] hover:bg-[#3f562b] text-white py-3 rounded-xl font-semibold transition">Add To Cart</button>
 
         <button className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
           <FiHeart size={22} />
