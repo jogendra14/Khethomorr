@@ -50,7 +50,7 @@ const ProductCard = ({ product: productFromApi }) => {
           </div>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="text-lg md:text-2xl font-bold text-red-600">₹{product.price}</span>
+            <span className="text-lg md:text-2xl font-bold text-red-600">₹{product.newPrice}</span>
 
             <span className="text-gray-400 text-md md:text-xl line-through">₹{product.oldPrice}</span>
           </div>

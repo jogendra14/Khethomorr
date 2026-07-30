@@ -1,5 +1,8 @@
 import { useContext, useState } from "react";
 import { FiHeart, FiDroplet, FiWind, FiBox, FiTruck, FiRefreshCw } from "react-icons/fi";
+import { IoShieldCheckmarkOutline } from "react-icons/io5";
+import { MdOutlineEnergySavingsLeaf } from "react-icons/md";
+import { GoCpu } from "react-icons/go";
 import { FaStar } from "react-icons/fa";
 import { CartContext } from "../../context/CartContext";
 import { Link } from "react-router-dom";
@@ -11,7 +14,7 @@ export default function ProductInfo({ product }) {
 
   const colors = ["#556B2F", "#1E3A8A", "#F5F5DC", "#111827"];
 
-  const sizes = ["S", "M", "L", "XL", "XXL"];
+  const sizes = ["600", "900", "1200", "1400"];
 
   return (
     <div className="">
@@ -111,18 +114,18 @@ export default function ProductInfo({ product }) {
 
       <div className="grid grid-cols-3 gap-2 mt-4">
         <div className="border rounded-xl p-2 flex flex-col items-center gap-2">
-          <FiDroplet size={18} />
-          <p className="text-sm text-center">Water Resistant</p>
+          <IoShieldCheckmarkOutline size={22} />
+          <p className="text-sm text-center">Anti-Dust</p>
         </div>
 
         <div className="border rounded-xl p-2 flex flex-col items-center gap-2">
-          <FiWind size={18} />
-          <p className="text-sm text-center">Breathable</p>
+          <MdOutlineEnergySavingsLeaf size={22} />
+          <p className="text-sm text-center">Energy-Saving Motors</p>
         </div>
 
         <div className="border rounded-xl p-2 flex flex-col items-center gap-2">
-          <FiBox size={22} />
-          <p className="text-sm text-center">Lightweight</p>
+          <GoCpu size={22} />
+          <p className="text-sm text-center">Smart Controls</p>
         </div>
       </div>
 
@@ -136,7 +139,7 @@ export default function ProductInfo({ product }) {
             <div>
               <h4 className="font-semibold">Delivery</h4>
 
-              <p className="text-gray-500 text-sm ">2-4 Working Days</p>
+              <p className="text-gray-500 text-sm ">1-2 Working Days</p>
             </div>
           </div>
         </div>
@@ -148,7 +151,7 @@ export default function ProductInfo({ product }) {
             <div>
               <h4 className="font-semibold">Easy Returns</h4>
 
-              <p className="text-gray-500 text-sm">30 Days Return Policy</p>
+              <p className="text-gray-500 text-sm">7 Days Return Policy</p>
             </div>
           </div>
         </div>

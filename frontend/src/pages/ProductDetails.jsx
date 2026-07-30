@@ -4,6 +4,7 @@ import ProductInfo from "../components/Shop/ProductInfo";
 import ReviewSection from "../components/Shop/ReviewSection";
 import RelatedProducts from "../components/Shop/RelatedProducts";
 import Footer from "../components/home/footer/Footer";
+import { IoShieldCheckmarkOutline } from "react-icons/io5";
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
