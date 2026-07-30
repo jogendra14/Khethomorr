@@ -29,10 +29,10 @@ import ContactUs from "./pages/ContactUs.jsx";
 import Checkout from "./pages/Checkout.jsx";
 
 import ProductDetail from "./pages/ProductDetails.jsx";
-import { CartProvider } from "./context/CartContext";
 import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx"
 import Cart from "./pages/Cart.jsx";
+import Wishlist from "./pages/Wishlist.jsx";
 import Categories from "./Admin/pages/Categories.jsx";
 import Coupons from "./Admin/pages/Coupons.jsx";
 import Banner from "./Admin/pages/Banner.jsx";
@@ -44,7 +44,6 @@ import AdminProfile from "./Admin/pages/AdminProfile.jsx";
 
 const App = () => {
   return (
-    <CartProvider>
       <BrowserRouter>
       <ScrollToTop/>
         <Routes>
@@ -90,10 +89,11 @@ const App = () => {
           <Route path="/SignUp" element={<SignUp />} />
           {/* Cart Page */}
           <Route path="/Cart" element={<Cart />} />
+          {/* Wishlist Page */}
+          <Route path="/Wishlist" element={<Wishlist />} />
         </Routes>
         <Toaster position="top-right" />
       </BrowserRouter>
-    </CartProvider>
   );
 };
 

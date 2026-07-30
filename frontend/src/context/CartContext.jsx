@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from "react";
 
 export const CartContext = createContext();
 
-export function CartProvider({ children }) {
+export default function CartProvider({ children }) {
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem("cart")) || []);
 
   // Save cart in localStorage

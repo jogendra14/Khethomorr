@@ -39,12 +39,12 @@ export default function ShowProduct({ product }) {
           </div>
         </div>
       </Link>
-
+        <div className="px-2 md:pb-1.5">
           <button onClick = { () => addToCart(product) }
             className="w-full mt-1 border text-red-400  border-gray-600 hover:bg-blue-600 hover:text-white rounded-lg md:rounded-xl md:p-1.5">
             <span className="text-sm sm:text-md md:text-lg ">Add to Cart</span>
           </button>
-        
+        </div>
     </div>
   );
 }

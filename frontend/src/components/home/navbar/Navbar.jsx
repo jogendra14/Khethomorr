@@ -3,9 +3,13 @@ import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiShoppingCart, FiChevronDown }
 import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { CartContext } from "../../../context/CartContext";
+import { WishlistContext } from "../../../context/WishlistContext";
 
 const Navbar = () => {
   const { cart } = useContext(CartContext);
+  const { wishlist } = useContext(WishlistContext);
+  const wishlistCount = wishlist.length;
+
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
     0
@@ -29,7 +33,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 h-10 flex items-center justify-center relative">
           <p className="font-medium">✨ Flat 20% OFF on Chandeliers | Free Delivery Across India</p>
 
-          <button className="absolute right-4 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">Shop Now</button>
+          <button className="absolute right-4 bg-red-600 hover:bg-red-700 px-2 md:px-3 py-1 rounded text-xs">Shop Now</button>
         </div>
       </div>
 
@@ -65,16 +69,25 @@ const Navbar = () => {
 
             {/* Right Icons */}
             <div className="hidden md:flex items-center gap-8">
-              <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
-                <FiUser size={22} />
-                <span className="text-xs">Account</span>
-              </div>
+              <Link to="/login">
+                <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
+                  <FiUser size={22} />
+                  <span className="text-xs">Login</span>
+                </div>
+              </Link>
 
-              <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
-                <FiHeart size={22} />
-                <span className="text-xs">Wishlist</span>
-              </div>
+              <Link to="/wishlist">
+                <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
+                  <FiHeart size={22} />
 
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                    {wishlistCount}
+                  </span>
+
+                  <span className="text-xs">Wishlist</span>
+                </div>
+              </Link>
+              
             <Link to="/cart">
               <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
                 <FiShoppingCart size={22} />
@@ -136,6 +149,16 @@ const Navbar = () => {
             <button onClick={() => setMenuOpen(false)}>
               <FiX size={28} />
             </button>
+          </div>
+
+          <div className="p-5 border-b">
+            <Link
+              to="/login"
+              onClick={() => setMenuOpen(false)}
+              className="block w-full bg-red-600 text-white text-center py-3 rounded-lg"
+            >
+              Login / Sign Up
+            </Link>
           </div>
 
           <ul className="p-5 space-y-5 font-medium">
