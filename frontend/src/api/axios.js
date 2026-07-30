@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://khethomorr.onrender.com",
+  baseURL: "https://khethomorr.onrender.com/api",
   withCredentials: true,
 });
 
