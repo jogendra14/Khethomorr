@@ -24,8 +24,10 @@ export default function EditProduct() {
     name: "",
     description: "",
     category: "",
+    subCategory: "",
+    oldPrice: "",
+    newPrice: "",
     brand: "",
-    price: "",
     discount: "",
     stock: "",
   });
@@ -33,6 +35,31 @@ export default function EditProduct() {
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
 
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    let updated = {
+      ...product,
+      [name]: value,
+    };
+
+    const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
+    const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
+    const discount = Number(name === "discount" ? value : updated.discount);
+
+    // Old Price + New Price => Discount
+    if ((name === "oldPrice" || name === "newPrice") && oldPrice > 0 && newPrice > 0) {
+      updated.discount = (((oldPrice - newPrice) / oldPrice) * 100).toFixed(0);
+    }
+
+    // Old Price + Discount => New Price
+    if (name === "discount" && oldPrice > 0) {
+      updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
+    }
+
+    setProduct(updated);
+  };
   // -------------------------
   // Fetch Product
   // -------------------------
@@ -46,8 +73,10 @@ export default function EditProduct() {
           name: data.name || "",
           description: data.description || "",
           category: data.category || "",
+          subCategory: data.subCategory || "",
+          oldPrice: data.oldPrice || "",
+          newPrice: data.newPrice || "",
           brand: data.brand || "",
-          price: data.price || "",
           discount: data.discount || "",
           stock: data.stock || "",
         });
@@ -60,17 +89,6 @@ export default function EditProduct() {
 
     fetchProduct();
   }, [id]);
-
-  // -------------------------
-  // Input Change
-  // -------------------------
-
-  const handleChange = (e) => {
-    setProduct({
-      ...product,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   // -------------------------
   // Image Upload
@@ -111,8 +129,10 @@ export default function EditProduct() {
       formData.append("name", product.name);
       formData.append("description", product.description);
       formData.append("category", product.category);
+      formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
-      formData.append("price", product.price);
+      formData.append("oldPrice", product.oldPrice);
+      formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
       formData.append("stock", product.stock);
 
@@ -166,21 +186,72 @@ export default function EditProduct() {
             </div>
 
             <div>
-              <label className="font-semibold">Price</label>
+              <label className="font-semibold">Sub-Category</label>
 
-              <input type="number" name="price" value={product.price} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+              <select
+                name="subCategory"
+                value={product.subCategory}
+                onChange={handleChange}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Sub-Category</option>
+
+                {categories.map((cat) => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="font-semibold">Old Price</label>
+
+              <input
+                type="number"
+                name="oldPrice"
+                value={product.oldPrice}
+                onChange={handleChange}
+                placeholder="₹ Old Price"
+                className="w-full mt-2 border rounded-lg p-3"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold">New Price</label>
+
+              <input
+                type="number"
+                name="newPrice"
+                value={product.newPrice}
+                onChange={handleChange}
+                placeholder="₹ Selling Price"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             <div>
               <label className="font-semibold">Discount %</label>
 
-              <input type="number" name="discount" value={product.discount} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+              <input
+                type="number"
+                name="discount"
+                value={product.discount}
+                onChange={handleChange}
+                placeholder="Discount"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
-            <div>
+             <div>
               <label className="font-semibold">Stock</label>
 
-              <input type="number" name="stock" value={product.stock} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+              <input
+                type="number"
+                name="stock"
+                value={product.stock}
+                onChange={handleChange}
+                placeholder="Available Stock"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { FiHeart, FiDroplet, FiWind, FiBox, FiTruck, FiRefreshCw } from "react-icons/fi";
+import { FiHeart, FiTruck, FiRefreshCw } from "react-icons/fi";
 import { IoShieldCheckmarkOutline } from "react-icons/io5";
 import { MdOutlineEnergySavingsLeaf } from "react-icons/md";
 import { GoCpu } from "react-icons/go";
@@ -22,7 +22,7 @@ export default function ProductInfo({ product }) {
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
 
       {/* Title */}
-      <h1 className="text-3xl font-bold mt-2">{product.name}</h1>
+      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
 
       <div className="flex items-center gap-2 mt-3">
       {/* Rating */}
@@ -39,16 +39,21 @@ export default function ProductInfo({ product }) {
 
       {/* Price */}
 
-      <h2 className="text-2xl font-bold mt-3.5">₹{product.price}</h2>
+      <div className="mt-1 md:mt-2">
+          <span className="text-blue-700 text-2xl md:text-3xl font-bold">₹{product.newPrice}</span>
+
+          <span className="text-lg mx-1 md:text-xl text-gray-600">M.R.P.</span>
+
+          <span className="line-through text-lg md:text-xl text-gray-500">{product.oldPrice}</span>
+      </div>
           
-      <p className="mt-2 text-gray-600">
-          Brand : 
-          <span className="font-semibold">{product.brand}</span>
+      <p className="mt-2 text-gray-700">
+          <span className="font-bold">Brand : {product.brand}</span>
       </p>
 
       {/* Description */}
 
-      <p className="text-gray-500 mt-3">
+      <p className="text-gray-500 mt-1">
         {product.description}
       </p>
 
@@ -78,12 +83,12 @@ export default function ProductInfo({ product }) {
           <button className="text-sm text-gray-500 hover:text-black">Size Guide</button>
         </div>
 
-        <div className="flex gap-3 mt-3 flex-wrap">
+        <div className="flex gap-2 md:gap-3 mt-3 flex-wrap">
           {sizes.map((size) => (
             <button
               key={size}
               onClick={() => setSelectedSize(size)}
-              className={`w-10 h-10 rounded-lg border font-semibold transition ${
+              className={`w-14 h-10 rounded-lg border font-semibold transition ${
                 selectedSize === size ? "bg-green-700 text-white border-green-700" : "bg-white hover:border-black"
               }`}
             >

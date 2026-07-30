@@ -52,15 +52,19 @@ const menu = [
 
 export default function Sidebar() {
   return (
-    <div className="w-64 bg-slate-900 text-white h-screen flex flex-col">
+    <div className="fixed top-0 left-0 w-64 bg-slate-900 text-white h-screen flex flex-col z-50">
       <div className="text-2xl font-bold p-6 border-b border-slate-700">Admin Panel</div>
 
-      <div className="flex-1 mt-4">
+      <div className="flex-1 mt-4 overflow-y-auto ">
         {menu.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
-            className={({ isActive }) => `flex items-center gap-3 px-6 py-4 hover:bg-blue-600 transition ${isActive ? "bg-blue-600" : ""}`}
+            className={({ isActive }) => 
+              `flex items-center gap-3 px-4 py-3 hover:bg-blue-600 transition ${
+                isActive ? "bg-blue-600" : ""
+              }`
+            }
           >
             {item.icon}
             {item.name}
@@ -68,7 +72,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      <button className="flex items-center gap-3 p-6 hover:bg-red-600">
+      <button className="flex items-center gap-3 p-4 hover:bg-red-600">
         <LogOut size={20} />
         Logout
       </button>

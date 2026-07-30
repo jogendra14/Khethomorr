@@ -5,13 +5,15 @@ import { Outlet } from "react-router-dom";
 
 export default function AdminLayout() {
   return (
-    <div className="flex bg-gray-100">
+    <div className="bg-gray-100 min-h-screen">
       <Sidebar />
 
-      <div className="flex-1">
+      <div className="ml-64">
         <Topbar />
 
-        <Outlet />
+        <main className="pt-14 p-4">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

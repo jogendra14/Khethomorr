@@ -9,6 +9,11 @@ const productSchema = new mongoose.Schema(
     discount: { type: Number, default: 0, },
     category: { type: String, required: true },
     subCategory: { type: String, required: true },
+
+    colors: [{ name: String, code: String, // #556B2F
+    }],
+    sizes: [String],
+
     stock: { type: Number, required: true },
     images: [{ type: String, required: true }],
     rating: { type: Number, default: 0 },
