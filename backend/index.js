@@ -22,7 +22,6 @@ app.use(cors({
     "http://10.189.116.49:5173",
     "https://khethomorr.vercel.app/"
   ],
-  credentials: true,
 }));
 
 app.use(express.json());
