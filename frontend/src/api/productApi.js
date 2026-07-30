@@ -1,13 +1,13 @@
 import API from "./axios";
 
 export const getProduct = async () => {
-  const { data } = await API.get("/products");
+  const { data } = await API.get("/api/products");
   return data;
 };
 
 //Add Product API server ko data send krna 
 export const addProduct = async (formData) => {
-  const response = await API.post("/products", formData, {
+  const response = await API.post("/api/products", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${localStorage.getItem("token")}`,
