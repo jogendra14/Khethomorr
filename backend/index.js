@@ -16,15 +16,25 @@ import homeRoutes from "./routes/homeRoutes.js";
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://10.189.116.49:5173",
-    "https://khethomorr.vercel.app",
-    "https://khethomorr-r45zbcs1t-jogndra.vercel.app",
-  ],
-  credentials: true,
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://10.189.116.49:5173",
+  "https://khethomorr.vercel.app",
+  "https://khethomorr-r45zbcs1t-jogndra.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
