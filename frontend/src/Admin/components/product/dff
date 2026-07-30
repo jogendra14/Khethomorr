@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 const categoryData = {
@@ -16,7 +15,7 @@ const categoryData = {
   Others: ["Accessories", "Spare Parts"],
 };
 
-export default function EditProduct() {
+export default function UpdateProduct() {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -35,12 +34,28 @@ export default function EditProduct() {
 
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
-   const [existingImages, setExistingImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   const [colors, setColors] = useState([]);
   const [colorName, setColorName] = useState("");
   const [colorCode, setColorCode] = useState("#000000");
-  
+
+  // Fetch product data on load
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const data = await getProductById(id);
+        setProduct(data);
+        setExistingImages(data.images || []);
+        setColors(data.colors || []);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        alert("Failed to load product data");
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
   const addColor = () => {
     if (colorName.trim() === "") return;
     setColors([...colors, { name: colorName, code: colorCode }]);
@@ -61,7 +76,7 @@ export default function EditProduct() {
       ...product,
       [name]: value,
     };
-
+   
     const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
     const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
     const discount = Number(name === "discount" ? value : updated.discount);
@@ -79,42 +94,13 @@ export default function EditProduct() {
     setProduct(updated);
   };
 
-  
-  // -------------------------
-  // Fetch Product
-  // -------------------------
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const data = await getProductById(id);
-        setProduct(data);
-        setExistingImages(data.images || []);
-        setColors(data.colors || []);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        alert("Failed to load product data");
-      }
-    };
-    fetchProduct();
-  }, [id]);
-
-  // -------------------------
-  // Image Upload
-  // -------------------------
-
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
-
     setImages(files);
 
-    const imagePreview = files.map((file) => URL.createObjectURL(file));
-
-    setPreview(imagePreview);
+    const previewImages = files.map((file) => URL.createObjectURL(file));
+    setPreview(previewImages);
   };
-
-  // -------------------------
-  // Remove Image
-  // -------------------------
 
   const removeImage = (index) => {
     const newImages = [...images];
@@ -133,10 +119,6 @@ export default function EditProduct() {
     setExistingImages(newExistingImages);
   };
 
-  // -------------------------
-  // Update Product
-  // -------------------------
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -148,16 +130,14 @@ export default function EditProduct() {
       formData.append("category", product.category);
       formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
-
       formData.append("oldPrice", product.oldPrice);
       formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
-
       formData.append("fanSize", product.fanSize);
       formData.append("stock", product.stock);
-      formData.append("colors", JSON.stringify(colors)); 
+      formData.append("colors", JSON.stringify(colors));
 
-       // Send existing images URLs
+      // Send existing images URLs
       formData.append("existingImages", JSON.stringify(existingImages));
 
       // Send new images
@@ -165,14 +145,14 @@ export default function EditProduct() {
         formData.append("images", img);
       });
 
-      await updateProduct(id, formData);
+      const data = await updateProduct(id, formData);
 
-      alert("Product Updated Successfully");
+      alert("✅ Product Updated Successfully");
+      console.log(data);
 
       navigate("/admin/products");
     } catch (error) {
-      console.log(error);
-
+      console.error(error);
       alert(error.response?.data?.message || "Product Update Failed");
     }
   };
@@ -189,19 +169,30 @@ export default function EditProduct() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="font-semibold">Product Name</label>
-
-              <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+              <input
+                type="text"
+                name="name"
+                value={product.name}
+                onChange={handleChange}
+                placeholder="Enter Product Name"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             <div>
               <label className="font-semibold">Brand</label>
-
-              <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+              <input
+                type="text"
+                name="brand"
+                value={product.brand}
+                onChange={handleChange}
+                placeholder="Enter Brand"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
-           <div>
+            <div>
               <label className="font-semibold">Category</label>
-
               <select
                 name="category"
                 value={product.category}
@@ -209,7 +200,6 @@ export default function EditProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Category</option>
-
                 {Object.keys(categoryData).map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -218,19 +208,17 @@ export default function EditProduct() {
               </select>
             </div>
 
-
             <div>
               <label className="font-semibold">Sub-Category</label>
-
               <select
                 name="subCategory"
                 value={product.subCategory}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Sub-Category</option> 
+                <option value="">Select Sub-Category</option>
                 {product.category &&
-                  categoryData[product.category].map((sub) => (
+                  categoryData[product.category]?.map((sub) => (
                     <option key={sub} value={sub}>
                       {sub}
                     </option>
@@ -238,7 +226,6 @@ export default function EditProduct() {
               </select>
             </div>
 
-           
             {/* Fan Size - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -307,7 +294,6 @@ export default function EditProduct() {
 
             <div>
               <label className="font-semibold">Old Price</label>
-
               <input
                 type="number"
                 name="oldPrice"
@@ -320,7 +306,6 @@ export default function EditProduct() {
 
             <div>
               <label className="font-semibold">New Price</label>
-
               <input
                 type="number"
                 name="newPrice"
@@ -333,7 +318,6 @@ export default function EditProduct() {
 
             <div>
               <label className="font-semibold">Discount %</label>
-
               <input
                 type="number"
                 name="discount"
@@ -344,9 +328,8 @@ export default function EditProduct() {
               />
             </div>
 
-             <div>
+            <div>
               <label className="font-semibold">Stock</label>
-
               <input
                 type="number"
                 name="stock"
@@ -360,8 +343,14 @@ export default function EditProduct() {
 
           <div>
             <label className="font-semibold">Description</label>
-
-            <textarea rows="5" name="description" value={product.description} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+            <textarea
+              rows="3"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              placeholder="Write Product Description..."
+              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Existing Images */}
@@ -425,7 +414,10 @@ export default function EditProduct() {
             </div>
           )}
 
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 transition text-white px-10 py-3 rounded-lg font-semibold"
+          >
             Update Product
           </button>
         </form>

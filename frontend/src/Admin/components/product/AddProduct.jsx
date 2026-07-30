@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { addProduct } from "../../../api/productApi";
@@ -151,6 +152,8 @@ export default function AddProduct() {
     }
   };
 
+  const isFanCategory = product.category === "Fans";
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
@@ -223,62 +226,75 @@ export default function AddProduct() {
             </div>
 
             
-            <div>
-              <label className="font-semibold">Fan Size</label>
+            {/* Fan Size - Show only when category is Fans */}
+            {isFanCategory && (
               <div>
-                <select
-                  type="text"
-                  name="fanSize"
-                  value={product.fanSize}
-                  onChange={handleChange}
-                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Fan Size</option>  /
-                  <option value="600">600</option>
-                  <option value="900">900</option>
-                  <option value="1200">1200</option>
-                  <option value="1400">1400</option>
-                </select>
+                <label className="font-semibold">Fan Size</label>
+                <div>
+                  <select
+                    name="fanSize"
+                    value={product.fanSize}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Fan Size</option>
+                    <option value="600">600</option>
+                    <option value="900">900</option>
+                    <option value="1200">1200</option>
+                    <option value="1400">1400</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="font-semibold">Fan Color</label>
-              <div className="flex gap-3 items-center">
-                <input
-                  type="text"
-                  name="fanColor"
-                  placeholder="Color Name"
-                  value={colorName}
-                  onChange={(e) => setColorName(e.target.value)}
-                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="color"
-                  name="fanColor"
-                  value={colorCode}
-                  onChange={(e) => setColorCode(e.target.value)}
-                  className="rounded-full mt-2 h-12 w-30 cursor-pointer appearance-none bg-transparent"
-                />
-                <button type="button" onClick={addColor} className="bg-blue-500 mt-2 w-full hover:bg-blue-600 py-2 text-md font-semibold text-white rounded-xl">
-                  Add Color
-                </button>
-              </div>
 
-              {/* Display added colors */}
-              <div className="mt-4 flex flex-wrap gap-3">
-                {colors.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-                    <div className="w-6 h-6 rounded-full" style={{ backgroundColor: item.code }}></div>
-                    <span>{item.name}</span>
-                    <span className="text-gray-500 text-sm">{item.code}</span>
-                    <button type="button" onClick={() => removeColor(index)} className="text-red-500 hover:text-red-700 ml-1">
-                      ×
-                    </button>
-                  </div>
-                ))}
+             {/* Fan Color - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Color</label>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    placeholder="Color Name"
+                    value={colorName}
+                    onChange={(e) => setColorName(e.target.value)}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="color"
+                    value={colorCode}
+                    onChange={(e) => setColorCode(e.target.value)}
+                    className="rounded-full mt-2 h-12 w-30 cursor-pointer appearance-none bg-transparent"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={addColor} 
+                    className="bg-blue-500 mt-2 w-full hover:bg-blue-600 py-2 text-md font-semibold text-white rounded-xl"
+                  >
+                    Add Color
+                  </button>
+                </div>
+
+                {/* Display added colors */}
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {colors.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                      <div className="w-6 h-6 rounded-full" style={{ backgroundColor: item.code }}></div>
+                      <span>{item.name}</span>
+                      <span className="text-gray-500 text-sm">{item.code}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => removeColor(index)} 
+                        className="text-red-500 hover:text-red-700 ml-1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
 
             <div>
               <label className="font-semibold">Old Price</label>
