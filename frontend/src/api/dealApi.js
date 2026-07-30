@@ -1,5 +1,10 @@
 import API from "./axios";
 
+export const getDeal = async () => {
+  const { data } = await API.get("/deals");
+  return data;
+};
+
 //Add Product API server ko data send krna 
 export const addDeal = async (formData) => {
   const response = await API.post("/deals", formData, {

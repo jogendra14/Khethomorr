@@ -1,34 +1,26 @@
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { deleteDeal } from "../../api/dealApi";
-
+import { getDeal ,deleteDeal } from "../../api/dealApi";
+import API from "../../api/axios";
 
 export default function Offers() {
   const [products, setProducts] = useState([]);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/deals`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setProducts(data);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+  const fetchProducts = async () => {
+  try {
+    const data = await getDeal();
+    setProducts(data);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-  const fetchProducts = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/deals`)
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((err) => console.log(err));
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+useEffect(() => {
+  fetchProducts();
+}, []);
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this product?");
