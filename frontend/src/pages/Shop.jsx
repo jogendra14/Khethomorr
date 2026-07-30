@@ -9,27 +9,28 @@ import Footer from "../components/home/footer/Footer.jsx";
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(false);
-  
+
   useEffect(() => {
     const fetchProducts = async () => {
-        try {
-          const data = await getProduct();
-          console.log("Products:", data);
-          setProducts(data);
-        } catch (error) {
-          console.error("Error fetching products:", error);
-          setError(true);
-        }
-      };
-      fetchProducts();
-    }, []);
-    
+      try {
+        const data = await getProduct();
+        console.log(data);
+        console.log(Array.isArray(data));
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setError(true);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState(null);
   return (
     <>
       <Navbar />
       <Category selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
-      
+
       <div className="bg-gray-100 min-h-screen">
         <div className="max-w-7xl m-2 mx-auto flex gap-2 sm:gap-3 md:gap-5 lg:gap-6">
           {/*<div>
@@ -42,11 +43,7 @@ export default function Product() {
               <ShowProduct key={product._id} product={product} />
             ))}
           </div>
-          {error && (
-            <p className="w-full text-center text-gray-500">
-              Products are unavailable right now. Please try again shortly.
-            </p>
-          )}
+          {error && <p className="w-full text-center text-gray-500">Products are unavailable right now. Please try again shortly.</p>}
         </div>
       </div>
       <Footer />
