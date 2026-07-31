@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 const categoryData = {
-  Fans: ["Basics","BLDC", "Designer", "Exhaust Fans"],
+  Fans: ["Classic","Designer", "BLDC", "Antique", "Chandelier"],
   Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
   Electricals: ["Switches", "Sockets", "MCB", "Wires","Ragulator"],
    Appliances: ["Kitchen", "Bathroom", "Home"],
