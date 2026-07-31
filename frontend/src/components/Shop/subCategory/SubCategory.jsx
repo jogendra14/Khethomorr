@@ -1,179 +1,97 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+// components/Shop/subCategory/SubCategory.jsx
+import { ChevronDown, ChevronRight } from "lucide-react";
 
-export default function SubCateggory({ selectedCategory }) {
-  const [expandedCategory, setExpandedCategory] = useState(null);
-
-  const filterData = {
-    Lighting: [
-      {
-        name: "Ceiling",
-        subcategories: [
-          "LED Bulbs",
-          "Ceiling Lights",
-          "Panel Lights",
-          "Chandeliers",
-        ],
-      },
-      {
-        name: "Wall",
-        subcategories: [
-          "Wall Lights",
-          "Picture Lights",
-          "Decor Lights",
-        ],
-      },
-      {
-        name: "Table",
-        subcategories: [
-          "Study Lamps",
-          "Table Lamps",
-        ],
-      },
+export default function SubCategory({ 
+  selectedCategory, 
+  setSelectedSubCategory, 
+  selectedSubCategory,
+  className = "",
+  variant = "default" // "default" or "inline"
+}) {
+  // Define sub-categories for each main category
+  const subCategoriesMap = {
+    fans: [
+      { id: "all-fans", name: "All Fans" },
+      { id: "ceiling-fans", name: "Ceiling Fans" },
+      { id: "table-fans", name: "Table Fans" },
+      { id: "pedestal-fans", name: "Pedestal Fans" },
+      { id: "exhaust-fans", name: "Exhaust Fans" },
+      { id: "smart-fans", name: "Smart Fans" },
     ],
-
-    Fans: [
-      {
-        name: "Ceiling Fan",
-        subcategories: [
-          "1200 mm",
-          "1400 mm",
-          "BLDC Fan",
-        ],
-      },
-      {
-        name: "Table Fan",
-        subcategories: [
-          "12 Inch",
-          "16 Inch",
-        ],
-      },
-      {
-        name: "Exhaust Fan",
-        subcategories: [
-          "Kitchen",
-          "Bathroom",
-        ],
-      },
+    lighting: [
+      { id: "all-lighting", name: "All Lighting" },
+      { id: "led-bulbs", name: "LED Bulbs" },
+      { id: "tube-lights", name: "Tube Lights" },
+      { id: "panel-lights", name: "Panel Lights" },
+      { id: "decorative", name: "Decorative Lights" },
     ],
-
-    Appliance: [
-      {
-        name: "Kitchen",
-        subcategories: [
-          "Mixer",
-          "Microwave",
-          "Oven",
-        ],
-      },
-      {
-        name: "Home",
-        subcategories: [
-          "Iron",
-          "Heater",
-          "Cooler",
-        ],
-      },
+    appliance: [
+      { id: "all-appliance", name: "All Appliances" },
+      { id: "kitchen", name: "Kitchen Appliances" },
+      { id: "laundry", name: "Laundry Appliances" },
+      { id: "cooling", name: "Cooling Appliances" },
     ],
-
-    Electrical: [
-      {
-        name: "Switch",
-        subcategories: [
-          "Anchor",
-          "GM",
-          "Havells",
-        ],
-      },
-      {
-        name: "Wire",
-        subcategories: [
-          "1 Sqmm",
-          "1.5 Sqmm",
-          "2.5 Sqmm",
-        ],
-      },
+    electrical: [
+      { id: "all-electrical", name: "All Electrical" },
+      { id: "switches", name: "Switches" },
+      { id: "wires", name: "Wires & Cables" },
+      { id: "circuit-breakers", name: "Circuit Breakers" },
     ],
-
-    Solar: [
-      {
-        name: "Panels",
-        subcategories: [
-          "Mono",
-          "Poly",
-        ],
-      },
-      {
-        name: "Inverter",
-        subcategories: [
-          "1 KW",
-          "3 KW",
-          "5 KW",
-        ],
-      },
-    ],
-
-    Other: [
-      {
-        name: "Accessories",
-        subcategories: [
-          "Tools",
-          "Spare Parts",
-        ],
-      },
+    solar: [
+      { id: "all-solar", name: "All Solar" },
+      { id: "panels", name: "Solar Panels" },
+      { id: "inverters", name: "Inverters" },
+      { id: "batteries", name: "Solar Batteries" },
     ],
   };
 
-  const categories = filterData[selectedCategory] || [];
+  // Get sub-categories for selected category
+  const subCategories = subCategoriesMap[selectedCategory?.toLowerCase()] || [];
 
-  const toggleCategory = (categoryName) => {
-    setExpandedCategory(
-      expandedCategory === categoryName ? null : categoryName
-    );
-  };
+  if (subCategories.length === 0) return null;
 
-  // Jab koi category select na ho
-  if (!selectedCategory) return null;
-
-  return (
-    <div className=" bg-white border-b border-r shadow-md p-2 md:p-4 ">
-      <h2 className="text-md md:text-lg font-bold mb-3">
-        Categories
-      </h2>
-      
-      {categories.map((category) => (
-        <div key={category.name}>
-          {/* Main Category Button */}
+  // Different styles based on variant
+  if (variant === "inline") {
+    return (
+      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+        {subCategories.map((sub) => (
           <button
-            onClick={() => toggleCategory(category.name)}
-                className=" my-2 md:my-3 lg:my-4 w-24 sm:w-35 md:w-43 lg:w-54 flex items-center justify-between mx-1.5 md:ml-2 lg:ml-4 rounded-lg hover:bg-gray-100 transition-colors text-left"
-              >
-                <span className="text-gray-700 text-[13px] md:text-md lg:text-[16px]">
-                  {category.name}
-                </span>
+            key={sub.id}
+            onClick={() => setSelectedSubCategory(sub.id)}
+            className={`px-2.5 py-1 text-sm rounded-full transition-all duration-200 ${
+              selectedSubCategory === sub.id
+                ? "bg-blue-100 text-blue-700 font-medium border border-blue-300"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
+            }`}
+          >
+            {sub.name}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
-                <ChevronDown
-                  className={`text-gray-600 size-3.5 md:size-4 lg:size-5 transition-transform duration-300 
-                    ${expandedCategory === category.name ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Subcategories - Collapsible */}
-              {expandedCategory === category.name && (
-                <div className="text-[11px] md:text-sm lg:text-md ml-1.5 md:ml-2.5 lg:ml-4 border-l-2 border-gray-200">
-                  {category.subcategories.map((subcategory) => (
-                    <button
-                      key={subcategory}
-                      className="block w-full text-left ml-1.5 md:ml-2.5 lg:ml-4 my-2 lg:my-3  text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      {subcategory}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+  // Default variant - Card style
+  return (
+    <div className={`bg-white rounded-xl shadow p-4 ${className}`}>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        Sub-Categories
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {subCategories.map((sub) => (
+          <button
+            key={sub.id}
+            onClick={() => setSelectedSubCategory(sub.id)}
+            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+              selectedSubCategory === sub.id
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {sub.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
