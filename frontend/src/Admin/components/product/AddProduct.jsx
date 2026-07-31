@@ -5,11 +5,10 @@ import { addProduct } from "../../../api/productApi";
 import { useNavigate } from "react-router-dom";
 
 const categoryData = {
-  Fans: ["Ceiling Fans", "Table Fans", "Wall Fans", "Exhaust Fans"],
+  Fans: ["Basics","BLDC", "Designer", "Exhaust Fans"],
   Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-  Electricals: ["Switches", "Sockets", "MCB", "Wires"],
-  "Kitchen Appliances": ["Mixer Grinder", "Induction Cooktop", "Electric Kettle"],
-  "Bathroom Appliances": ["Water Heater", "Hand Dryer", "Exhaust Fan"],
+  Electricals: ["Switches", "Sockets", "MCB", "Wires","Ragulator"],
+   Appliances: ["Kitchen", "Bathroom", "Home"],
   "Solar Product": ["Solar Panel", "Solar Inverter", "Solar Battery"],
   "Smart Home": ["Smart Switch", "Smart Plug", "Smart Camera"],
   "Safety & Security": ["CCTV", "Door Lock", "Video Door Phone"],

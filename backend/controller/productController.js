@@ -66,15 +66,11 @@ const createProduct = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
+
   try {
+    
     const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, colors } = req.body;
-
-    // 👇 IMPORTANT: Numbers ko forcefully Number banayein
-    if (oldPrice) oldPrice = Number(oldPrice);
-    if (newPrice) newPrice = Number(newPrice);
-    if (discount) discount = Number(discount);
-    if (stock) stock = Number(stock);
-
+    
     const parsedColors = colors ? JSON.parse(colors) : [];
     const product = await Product.findById(req.params.id);
     if (product) {
@@ -108,6 +104,61 @@ const updateProduct = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Duplicate a product
+// @route   POST /api/products/:id/duplicate
+// @access  Private/Admin
+export const duplicate = async (req, res) => {
+  console.log("✅ Duplicate controller hit!");
+  console.log("📌 Params:", req.params);
+  console.log("📌 ID:", req.params.id);
+  
+  try {
+    const productId = req.params.id;
+    
+    // 1. Original product find karo
+    const originalProduct = await Product.findById(productId);
+    console.log("product mil gya controller me");
+    
+    if (!originalProduct) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Product not found' 
+      });
+    }
+
+    // 2. Product data copy karo (without _id, timestamps, etc.)
+    const productData = originalProduct.toObject();
+    delete productData._id;
+    delete productData.createdAt;
+    delete productData.updatedAt;
+    delete productData.__v;
+
+    // 3. Name mein "(Copy)" add karo
+    productData.name = `${productData.name} (Copy)`;
+    
+    // 4. Optional: Stock 0 kar do (recommended)
+    productData.stock = 0;
+
+    // 5. New product create karo
+    const duplicatedProduct = new Product(productData);
+    await duplicatedProduct.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Product duplicated successfully',
+      product: duplicatedProduct
+    });
+
+  } catch (error) {
+    console.error('Duplicate product error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to controller duplicate product',
+      error: error.message
+    });
   }
 };
 

@@ -2,6 +2,7 @@ import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { deleteProduct, getProduct } from "../../api/productApi";
+import DuplicateBtn from "../components/product/DuplicateBtn"; // 
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -10,8 +11,9 @@ export default function Products() {
   const fetchProducts = async () => {
     try {
       const data = await getProduct();
-      setProducts(data);
-    } catch (error) {
+      setProducts(data); 
+    }
+    catch (error) {
       console.log(error);
     }
   };
@@ -22,7 +24,6 @@ export default function Products() {
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this product?");
-
     if (!confirmDelete) return;
 
     try {
@@ -57,7 +58,6 @@ export default function Products() {
       </div>
 
       {/* Search */}
-
       <div className="relative mb-6 max-w-sm">
         <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
@@ -65,7 +65,6 @@ export default function Products() {
       </div>
 
       {/* Table */}
-
       <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-100">
@@ -108,6 +107,13 @@ export default function Products() {
                     <button onClick={() => navigate(`/admin/edit-product/${product._id}`)} className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-lg">
                       <Pencil size={18} />
                     </button>
+
+                    {/* Duplicate Button - New */}
+                      <DuplicateBtn
+                      id={product._id}
+                        onDuplicateSuccess={fetchProducts}
+                      />
+
 
                     <button onClick={() => handleDelete(product._id)} className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg">
                       <Trash2 size={18} />

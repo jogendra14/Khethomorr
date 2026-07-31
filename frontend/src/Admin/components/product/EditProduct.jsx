@@ -5,16 +5,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 const categoryData = {
-  Fans: ["Ceiling Fans", "Table Fans", "Wall Fans", "Exhaust Fans"],
+  Fans: ["Basics","BLDC", "Designer", "Exhaust Fans"],
   Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-  Electricals: ["Switches", "Sockets", "MCB", "Wires"],
-  "Kitchen Appliances": ["Mixer Grinder", "Induction Cooktop", "Electric Kettle"],
-  "Bathroom Appliances": ["Water Heater", "Hand Dryer", "Exhaust Fan"],
+  Electricals: ["Switches", "Sockets", "MCB", "Wires","Ragulator"],
+   Appliances: ["Kitchen", "Bathroom", "Home"],
   "Solar Product": ["Solar Panel", "Solar Inverter", "Solar Battery"],
   "Smart Home": ["Smart Switch", "Smart Plug", "Smart Camera"],
   "Safety & Security": ["CCTV", "Door Lock", "Video Door Phone"],
   Others: ["Accessories", "Spare Parts"],
 };
+
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -75,8 +75,9 @@ export default function EditProduct() {
     if (name === "discount" && oldPrice > 0) {
       updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
     }
-
+   
     setProduct(updated);
+   
   };
 
   
@@ -139,27 +140,26 @@ export default function EditProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const formData = new FormData();
-
+      
       formData.append("name", product.name);
       formData.append("description", product.description);
       formData.append("category", product.category);
       formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
-
+      
       formData.append("oldPrice", product.oldPrice);
       formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
-
+      
       formData.append("fanSize", product.fanSize);
       formData.append("stock", product.stock);
       formData.append("colors", JSON.stringify(colors)); 
-
-       // Send existing images URLs
+      
+      // Send existing images URLs
       formData.append("existingImages", JSON.stringify(existingImages));
-
+      
       // Send new images
       images.forEach((img) => {
         formData.append("images", img);

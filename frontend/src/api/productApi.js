@@ -30,6 +30,7 @@ export const getProductById = async (id) => {
 
 //UpdateProduct API server pr data update krna 
 export const updateProduct = async (id, data) => {
+
   const res = await API.put(`/products/${id}`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -38,6 +39,29 @@ export const updateProduct = async (id, data) => {
   });
   return res.data;
 };
+
+// Duplicate Product API
+export const duplicateProduct = async (id) => {
+  try {
+    console.log("✅ Duplicate API hit!");
+    const url = `/products/${id}/duplicate`;
+    console.log("📡 Full URL:", `${API.defaults.baseURL}${url}`);
+
+    const response = await API.post( `/products/${id}/dupliCate`, {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    console.log("api me aa gya duplicate");
+    return response.data;
+  } catch (error) {
+    console.error("Error api ka duplicating product:", error);
+    throw error;
+  }
+};
+
 
 //DeleteProduct API database se data delete krna 
 export const deleteProduct = async (id) => {
