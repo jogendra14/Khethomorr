@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { FiHeart, FiTruck, FiRefreshCw } from "react-icons/fi";
 import { IoShieldCheckmarkOutline } from "react-icons/io5";
 import { MdOutlineEnergySavingsLeaf } from "react-icons/md";
@@ -12,17 +12,39 @@ export default function ProductInfo({ product }) {
   const [selectedSize, setSelectedSize] = useState("S");
   const { addToCart } = useContext(CartContext);
 
-  const colors = ["#556B2F", "#1E3A8A", "#F5F5DC", "#111827"];
+  // Get colors from product data
+  const colors = product?.colors || [];
+
+   // Set default selected color when component mounts
+  useEffect(() => {
+    if (colors.length > 0 && !selectedColor) {
+      setSelectedColor(colors[0].code);
+    }
+  }, [colors, selectedColor]);
 
   const fanSize = ["600", "900", "1200", "1400"];
 
+  // Get the selected color name and capitalize first letter
+  const selectedColorObj = colors.find(c => c.code === selectedColor);
+  const selectedColorName = selectedColorObj?.name || "";
+  
+  // Capitalize first letter of color name
+  const capitalizedColorName = selectedColorName 
+    ? selectedColorName.charAt(0).toUpperCase() + selectedColorName.slice(1)
+    : "";
+
+  // Updated product name with color in parentheses
+  const displayName = capitalizedColorName 
+    ? `${product.name} (${capitalizedColorName})` 
+    : product.name;
+    
   return (
     <div className="">
       {/* Badge */}
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
 
       {/* Title */}
-      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
+      <h1 className="text-xl md:text-2xl font-bold mt-2 ">{displayName}</h1>
 
       <div className="flex items-center gap-2 mt-3">
       {/* Rating */}
@@ -33,17 +55,13 @@ export default function ProductInfo({ product }) {
         </div>
 
         <span className="font-semibold">{product.rating}</span>
-
         <span className="text-gray-500">{product.numReviews} Reviews</span>
       </div>
 
       {/* Price */}
-
       <div className="mt-1 md:mt-2">
           <span className="text-blue-700 text-2xl md:text-3xl font-bold">₹{product.newPrice}</span>
-
           <span className="text-lg mx-1 md:text-xl text-gray-600">M.R.P.</span>
-
           <span className="line-through text-lg md:text-xl text-gray-500">{product.oldPrice}</span>
       </div>
           
@@ -52,27 +70,28 @@ export default function ProductInfo({ product }) {
       </p>
 
       {/* Description */}
-
       <p className="text-gray-500 mt-1">
         {product.description}
       </p>
 
-      {/* Colors */}
+       {/* Colors - Dynamically rendered */}
+      {colors.length > 0 && (
+        <div className="mt-4">
+          <h3 className="font-semibold mb-3">Color :</h3>
 
-      <div className="mt-4">
-        <h3 className="font-semibold mb-3">Color :</h3>
-
-        <div className="flex gap-4">
-          {colors.map((color, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedColor(color)}
-              className={`w-10 h-10 rounded-full border-4 transition ${selectedColor === color ? "border-black scale-110" : "border-gray-200"}`}
-              style={{ background: color }}
-            />
-          ))}
+          <div className="flex gap-4">
+            {colors.map((color, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedColor(color.code)}
+                className={`w-10 h-10 rounded-full border-4 transition ${selectedColor === color.code ? "border-black scale-110" : "border-gray-200"}`}
+                style={{ background: color.code }}
+                title={color.name} // Shows color name on hover
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Sizes */}
 
