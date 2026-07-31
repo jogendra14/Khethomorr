@@ -6,14 +6,19 @@ import { WishlistContext } from "../../../context/WishlistContext";
 
 
 const ProductCard = ({ product: productFromApi }) => {
+
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist } = useContext(WishlistContext);
 
+  // ProductCard.jsx mein price logic update:
   const discount = Number(productFromApi.discount) || 0;
-  const originalPrice = discount > 0 ? Math.round(Number(productFromApi.price) / (1 - discount / 100)) : null;
+  const newPrice = Number(productFromApi.newPrice) || Number(productFromApi.price); // prefer newPrice
+  const oldPrice = productFromApi.oldPrice ? Number(productFromApi.oldPrice) : (discount > 0 ? Math.round(newPrice / (1 - discount / 100)) : newPrice);
+  
   const product = {
     ...productFromApi,
-    oldPrice: productFromApi.oldPrice ?? originalPrice,
+    newPrice, 
+    oldPrice,
   };
 
   return (
@@ -52,7 +57,7 @@ const ProductCard = ({ product: productFromApi }) => {
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-lg md:text-2xl font-bold text-red-600">₹{product.newPrice}</span>
 
-            <span className="text-gray-400 text-md md:text-xl line-through">₹{product.oldPrice}</span>
+            <span className="text-gray-400 text-sm md:text-md line-through">₹{product.oldPrice}</span>
           </div>
         </div>
       </Link>
