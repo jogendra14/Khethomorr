@@ -12,11 +12,11 @@ export default function SubCategory({
   const subCategoriesMap = {
     fans: [
       { id: "all-fans", name: "All Fans" },
-      { id: "ceiling-fans", name: "Ceiling Fans" },
-      { id: "table-fans", name: "Table Fans" },
-      { id: "pedestal-fans", name: "Pedestal Fans" },
-      { id: "exhaust-fans", name: "Exhaust Fans" },
-      { id: "smart-fans", name: "Smart Fans" },
+      { id: "classic", name: "Classic" },
+      { id: "designer", name: "Designer" },
+      { id: "bldc ", name: "BLDC" },
+      { id: "antique ", name: "Antique" },
+      { id: "chandelier ", name: "Chandelier " },
     ],
     lighting: [
       { id: "all-lighting", name: "All Lighting" },

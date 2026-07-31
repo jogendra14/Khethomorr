@@ -98,8 +98,7 @@ export default function Product() {
 
       <div className="bg-gray-100 min-h-screen">
         <div className="max-w-7xl m-2 mx-auto flex gap-2 sm:gap-3 md:gap-5 lg:gap-6">
-          
-            
+      
             {filteredProducts.length > 0 ? (
             isSubCategorySelected ? (
               // Show products grouped by brand when subcategory is selected
