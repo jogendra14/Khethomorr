@@ -19,18 +19,16 @@ export default function DuplicateButton({ id, onDuplicateSuccess }) {
 
     try {
       await duplicateProduct(id);
-      console.log("data in duplicate button");
       
       // Success message
-      alert(`Product duplicated successfully! New product`);
+      alert(`Product successfully! New product`);
       
       // Parent component ko update karne ke liye callback
       if (onDuplicateSuccess) {
         onDuplicateSuccess();
       }
     } catch (error) {
-      console.log("Duplicat btn ka",error);
-      //alert(error.response?.data?.message || "Failed to duplicate button duplicate product");
+      alert(error.response?.data?.message || "Failed to duplicate button duplicate product");
     } finally {
       setIsDuplicating(false);
     }

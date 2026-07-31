@@ -111,16 +111,12 @@ const updateProduct = async (req, res) => {
 // @route   POST /api/products/:id/duplicate
 // @access  Private/Admin
 export const duplicate = async (req, res) => {
-  console.log("✅ Duplicate controller hit!");
-  console.log("📌 Params:", req.params);
-  console.log("📌 ID:", req.params.id);
-  
+
   try {
     const productId = req.params.id;
     
     // 1. Original product find karo
     const originalProduct = await Product.findById(productId);
-    console.log("product mil gya controller me");
     
     if (!originalProduct) {
       return res.status(404).json({ 

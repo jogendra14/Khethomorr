@@ -43,10 +43,6 @@ export const updateProduct = async (id, data) => {
 // Duplicate Product API
 export const duplicateProduct = async (id) => {
   try {
-    console.log("✅ Duplicate API hit!");
-    const url = `/products/${id}/duplicate`;
-    console.log("📡 Full URL:", `${API.defaults.baseURL}${url}`);
-
     const response = await API.post( `/products/${id}/dupliCate`, {},
       {
         headers: {
@@ -54,7 +50,6 @@ export const duplicateProduct = async (id) => {
         },
       }
     );
-    console.log("api me aa gya duplicate");
     return response.data;
   } catch (error) {
     console.error("Error api ka duplicating product:", error);
