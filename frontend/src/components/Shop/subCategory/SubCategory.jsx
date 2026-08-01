@@ -14,9 +14,9 @@ export default function SubCategory({
       { id: "all-fans", name: "All Fans" },
       { id: "classic", name: "Classic" },
       { id: "designer", name: "Designer" },
-      { id: "bldc ", name: "BLDC" },
-      { id: "antique ", name: "Antique" },
-      { id: "chandelier ", name: "Chandelier " },
+      { id: "bldc", name: "BLDC" },
+      { id: "antique", name: "Antique" },
+      { id: "chandelier", name: "Chandelier" },
     ],
     lighting: [
       { id: "all-lighting", name: "All Lighting" },

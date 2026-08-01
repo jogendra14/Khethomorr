@@ -8,6 +8,11 @@ const productSchema = new mongoose.Schema(
     newPrice: { type: Number, required: true, },
     discount: { type: Number, default: 0, },
     category: { type: String, required: true },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true
+    },
     subCategory: { type: String },
 
     colors: [{ name: String, code: String }],

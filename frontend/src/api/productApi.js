@@ -63,7 +63,8 @@ export const deleteProduct = async (id) => {
   const res = await API.delete(`/products/${id}`,{
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },}
+    },
+  }
   );
   return res.data;
 };

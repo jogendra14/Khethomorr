@@ -26,41 +26,20 @@ export default function Product() {
 
   // FILTER LOGIC - Filter by category and sub-category
   const filteredProducts = products.filter((product) => {
-    // Main category filter
+    // 1. Main category filter (Convert both to lowercase for case-insensitive matching)
     if (selectedCategory !== "all" && product.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
       return false;
     }
 
-    // Sub-category filter
-    if (selectedSubCategory && selectedSubCategory !== `all-${selectedCategory}`) {
-      // Map sub-category IDs to search keywords
-      const subCategoryMap = {
-        "ceiling-fans": ["ceiling", "ceiling fan"],
-        "table-fans": ["table", "table fan"],
-        "pedestal-fans": ["pedestal", "stand fan", "floor fan"],
-        "exhaust-fans": ["exhaust", "ventilation"],
-        "smart-fans": ["smart", "wifi", "bluetooth", "remote"],
-        "led-bulbs": ["led bulb", "led light"],
-        "tube-lights": ["tube light", "fluorescent"],
-        "panel-lights": ["panel light", "ceiling panel"],
-        "decorative": ["decorative", "decoration", "string light"],
-        "kitchen": ["kitchen", "mixer", "grinder", "juicer"],
-        "laundry": ["washing", "dryer", "laundry"],
-        "cooling": ["cooler", "air conditioner", "ac"],
-        "switches": ["switch", "socket"],
-        "wires": ["wire", "cable", "extension"],
-        "circuit-breakers": ["breaker", "mcb", "rccb"],
-        "panels": ["solar panel", "panel"],
-        "inverters": ["inverter", "solar inverter"],
-        "batteries": ["battery", "solar battery"],
-      };
+    // 2. Sub-category filter (Direct exact match)
+    if (selectedSubCategory && !selectedSubCategory.startsWith('all-')) {
+      // Check if the product's subCategory matches the selected ID directly
+      // (Assuming your database uses the same IDs like "classic", "designer", "bldc")
+      const productSub = product.subCategory?.toLowerCase();
+      const selectedSub = selectedSubCategory.toLowerCase();
 
-        const keywords = subCategoryMap[selectedSubCategory] || [];
-      if (keywords.length > 0) {
-        return keywords.some(keyword => 
-          product.name?.toLowerCase().includes(keyword) ||
-          product.description?.toLowerCase().includes(keyword)
-        );
+      if (productSub !== selectedSub) {
+        return false;
       }
     }
 
@@ -104,9 +83,9 @@ export default function Product() {
               // Show products grouped by brand when subcategory is selected
               <div className="space-y-8">
                 {brandNames.map((brand) => (
-                  <div key={brand} className="bg-white rounded-xl shadow-lg p-4">
+                  <div key={brand} className="bg-white mt-2 rounded-xl shadow-lg p-4">
                     {/* Brand Name Header */}
-                    <h2 className="text-2xl font-bold text-gray-800 border-b-2 border-blue-500 pb-3 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800  pb-3 mb-4">
                       {brand}
                       <span className="text-sm font-normal text-gray-500 ml-3">
                         ({groupedProducts[brand].length} products)
@@ -124,7 +103,7 @@ export default function Product() {
               </div>
             ) : (
               // Show all products in a grid when "All" subcategory is selected
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                 {filteredProducts.map((product) => (
                   <ShowProduct key={product._id} product={product} />
                 ))}

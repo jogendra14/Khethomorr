@@ -12,6 +12,12 @@ import Products from "./Admin/pages/Products.jsx";
 import AddProduct from "./Admin/components/product/AddProduct.jsx";
 import EditProduct from "./Admin/components/product/EditProduct.jsx";
 
+import Categories from "./Admin/pages/Categories.jsx";
+import SubCategories from "./Admin/components/subCategories/SubCategories.jsx";
+import Brands from "./Admin/components/subCategories/Brands.jsx";
+//import AddCategory from "./Admin/components/category/AddCategory.jsx"
+//import EditCategory from "./Admin/components/category/EditCategory.jsx"
+
 import Offers from "./Admin/pages/Deals.jsx";
 import AddDeal from "./Admin/components/deal/AddDeal.jsx";
 import EditDeal from "./Admin/components/deal/EditDeal.jsx";
@@ -33,7 +39,6 @@ import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx"
 import Cart from "./pages/Cart.jsx";
 import Wishlist from "./pages/Wishlist.jsx";
-import Categories from "./Admin/pages/Categories.jsx";
 import Coupons from "./Admin/pages/Coupons.jsx";
 import Banner from "./Admin/pages/Banner.jsx";
 import Settings from "./Admin/pages/Settings.jsx";
@@ -69,14 +74,23 @@ const App = () => {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<Products />} />
-            <Route path="add-product" element={<AddProduct />} /> 
+            <Route path="/admin/add-product" element={<AddProduct />} /> 
             <Route path="/admin/edit-product/:id" element={<EditProduct/>} /> 
+
+            <Route path="categories" element={<Categories />} />
+            <Route path="/admin/sub-categories" element={<SubCategories />} />
+            <Route path="/admin/brands" element={<Brands />} />
+
+          {/*
+            <Route path="/admin/add-category" element={<AddCategory />} /> 
+            <Route path="/admin/edit-category/:id" element={<EditCategory/>} /> */}
+
             <Route path="deals" element={<Offers  />}/>
-            <Route path="add-deal" element={<AddDeal />} /> 
+            <Route path="/admin/add-deal" element={<AddDeal />} /> 
             <Route path="/admin/edit-deal/:id" element={<EditDeal/>} /> 
             <Route path="orders" element={<Orders />} />
             <Route path="users" element={<Users />} />
-            <Route path="categories" element={<Categories />} />
+
             <Route path="coupons" element={<Coupons />} />
             <Route path="banner" element={<Banner />} />
             <Route path="settings" element={<Settings />} />

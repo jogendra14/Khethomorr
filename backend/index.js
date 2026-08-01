@@ -1,3 +1,5 @@
+//backend/index.js
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -12,6 +14,8 @@ import ordersRoutes from "./routes/ordersRoutes.js";
 import paymentsRoutes from "./routes/paymentsRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
+//import categoryRoutes from "./routes/categoryRoutes.js";     
+//import subCategoryRoutes from "./routes/subCategoryRoutes.js";
 
 
 const app = express();
@@ -46,6 +50,8 @@ app.get("/", (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
+//app.use("/api/categories", categoryRoutes);           
+//app.use("/api/subcategories", subCategoryRoutes);     
 app.use("/api/deals", dealsRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/payments", paymentsRoutes);

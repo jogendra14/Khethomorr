@@ -1,21 +1,10 @@
 // frontend/src/pages/Categories.jsx
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Loader2, Edit2, Trash2, Link } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // यह 
-import { getProduct } from "../../api/productApi"; 
-
-// यह फंक्शन कंपोनेंट के बाहर होना चाहिए
-const countProductsByCategory = (products) => {
-  return products.reduce((categoryCount, product) => {
-    categoryCount[product.category] = (categoryCount[product.category] || 0) + 1;
-    return categoryCount;
-  }, {});
-};
+import { Search, Plus, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { getCategoriesWithCounts, deleteCategory } from '../api/category'; // अपने API पाथ के अनुसार adjust करें
 
 const Categories = () => {
-  const navigate = useNavigate(); // navigate hook
-  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -24,26 +13,17 @@ const Categories = () => {
 
   // Fetch categories with product counts from backend
   useEffect(() => {
-    fetchProducts();
+    fetchCategories();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchCategories = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const productsData = await getProduct();
-      setProducts(productsData); // products state भी set करें
-      
-      const categoryCounts = countProductsByCategory(productsData);
-      
-      const uniqueCategories = Object.keys(categoryCounts).map(categoryName => ({
-        id: categoryName.toLowerCase().replace(/\s/g, '-'),
-        name: categoryName,
-        productCount: categoryCounts[categoryName],
-      }));
-
-      setCategories(uniqueCategories);    
+      // Backend से कैटेगरी और प्रोडक्ट काउंट fetch करें
+      const data = await getCategoriesWithCounts();
+      setCategories(data);
     } catch (err) {
       setError(err.message || 'Failed to fetch categories');
       setCategories([]);
@@ -52,12 +32,7 @@ const Categories = () => {
     }
   };
 
-  // Category पर क्लिक करने पर Sub-Category पेज पर जाएं
-  const handleCategoryClick = (categoryName) => {
-    navigate(`/admin/sub-categories?category=${encodeURIComponent(categoryName)}`);
-  };
-
-  // Delete category handler - अब यह काम करेगा
+  // Delete category handler
   const handleDeleteCategory = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete category "${name}"?`)) {
       return;
@@ -65,18 +40,9 @@ const Categories = () => {
 
     try {
       setDeletingId(id);
-      // यहाँ आपका delete API call आएगा
-      // await deleteCategory(id);
-      
-      // अभी के लिए सिर्फ local state से हटा रहे हैं (डेमो के लिए)
-      setCategories(prevCategories => 
-        prevCategories.filter(cat => cat.id !== id)
-      );
-      
-      // अगर आपके पास deleteCategory function है तो उसे call करें
-      // await deleteCategory(id);
-      // await fetchProducts(); // रिफ्रेश के लिए
-      
+      await deleteCategory(id);
+      // Success - refresh the list
+      await fetchCategories();
     } catch (err) {
       alert(`Failed to delete category: ${err.message}`);
     } finally {
@@ -104,7 +70,7 @@ const Categories = () => {
       </div>
 
       {/* Search */}
-      <div className="relative mb-4">
+      <div className="flex-1 relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
           type="text"
@@ -115,8 +81,8 @@ const Categories = () => {
         />
       </div>
 
-      {/* Categories List View */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Categories Grid/List View */}
+      <div className="bg-white rounded-xl mt-2 shadow-sm border border-gray-200 overflow-hidden">
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center p-12">
@@ -131,7 +97,7 @@ const Categories = () => {
             <div className="text-center">
               <p className="text-red-600 mb-3">Error loading categories: {error}</p>
               <button 
-                onClick={fetchProducts}
+                onClick={fetchCategories}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Retry
@@ -140,7 +106,7 @@ const Categories = () => {
           </div>
         )}
 
-        {/* Table Header */}
+        {/* Table Header - Only show when data is loaded and no error */}
         {!loading && !error && categories.length > 0 && (
           <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-2">Image</div>
@@ -159,15 +125,11 @@ const Categories = () => {
           )}
           
           {filteredCategories.map((category) => (
-            <div 
-              key={category.id} 
-              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => handleCategoryClick(category.name)} // पूरे row पर click
-            >
+            <div key={category._id || category.id} className="p-4 hover:bg-gray-50 transition-colors">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
                 {/* Image */}
                 <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-3">
-                  <div className="w-12 h-12 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
                     {category.image || category.icon || '📦'}
                   </div>
                   <span className="lg:hidden text-sm font-medium text-gray-500">Image</span>
@@ -180,46 +142,37 @@ const Categories = () => {
                   </div>
                 </div>
                 
-                {/* Products count */}
+                {/* Products count - Dynamic from backend */}
                 <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-2">
                   <span className="lg:hidden text-sm font-medium text-gray-500">Products:</span>
                   <span className="text-sm text-gray-700">
-                    {category.productCount || 0} items
+                    {category.productCount || category.products || 0} items
                   </span>
                 </div>
 
-                {/* Actions - Stop propagation so click doesn't trigger category navigation */}
+                {/* Actions - View/Edit/Delete */}
                 <div className="sm:col-span-2 lg:col-span-5 flex items-center justify-end gap-2">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCategoryClick(category.name);
-                    }}
+                    onClick={() => {/* Navigate to category products */}}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="View sub-categories"
+                    title="View products"
                   >
                     <span className="text-sm">View</span>
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Edit category
-                    }}
+                    onClick={() => {/* Edit category */}}
                     className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Edit category"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCategory(category.id, category.name);
-                    }}
-                    disabled={deletingId === category.id}
+                    onClick={() => handleDeleteCategory(category._id || category.id, category.name)}
+                    disabled={deletingId === (category._id || category.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete category"
                   >
-                    {deletingId === category.id ? (
+                    {deletingId === (category._id || category.id) ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Trash2 className="w-4 h-4" />
