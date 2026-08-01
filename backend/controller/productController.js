@@ -65,7 +65,6 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    
     const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
   
     const product = await Product.findById(req.params.id);
@@ -77,10 +76,10 @@ const updateProduct = async (req, res) => {
       product.category = category || product.category;
       product.subCategory = subCategory || product.subCategory;
       product.fanSize = fanSize || product.fanSize;
+      product.color = color || product.color;
       product.stock = stock || product.stock;
       product.brand = brand || product.brand;
       product.discount = discount || product.discount;
-      product.color = color || product.color;
 
       if (req.files && req.files.length > 0) {
         const images = [];

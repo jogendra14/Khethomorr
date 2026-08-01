@@ -134,7 +134,7 @@ export default function EditProduct() {
       images.forEach((img) => {
         formData.append("images", img);
       });
-
+      
       await updateProduct(id, formData);
 
       alert("Product Updated Successfully");

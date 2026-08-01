@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
     category: { type: String, required: true },
     subCategory: { type: String , required: true}, 
 
-    color: [{ name: String, code: String }],
+    color: { type: String, },
     fanSize: { type: String },
 
     stock: { type: Number, required: true },
