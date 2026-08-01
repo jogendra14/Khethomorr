@@ -1,3 +1,5 @@
+// frontend/src/components/Shop/ProductInfo.jsx
+
 import { useContext, useState, useEffect } from "react";
 import { getProduct } from "../../api/productApi";
 import { FiHeart, FiTruck, FiRefreshCw } from "react-icons/fi";
@@ -63,9 +65,9 @@ export default function ProductInfo({ product }) {
   }
 
   return (
-    <div className="">
+    <div className="min-h-screen">
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
-      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
+      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name} ({product.color})</h1>
       <div className="flex items-center gap-2 mt-3">
         <div className="flex text-yellow-400">
           {[1, 2, 3, 4, 5].map((item) => (
@@ -89,16 +91,21 @@ export default function ProductInfo({ product }) {
       {/* Color Section - Shows all matching products as color variants */}
       <h3 className="font-semibold mt-1" >Color : {product.color}</h3>
 
-        <div className="flex gap-1.5 md:gap-3.5 mt-2 flex-wrap 2">
+        <div className="flex gap-2 md:gap-3.5 border-2 rounded-xl border-gray-300 p-1 md:p-2.5 mt-2 flex-wrap">
           {colorVariants.length > 0 ? 
           (
-            colorVariants.map((variant, index) => (          
-              <div key={index} className="cursor-pointer rounded-lg " >
+            colorVariants.map((variant, index) => (  
+               <Link 
+                key={index} 
+                to={`/product/${variant._id}`}  // Navigate to product detail page with variant ID
+                className="cursor-pointer rounded-lg block"
+              >
                 <img 
                   src={variant.images?.[0]} 
-                  className="w-23 h-23 transition duration-500 ease-in-out hover:scale-105  object-cover rounded"
+                  className="w-22 h-23 md:w-30 md:h-30 transition duration-500 ease-in-out hover:scale-105 object-cover rounded-xl"
+                  alt={variant.name || "Product variant"}
                 />  
-              </div>   
+              </Link>  
             ))
           ) : (
             <p className="text-gray-500 text-sm">No other color variants available</p>

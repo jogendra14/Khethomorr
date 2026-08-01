@@ -107,7 +107,6 @@ export default function EditProduct() {
   };
 
   // Update Product
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -140,7 +139,8 @@ export default function EditProduct() {
       alert("Product Updated Successfully");
 
       navigate("/admin/products");
-    } catch (error) {
+    } 
+    catch (error) {
       console.log(error);
 
       alert(error.response?.data?.message || "Product Update Failed");
@@ -157,18 +157,7 @@ export default function EditProduct() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="font-semibold">Product Name</label>
-
-              <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
-            </div>
-
-            <div>
-              <label className="font-semibold">Brand</label>
-
-              <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
-            </div>
-
+          
            <div>
               <label className="font-semibold">Category</label>
 
@@ -208,6 +197,19 @@ export default function EditProduct() {
               </select>
             </div>
 
+            
+            <div>
+              <label className="font-semibold">Brand</label>
+
+              <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+            </div>
+
+
+              <div>
+              <label className="font-semibold">Product Name</label>
+
+              <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+            </div>
            
             {/* Fan Size - Show only when category is Fans */}
             {isFanCategory && (

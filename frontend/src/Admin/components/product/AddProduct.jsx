@@ -168,7 +168,8 @@ export default function AddProduct() {
 
       // Optional: Add Product ke baad Products page par bhejna
       navigate("/admin/products");
-    } catch (error) {
+    } 
+    catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Product Add Failed");
     }

@@ -1,3 +1,5 @@
+// frontend/src/pages/ProductDetails.jsx
+
 import Navbar from "../components/home/navbar/Navbar";
 import ProductGallery from "../components/Shop/productGallery/ProductGallery";
 import ProductInfo from "../components/Shop/ProductInfo";

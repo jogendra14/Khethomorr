@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
@@ -57,7 +57,8 @@ const createProduct = async (req, res) => {
     });
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -88,7 +89,6 @@ const updateProduct = async (req, res) => {
           const result = await cloudinary.uploader.upload(file.path);
           images.push(result.secure_url);
         }
-
         product.images = images;
       }
 
@@ -103,8 +103,6 @@ const updateProduct = async (req, res) => {
 };
 
 // @desc    Duplicate a product
-// @route   POST /api/products/:id/duplicate
-// @access  Private/Admin
 export const duplicate = async (req, res) => {
 
   try {
@@ -143,7 +141,8 @@ export const duplicate = async (req, res) => {
       product: duplicatedProduct
     });
 
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Duplicate product error:', error);
     res.status(500).json({
       success: false,
