@@ -3,9 +3,7 @@ import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 
 export default function ProductGallery({ product }) {
   const images = product.images || [];
-
   const [selectedImage, setSelectedImage] = useState(images[0]);
-
   const currentIndex = images.indexOf(selectedImage);
 
   useEffect(() => {

@@ -30,29 +30,13 @@ export default function EditProduct() {
     newPrice: "",
     discount: "",
     fanSize: "",
+    color: "",
     stock: "",
   });
 
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
-   const [existingImages, setExistingImages] = useState([]);
-
-  const [colors, setColors] = useState([]);
-  const [colorName, setColorName] = useState("");
-  const [colorCode, setColorCode] = useState("#000000");
-  
-  const addColor = () => {
-    if (colorName.trim() === "") return;
-    setColors([...colors, { name: colorName, code: colorCode }]);
-    setColorName("");
-    setColorCode("#000000");
-  };
-
-  const removeColor = (index) => {
-    const newColors = [...colors];
-    newColors.splice(index, 1);
-    setColors(newColors);
-  };
+  const [existingImages, setExistingImages] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,23 +59,19 @@ export default function EditProduct() {
     if (name === "discount" && oldPrice > 0) {
       updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
     }
-   
-    setProduct(updated);
-   
+  
+    setProduct(updated);   
   };
 
-  
-  // -------------------------
   // Fetch Product
-  // -------------------------
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const data = await getProductById(id);
         setProduct(data);
         setExistingImages(data.images || []);
-        setColors(data.colors || []);
-      } catch (error) {
+      } 
+      catch (error) {
         console.error("Error fetching product:", error);
         alert("Failed to load product data");
       }
@@ -99,24 +79,16 @@ export default function EditProduct() {
     fetchProduct();
   }, [id]);
 
-  // -------------------------
   // Image Upload
-  // -------------------------
-
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
 
     setImages(files);
-
     const imagePreview = files.map((file) => URL.createObjectURL(file));
-
     setPreview(imagePreview);
   };
 
-  // -------------------------
   // Remove Image
-  // -------------------------
-
   const removeImage = (index) => {
     const newImages = [...images];
     const newPreview = [...preview];
@@ -134,9 +106,7 @@ export default function EditProduct() {
     setExistingImages(newExistingImages);
   };
 
-  // -------------------------
   // Update Product
-  // -------------------------
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -155,7 +125,7 @@ export default function EditProduct() {
       
       formData.append("fanSize", product.fanSize);
       formData.append("stock", product.stock);
-      formData.append("colors", JSON.stringify(colors)); 
+      formData.append("color", product.color); 
       
       // Send existing images URLs
       formData.append("existingImages", JSON.stringify(existingImages));
@@ -265,42 +235,12 @@ export default function EditProduct() {
                 <div className="flex gap-3 items-center">
                   <input
                     type="text"
+                    name="color"
+                    value={product.color}
+                    onChange={handleChange}
                     placeholder="Color Name"
-                    value={colorName}
-                    onChange={(e) => setColorName(e.target.value)}
                     className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <input
-                    type="color"
-                    value={colorCode}
-                    onChange={(e) => setColorCode(e.target.value)}
-                    className="rounded-full mt-2 h-12 w-30 cursor-pointer appearance-none bg-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={addColor}
-                    className="bg-blue-500 mt-2 w-full hover:bg-blue-600 py-2 text-md font-semibold text-white rounded-xl"
-                  >
-                    Add Color
-                  </button>
-                </div>
-
-                {/* Display added colors */}
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {colors.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-                      <div className="w-6 h-6 rounded-full" style={{ backgroundColor: item.code }}></div>
-                      <span>{item.name}</span>
-                      <span className="text-gray-500 text-sm">{item.code}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeColor(index)}
-                        className="text-red-500 hover:text-red-700 ml-1"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
                 </div>
               </div>
             )}

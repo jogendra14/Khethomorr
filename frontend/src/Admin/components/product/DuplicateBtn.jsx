@@ -27,9 +27,11 @@ export default function DuplicateButton({ id, onDuplicateSuccess }) {
       if (onDuplicateSuccess) {
         onDuplicateSuccess();
       }
-    } catch (error) {
+    } 
+    catch (error) {
       alert(error.response?.data?.message || "Failed to duplicate button duplicate product");
-    } finally {
+    } 
+    finally {
       setIsDuplicating(false);
     }
   };
