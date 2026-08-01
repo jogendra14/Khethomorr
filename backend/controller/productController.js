@@ -67,8 +67,7 @@ const updateProduct = async (req, res) => {
   try {
     
     const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
-    
-    const parsedColors = colors ? JSON.parse(colors) : [];
+  
     const product = await Product.findById(req.params.id);
     if (product) {
       product.name = name || product.name;

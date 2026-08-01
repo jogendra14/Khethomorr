@@ -231,7 +231,7 @@ export default function EditProduct() {
             {/* Fan Color - Show only when category is Fans */}
             {isFanCategory && (
               <div>
-                <label className="font-semibold">Fan Colors</label>
+                <label className="font-semibold">Fan Color</label>
                 <div className="flex gap-3 items-center">
                   <input
                     type="text"

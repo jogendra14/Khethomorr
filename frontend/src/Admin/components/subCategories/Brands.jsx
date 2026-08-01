@@ -183,7 +183,7 @@ const Brands = () => {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
                     <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
+                      <div className="w-12 h-12 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
                         {brand.image || brand.icon || '🏷️'}
                       </div>
                       <span className="lg:hidden text-sm font-medium text-gray-500">Image</span>
@@ -223,6 +223,7 @@ const Brands = () => {
                       </button>
                       <button
                         onClick={() => handleDeleteBrand(brand.id, brand.name)}
+                        
                         disabled={deletingId === brand.id}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete brand"
