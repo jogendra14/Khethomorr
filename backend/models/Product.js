@@ -13,14 +13,14 @@ const productSchema = new mongoose.Schema(
       ref: 'Category',
       required: true
     },
-    subCategory: { type: String },
+    subCategory: { type: String , required },
 
     colors: [{ name: String, code: String }],
     fanSize: { type: String },
 
     stock: { type: Number, required: true },
     images: [{ type: String, required: true }],
-    rating: { type: Number, default: 0 },
+    rating: { type: Number, default: 25 },
     numReviews: { type: Number, default: 0 },
     brand: { type: String, required: true },
   },

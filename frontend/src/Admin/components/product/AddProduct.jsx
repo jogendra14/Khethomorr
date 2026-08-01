@@ -1,18 +1,44 @@
+// frontend/src/Admin/components/product/AddProduct.jsx
 
 import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { addProduct } from "../../../api/productApi";
 import { useNavigate } from "react-router-dom";
 
+// Category, Sub-Category, aur Brands ka data
 const categoryData = {
-  Fans: ["Classic","Designer", "BLDC", "Antique", "Chandelier"],
-  Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-  Electricals: ["Switches", "Sockets", "MCB", "Wires","Ragulator"],
-   Appliances: ["Kitchen", "Bathroom", "Home"],
-  "Solar Product": ["Solar Panel", "Solar Inverter", "Solar Battery"],
-  "Smart Home": ["Smart Switch", "Smart Plug", "Smart Camera"],
-  "Safety & Security": ["CCTV", "Door Lock", "Video Door Phone"],
-  Others: ["Accessories", "Spare Parts"],
+  Fans: {
+    subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
+    brands: ["Crompton", "Havells", "Orient", "Usha", "Bajaj"]
+  },
+  Lighting: {
+    subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
+    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
+  },
+  Electricals: {
+    subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
+    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
+  },
+  Appliances: {
+    subCategories: ["Kitchen", "Bathroom", "Home"],
+    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
+  },
+  "Solar Product": {
+    subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
+    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
+  },
+  "Smart Home": {
+    subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
+    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
+  },
+  "Safety & Security": {
+    subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
+    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
+  },
+  Others: {
+    subCategories: ["Accessories", "Spare Parts"],
+    brands: ["Generic", "Local", "Premium"]
+  },
 };
 
 export default function AddProduct() {
@@ -58,6 +84,17 @@ export default function AddProduct() {
       ...product,
       [name]: value,
     };
+
+    // Agar category change hoti hai toh subCategory aur brand reset karo
+    if (name === "category") {
+      updated.subCategory = "";
+      updated.brand = "";
+    }
+
+        // Agar subCategory change hoti hai toh brand reset karo
+    if (name === "subCategory") {
+      updated.brand = "";
+    }
    
     const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
     const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
@@ -153,6 +190,11 @@ export default function AddProduct() {
 
   const isFanCategory = product.category === "Fans";
 
+    // Current category ke sub-categories aur brands
+  const currentCategoryData = product.category ? categoryData[product.category] : null;
+  const subCategories = currentCategoryData?.subCategories || [];
+  const brands = currentCategoryData?.brands || [];
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
@@ -160,33 +202,8 @@ export default function AddProduct() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="font-semibold">Product Name</label>
-
-              <input
-                type="text"
-                name="name"
-                value={product.name}
-                onChange={handleChange}
-                placeholder="Enter Product Name"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold">Brand</label>
-
-              <input
-                type="text"
-                name="brand"
-                value={product.brand}
-                onChange={handleChange}
-                placeholder="Enter Brand"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
+             {/* Category */}
+             <div>
               <label className="font-semibold">Category</label>
 
               <select
@@ -196,7 +213,6 @@ export default function AddProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Category</option>
-
                 {Object.keys(categoryData).map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -205,6 +221,7 @@ export default function AddProduct() {
               </select>
             </div>
 
+            {/* Sub-Category - Category select karne ke baad hi show hogi */}
             <div>
               <label className="font-semibold">Sub-Category</label>
 
@@ -213,18 +230,55 @@ export default function AddProduct() {
                 value={product.subCategory}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
               >
-                <option value="">Select Sub-Category</option> 
-                {product.category &&
-                  categoryData[product.category].map((sub) => (
-                    <option key={sub} value={sub}>
-                      {sub}
-                    </option>
-                  ))}
+                <option value="">
+                  {product.category ? "Select Sub-Category" : "Select Category First"}
+                </option>
+                {subCategories.map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
               </select>
             </div>
 
-            
+                {/* Brand - Sub-Category select karne ke baad hi show hogi */}
+            <div>
+              <label className="font-semibold">Brand</label>
+
+              <select
+                name="brand"
+                value={product.brand}
+                onChange={handleChange}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.subCategory}
+              >
+                <option value="">
+                  {product.subCategory ? "Select Brand" : "Select Sub-Category First"}
+                </option>
+                {brands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </select>
+            </div>
+               
+             {/* Product Name - Brand select karne ke baad hi show karenge */}
+            <div>
+              <label className="font-semibold">Product Name</label>
+              <input
+                type="text"
+                name="name"
+                value={product.name}
+                onChange={handleChange}
+                placeholder={product.brand ? "Enter Product Name" : "Select Brand First"}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
+              />
+            </div>
+
             {/* Fan Size - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -294,7 +348,7 @@ export default function AddProduct() {
               </div>
             )}
 
-
+             {/* Old Price - Brand select ke baad hi show karenge */}
             <div>
               <label className="font-semibold">Old Price</label>
 
@@ -305,9 +359,12 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="₹ Old Price"
                 className="w-full mt-2 border rounded-lg p-3"
+                
+                disabled={!product.brand}
               />
             </div>
 
+              {/* New Price */}
             <div>
               <label className="font-semibold">New Price</label>
 
@@ -318,9 +375,11 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
               />
             </div>
 
+            {/* Discount */}
             <div>
               <label className="font-semibold">Discount %</label>
 
@@ -331,10 +390,11 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="Discount"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
               />
             </div>
 
-
+            {/* Stock */}
             <div>
               <label className="font-semibold">Stock</label>
 
@@ -345,13 +405,12 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="Available Stock"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
               />
             </div>
-
-            
-
           </div>
 
+           {/* Description */}
           <div>
             <label className="font-semibold">Description</label>
 
@@ -362,20 +421,20 @@ export default function AddProduct() {
               onChange={handleChange}
               placeholder="Write Product Description..."
               className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!product.brand}
             />
           </div>
 
+          {/* Image Upload */}
           <div>
             <label className="font-semibold">Upload Images</label>
-
             <label className="mt-3 flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-52 cursor-pointer hover:border-blue-500 transition">
               <FaUpload className="text-5xl text-blue-600 mb-4" />
 
               <p className="font-semibold">Click to Upload Images</p>
-
               <p className="text-gray-500 text-sm">PNG, JPG, JPEG</p>
 
-              <input type="file" multiple hidden onChange={handleImages} />
+              <input type="file" multiple hidden onChange={handleImages} disabled={!product.brand}  />
             </label>
           </div>
 
@@ -397,7 +456,11 @@ export default function AddProduct() {
             </div>
           )}
 
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 transition text-white px-10 py-3 rounded-lg font-semibold">
+          <button 
+            type="submit" 
+            className="bg-blue-600 hover:bg-blue-700 transition text-white px-10 py-3 rounded-lg font-semibold"
+            disabled={!product.brand}
+          >
             Add Product
           </button>
         </form>
