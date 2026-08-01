@@ -43,13 +43,6 @@ export default function ProductInfo({ product }) {
   // Filter products based on current product's properties
   useEffect(() => {
     if (!product || allProducts.length === 0) return;
-
-    // Filter products that match ALL conditions:
-    // 1. Same category
-    // 2. Same subcategory (if exists)
-    // 3. Same brand
-    // 4. Same product name (case-insensitive)
-    
     const filteredProducts = allProducts.filter((p) => {
     
       const categoryMatch = p.category?.toLowerCase() === product.category?.toLowerCase();
@@ -94,17 +87,16 @@ export default function ProductInfo({ product }) {
       <p className="text-gray-500 mt-1">{product.description}</p>
 
       {/* Color Section - Shows all matching products as color variants */}
-      <h3 className="font-semibold" >Color : {product.color}</h3>
-      <div className="m-2 border">
-        <div className="flex gap-2 border m-2 flex-wrap p-2">
-          
+      <h3 className="font-semibold mt-1" >Color : {product.color}</h3>
+
+        <div className="flex gap-1.5 md:gap-3.5 mt-2 flex-wrap 2">
           {colorVariants.length > 0 ? 
           (
             colorVariants.map((variant, index) => (          
-              <div key={index} className="cursor-pointer p-1 border rounded-lg hover:border-blue-500 transition" >
+              <div key={index} className="cursor-pointer rounded-lg " >
                 <img 
                   src={variant.images?.[0]} 
-                  className="w-12 h-12 object-cover rounded"
+                  className="w-23 h-23 transition duration-500 ease-in-out hover:scale-105  object-cover rounded"
                 />  
               </div>   
             ))
@@ -112,7 +104,7 @@ export default function ProductInfo({ product }) {
             <p className="text-gray-500 text-sm">No other color variants available</p>
           )}
         </div>
-      </div>
+      
 
       <Link to="/checkout">
         <button className="bg-blue-600 hover:bg-blue-700 font-bold text-white w-full p-3 mt-3 rounded-xl">Buy Now</button>
