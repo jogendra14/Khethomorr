@@ -66,7 +66,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color, existingImages } = req.body;
   
     const product = await Product.findById(req.params.id);
     if (product) {
@@ -82,22 +82,44 @@ const updateProduct = async (req, res) => {
       product.brand = brand || product.brand;
       product.discount = discount || product.discount;
 
+      // 🔥 इमेजेज को हैंडल करें
+       let finalImages = [];
+      // 1. पहले existingImages को पार्स करें (अगर भेजी गई हैं)
+      if (existingImages) {
+        try {
+          const parsedExisting = JSON.parse(existingImages);
+          finalImages = [...parsedExisting];
+        }
+        catch (e) {
+          finalImages = [existingImages];
+        }
+      }
+      else {
+        finalImages = [...product.images];
+      } 
+      // 2. नई इमेजेज को क्लाउडिनरी पर अपलोड करें और जोड़ें
       if (req.files && req.files.length > 0) {
-        const images = [];
-
+        const newImages = [];
         for (const file of req.files) {
           const result = await cloudinary.uploader.upload(file.path);
-          images.push(result.secure_url);
+          newImages.push(result.secure_url);
         }
-        product.images = images;
+        // नई इमेजेज को मौजूदा इमेजेज में जोड़ें
+        finalImages = [...finalImages, ...newImages];
       }
+
+      // 3. फाइनल इमेजेज सेट करें
+      product.images = finalImages;
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
-    } else {
+    } 
+    else {
       res.status(404).json({ message: "Product not found" });
     }
-  } catch (error) {
+  } 
+  catch (error) {
+    console.error("Update error:", error);
     res.status(500).json({ message: error.message });
   }
 };

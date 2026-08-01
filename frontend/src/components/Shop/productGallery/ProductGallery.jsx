@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiHeart, FiSearch } from "react-icons/fi";
+import "../../../index.css"; // Import the CSS file for styling
 
 export default function ProductGallery({ product }) {
   const images = product.images || [];
@@ -27,37 +28,37 @@ export default function ProductGallery({ product }) {
   return (
     <div>
       {/* Main Image */}
-      <div className="relative overflow-hidden rounded-2xl bg-gray-100">
+      <div className="relative overflow-hidden rounded-2xl  bg-gray-100">
         {selectedImage && <img src={selectedImage} alt="Product" className="w-full h-100 object-cover" />}
 
         {/* Zoom Button */}
         <button className="absolute top-4 right-4 bg-white shadow-md rounded-full p-3 hover:bg-gray-100">
-          <FiSearch size={20} />
+          <FiHeart size={20} />
         </button>
       </div>
 
       {/* Thumbnail Slider */}
       <div className="flex items-center gap-4 mt-6">
         {/* Left Arrow */}
-        <button onClick={prevImage} className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-gray-100">
-          <FiChevronLeft />
+        <button onClick={prevImage} className="w-10 h-10 pl-2.5 rounded-full border hidden lg:block items-center justify-center hover:bg-gray-100">
+          <FiChevronLeft className="" />
         </button>
 
         {/* Thumbnails */}
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar">
           {images.map((img, index) => (
             <div
               key={index}
               onClick={() => setSelectedImage(img)}
-              className={`cursor-pointer rounded-xl overflow-hidden border-2 transition ${selectedImage === img ? "border-green-700" : "border-transparent"}`}
+              className={`cursor-pointer rounded-xl shrink-0 overflow-hidden border-2 transition ${selectedImage === img ? "border-green-700" : "border-transparent"}`}
             >
-              <img src={img} alt="" className="w-24 h-24 object-cover" />
+              <img src={img} alt="" className="w-22 h-20 object-cover" />
             </div>
           ))}
         </div>
 
         {/* Right Arrow */}
-        <button onClick={nextImage} className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-gray-100">
+        <button onClick={nextImage} className="w-10 h-10 pl-2.5 rounded-full border hidden lg:block items-center justify-center hover:bg-gray-100">
           <FiChevronRight />
         </button>
       </div>

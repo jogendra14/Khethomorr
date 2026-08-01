@@ -5,16 +5,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 const categoryData = {
-  Fans: ["Classic","Designer", "BLDC", "Antique", "Chandelier"],
+  Fans: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
   Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-  Electricals: ["Switches", "Sockets", "MCB", "Wires","Ragulator"],
-   Appliances: ["Kitchen", "Bathroom", "Home"],
+  Electricals: ["Switches", "Sockets", "MCB", "Wires", "Ragulator"],
+  Appliances: ["Kitchen", "Bathroom", "Home"],
   "Solar Product": ["Solar Panel", "Solar Inverter", "Solar Battery"],
   "Smart Home": ["Smart Switch", "Smart Plug", "Smart Camera"],
   "Safety & Security": ["CCTV", "Door Lock", "Video Door Phone"],
   Others: ["Accessories", "Spare Parts"],
 };
-
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -59,8 +58,8 @@ export default function EditProduct() {
     if (name === "discount" && oldPrice > 0) {
       updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
     }
-  
-    setProduct(updated);   
+
+    setProduct(updated);
   };
 
   // Fetch Product
@@ -70,8 +69,7 @@ export default function EditProduct() {
         const data = await getProductById(id);
         setProduct(data);
         setExistingImages(data.images || []);
-      } 
-      catch (error) {
+      } catch (error) {
         console.error("Error fetching product:", error);
         alert("Failed to load product data");
       }
@@ -111,42 +109,43 @@ export default function EditProduct() {
     e.preventDefault();
     try {
       const formData = new FormData();
-      
+
       formData.append("name", product.name);
       formData.append("description", product.description);
       formData.append("category", product.category);
       formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
-      
+
       formData.append("oldPrice", product.oldPrice);
       formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
-      
+
       formData.append("fanSize", product.fanSize);
       formData.append("stock", product.stock);
-      formData.append("color", product.color); 
-      
-      // Send existing images URLs
-      formData.append("existingImages", JSON.stringify(existingImages));
-      
-      // Send new images
+      formData.append("color", product.color);
+
+      // 🔥 existingImages को JSON string में भेजें
+      // existingImages को सही फॉर्मेट में बदलें
+      const imageUrls = existingImages.map((img) => (typeof img === "object" ? img.url : img));
+      formData.append("existingImages", JSON.stringify(imageUrls));
+
+      // नई इमेजेज
       images.forEach((img) => {
         formData.append("images", img);
       });
-      
+
+      // 🔍 Debug के लिए
+      console.log("Existing Images:", imageUrls);
+      console.log("New Images:", images.length);
+
       await updateProduct(id, formData);
-
       alert("Product Updated Successfully");
-
       navigate("/admin/products");
-    } 
-    catch (error) {
+    } catch (error) {
       console.log(error);
-
       alert(error.response?.data?.message || "Product Update Failed");
     }
   };
-
   // Check if selected category is "Fans"
   const isFanCategory = product.category === "Fans";
 
@@ -157,8 +156,7 @@ export default function EditProduct() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
-          
-           <div>
+            <div>
               <label className="font-semibold">Category</label>
 
               <select
@@ -177,7 +175,6 @@ export default function EditProduct() {
               </select>
             </div>
 
-
             <div>
               <label className="font-semibold">Sub-Category</label>
 
@@ -187,7 +184,7 @@ export default function EditProduct() {
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select Sub-Category</option> 
+                <option value="">Select Sub-Category</option>
                 {product.category &&
                   categoryData[product.category].map((sub) => (
                     <option key={sub} value={sub}>
@@ -197,20 +194,18 @@ export default function EditProduct() {
               </select>
             </div>
 
-            
             <div>
               <label className="font-semibold">Brand</label>
 
               <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
             </div>
 
-
-              <div>
+            <div>
               <label className="font-semibold">Product Name</label>
 
               <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
             </div>
-           
+
             {/* Fan Size - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -286,7 +281,7 @@ export default function EditProduct() {
               />
             </div>
 
-             <div>
+            <div>
               <label className="font-semibold">Stock</label>
 
               <input
@@ -313,16 +308,8 @@ export default function EditProduct() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
                 {existingImages.map((img, index) => (
                   <div key={index} className="relative">
-                    <img
-                      src={img.url || img}
-                      alt=""
-                      className="rounded-lg h-36 w-full object-cover border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeExistingImage(index)}
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
-                    >
+                    <img src={img.url || img} alt="" className="rounded-lg h-36 w-full object-cover border" />
+                    <button type="button" onClick={() => removeExistingImage(index)} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full">
                       <FaTrash />
                     </button>
                   </div>
@@ -349,16 +336,8 @@ export default function EditProduct() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
                 {preview.map((img, index) => (
                   <div key={index} className="relative">
-                    <img
-                      src={img}
-                      alt=""
-                      className="rounded-lg h-36 w-full object-cover border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
-                    >
+                    <img src={img} alt="" className="rounded-lg h-36 w-full object-cover border" />
+                    <button type="button" onClick={() => removeImage(index)} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full">
                       <FaTrash />
                     </button>
                   </div>
