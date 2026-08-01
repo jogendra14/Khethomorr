@@ -13,6 +13,7 @@ export default function ProductInfo({ product }) {
   const [colorVariants, setColorVariants] = useState([]);
   const { addToCart } = useContext(CartContext);
 
+  console.log("color",product);
   // Fetch all products
   const fetchProduct = async () => {
     try {
@@ -92,29 +93,20 @@ export default function ProductInfo({ product }) {
       </p>
       <p className="text-gray-500 mt-1">{product.description}</p>
 
-        {/* Color Section - Shows all matching products as color variants */}
-      <div className="mt-4">
-        
-        <div className="flex gap-2 border mt-2 flex-wrap p-2">
-          {colorVariants.length > 0 ? (
-            colorVariants.map((variant, index) => (
-              <>
-              <div><h3 className="font-semibold">Colors: {variant.color}</h3></div>
-              <div 
-                key={index} 
-                className="cursor-pointer p-1 border rounded-lg hover:border-blue-500 transition"
-                title={variant.color || `Color ${index + 1}`}
-              >
+      {/* Color Section - Shows all matching products as color variants */}
+      <h3 className="font-semibold" >Color : {product.color}</h3>
+      <div className="m-2 border">
+        <div className="flex gap-2 border m-2 flex-wrap p-2">
+          
+          {colorVariants.length > 0 ? 
+          (
+            colorVariants.map((variant, index) => (          
+              <div key={index} className="cursor-pointer p-1 border rounded-lg hover:border-blue-500 transition" >
                 <img 
                   src={variant.images?.[0]} 
-                  alt={variant.color || `Color variant ${index + 1}`} 
                   className="w-12 h-12 object-cover rounded"
-                />
-                {variant.color && (
-                  <p className="text-xs text-center mt-1">{variant.color}</p>
-                )}
-              </div>
-              </>
+                />  
+              </div>   
             ))
           ) : (
             <p className="text-gray-500 text-sm">No other color variants available</p>

@@ -26,17 +26,14 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, colors } = req.body;
+    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
     newPrice = Number(newPrice);
     discount = Number(discount);
     stock = Number(stock);
-    
-     // 3. Colors parse karein
-    const parsedColors = colors ? JSON.parse(colors) : [];
-    
+       
     const images = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -55,7 +52,7 @@ const createProduct = async (req, res) => {
       stock,
       brand,
       discount,
-      colors: parsedColors,
+      color,
       images,
     });
     const createdProduct = await product.save();
@@ -69,7 +66,7 @@ const updateProduct = async (req, res) => {
 
   try {
     
-    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, colors } = req.body;
+    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
     
     const parsedColors = colors ? JSON.parse(colors) : [];
     const product = await Product.findById(req.params.id);
@@ -84,7 +81,7 @@ const updateProduct = async (req, res) => {
       product.stock = stock || product.stock;
       product.brand = brand || product.brand;
       product.discount = discount || product.discount;
-      product.colors = parsedColors;
+      product.color = color || product.color;
 
       if (req.files && req.files.length > 0) {
         const images = [];
@@ -136,7 +133,7 @@ export const duplicate = async (req, res) => {
     productData.name = `${productData.name}`;
     
     // 4. Optional: Stock 0 kar do (recommended)
-    productData.stock = 0;
+    //productData.stock = 0;
 
     // 5. New product create karo
     const duplicatedProduct = new Product(productData);
