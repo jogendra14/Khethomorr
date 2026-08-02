@@ -1,82 +1,36 @@
-export const categoryData = {
-  Lighting: [
-    {
-      name: "Ceiling",
-      subcategories: [
-        "LED Bulbs",
-        "Ceiling Lights",
-        "Panel Lights",
-      ],
-    },
-    {
-      name: "Table",
-      subcategories: [
-        "Study Lamps",
-        "Decor Lamps",
-      ],
-    },
-    {
-      name: "Wall",
-      subcategories: [
-        "Wall Lights",
-        "Picture Lights",
-      ],
-    },
-  ],
+// frontend/src/admin/data/Category.jsx
 
-  Fans: [
-    {
-      name: "Ceiling Fan",
-      subcategories: [
-        "1200mm",
-        "1400mm",
-      ],
-    },
-    {
-      name: "Table Fan",
-      subcategories: [
-        "12 inch",
-        "16 inch",
-      ],
-    },
-    {
-      name: "Exhaust Fan",
-      subcategories: [
-        "Kitchen",
-        "Bathroom",
-      ],
-    },
-  ],
-
-  Appliance: [
-    {
-      name: "Kitchen",
-      subcategories: [
-        "Mixer",
-        "Microwave",
-      ],
-    },
-  ],
-
-  Electrical: [
-    {
-      name: "Switch",
-      subcategories: [
-        "Anchor",
-        "GM",
-      ],
-    },
-  ],
-
-  Solar: [
-    {
-      name: "Panel",
-      subcategories: [
-        "Mono",
-        "Poly",
-      ],
-    },
-  ],
-
-  Other: [],
+export const CategoryData = {
+  Fans: {
+    subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
+    brands: ["Atomberg","Crompton", "Havells", "Orient", "Polycab", "Bajaj", "V-Guard"]
+  },
+  Lighting: {
+    subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
+    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
+  },
+  Electricals: {
+    subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
+    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
+  },
+  Appliances: {
+    subCategories: ["Kitchen", "Bathroom", "Home"],
+    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
+  },
+  "Solar Product": {
+    subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
+    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
+  },
+  "Smart Home": {
+    subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
+    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
+  },
+  "Safety & Security": {
+    subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
+    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
+  },
+  Others: {
+    subCategories: ["Accessories", "Spare Parts"],
+    brands: ["Generic", "Local", "Premium"]
+  },
 };

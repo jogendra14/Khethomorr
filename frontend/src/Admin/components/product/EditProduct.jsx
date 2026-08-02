@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
-import  CategoryData  from "../../data/CategoryData";
+import { CategoryData }  from "../../../data/CategoryData";
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 // Category, Sub-Category, aur Brands ka data
-const categoryData = CategoryData();
+const categoryData = CategoryData;
 
 export default function EditProduct() {
   const navigate = useNavigate();

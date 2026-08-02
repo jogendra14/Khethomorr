@@ -75,7 +75,8 @@ export default function ProductInfo({ product }) {
   return (
     <div className="min-h-screen">
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
-      <h1 className="text-xl md:text-2xl font-bold mt-2">
+      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
+      <h1 className="text-sm md:text-md font-semibold mt-2">
         {capitalizeWords(product.brand)} 
         {capitalizeWords(product.name)} | 
         {capitalizeWords(product.subCategory)} fan | 
