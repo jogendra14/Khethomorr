@@ -57,6 +57,8 @@ export default function EditProduct() {
     color: "",
     fanWattage: "",
     fanVoltage: "",
+    airDelivery: "",
+    fanRpm: "",
     weight: "",
     warranty_guarantee: "",
     stock: "",
@@ -153,6 +155,9 @@ export default function EditProduct() {
       formData.append("color", product.color);
       formData.append("fanWattage", product.fanWattage);
       formData.append("fanVoltage", product.fanVoltage);
+      formData.append("airDelivery", product.airDelivery);
+      formData.append("fanRpm", product.fanRpm);
+
       formData.append("weight", product.weight);
       formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
@@ -255,6 +260,20 @@ export default function EditProduct() {
               </select>
             </div>
 
+            {/* Product Name - Brand select karne ke baad hi show karenge */}
+            <div>
+              <label className="font-semibold">Product Name</label>
+              <input
+                type="text"
+                name="name"
+                value={product.name}
+                onChange={handleChange}
+                placeholder={product.brand ? "Enter Product Name" : "Select Brand First"}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
+              />
+            </div>
+
             {/* Fan Size - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -329,6 +348,35 @@ export default function EditProduct() {
               </div>
             )}
             
+            {/* Fan Air Delivery - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Air Delivery</label>
+                <input
+                  type="number"
+                  name="airDelivery"
+                  value={product.airDelivery}
+                  onChange={handleChange}
+                  placeholder="Fan Air-Delivery"
+                  className="w-full mt-2 border rounded-lg p-3"
+                />
+              </div>
+            )}
+            {/* Fan RPM - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan RPM</label>
+                <input
+                  type="number"
+                  name="fanRpm"
+                  value={product.fanRpm}
+                  onChange={handleChange}
+                  placeholder="Fan RPM"
+                  className="w-full mt-2 border rounded-lg p-3"
+                />
+              </div>
+            )}
+
             {/* Fan Weight - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -388,7 +436,6 @@ export default function EditProduct() {
             </div>
 
              {/* Warranty/Garraty */}
-            {isFanCategory && (
             <div>
               <label className="font-semibold">Warranty/Guarantee</label>
 
@@ -401,7 +448,6 @@ export default function EditProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            )}
 
             <div>
               <label className="font-semibold">Stock</label>

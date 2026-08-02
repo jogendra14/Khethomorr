@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { brand, name, description, oldPrice, newPrice, discount , category, subCategory, fanSize, color, fanWattage, fanVoltage, weight, warranty_guarantee, stock } = req.body;
+    let { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description,  } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
@@ -34,7 +34,10 @@ const createProduct = async (req, res) => {
     discount = Number(discount);
     fanSize = Number(fanSize);
     fanWattage = Number(fanWattage);
-    fanVoltage = Number(fanVoltage);
+    fanWattage = Number(fanWattage);
+    airDelivery = Number(airDelivery);
+    fanRpm = Number(fanRpm);
+
     weight = Number(weight);
     stock = Number(stock);
        
@@ -46,21 +49,23 @@ const createProduct = async (req, res) => {
       }
     }
     const product = new Product({
-      brand,
-      name,
-      description,
-      oldPrice,
-      newPrice,
-      discount,
       category,
       subCategory,
+      brand,
+      name,
       fanSize,
       color,
       fanWattage,
       fanVoltage,
+      airDelivery,
+      fanRpm,
       weight,
+      oldPrice,
+      newPrice,
+      discount,
       warranty_guarantee,
       stock,
+      description,
       images,
     });
     const createdProduct = await product.save();
@@ -74,25 +79,27 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    const { brand, name, description, oldPrice, newPrice, discount, category, subCategory, fanSize, color, fanWattage, fanVoltage, weight, warranty_guarantee, stock, existingImages } = req.body;
+    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description,  } = req.body;
   
     const product = await Product.findById(req.params.id);
     if (product) {
-      product.brand = brand || product.brand;
-      product.name = name || product.name;
-      product.description = description || product.description;
-      product.oldPrice = oldPrice || product.oldPrice;
-      product.newPrice = newPrice || product.newPrice;
-      product.discount = discount || product.discount;
       product.category = category || product.category;
       product.subCategory = subCategory || product.subCategory;
+      product.brand = brand || product.brand;
+      product.name = name || product.name;
       product.fanSize = fanSize || product.fanSize;
       product.color = color || product.color;
       product.fanWattage = fanWattage || product.fanWattage;
       product.fanVoltage = fanVoltage || product.fanVoltage;
+      product.airDelivery = airDelivery || product.airDelivery;
+      product.fanRpm = fanRpm || product.fanRpm;
       product.weight = weight || product.weight;
+      product.oldPrice = oldPrice || product.oldPrice;
+      product.newPrice = newPrice || product.newPrice;
+      product.discount = discount || product.discount;
       product.warranty_guarantee = warranty_guarantee || product.warranty_guarantee;
       product.stock = stock || product.stock;
+      product.description = description || product.description;
 
       // 🔥 इमेजेज को हैंडल करें
        let finalImages = [];

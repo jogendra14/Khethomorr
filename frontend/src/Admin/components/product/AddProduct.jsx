@@ -139,6 +139,8 @@ export default function AddProduct() {
       formData.append("color", product.color);
       formData.append("fanWattage", product.fanWattage);
       formData.append("fanVoltage", product.fanVoltage);
+      formData.append("airDelivery", product.airDelivery);
+      formData.append("fanRpm", product.fanRpm);
       formData.append("weight", product.weight);
       formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
@@ -154,21 +156,23 @@ export default function AddProduct() {
       console.log(data);
       // Form Reset
       setProduct({
-        name: "",
-        description: "",
         category: "",
         subCategory: "",
         brand: "",
-        oldPrice: "",
-        newPrice: "",
-        discount: "",
+        name: "",
         fanSize: "",
         color: "",
         fanWattage: "",
         fanVoltage: "",
+        airDelivery: "",
+        fanRpm: "",
         weight: "",
+        oldPrice: "",
+        newPrice: "",
+        discount: "",
         warranty_guarantee: "",
         stock: "",
+        description: "",
       });
 
 
@@ -356,6 +360,38 @@ export default function AddProduct() {
               </div>
             )}
 
+            {/* Fan Air Delivery - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Air Delivery</label>
+                
+                <input
+                  type="number"
+                  name="airDelivery"
+                  value={product.airDelivery}
+                  onChange={handleChange}
+                  placeholder="Air Delivery"
+                  className="w-full mt-2 border rounded-lg p-3"
+                />
+              </div>
+            )}
+
+            {/* Fan RPM - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan RPMt</label>
+                
+                <input
+                  type="number"
+                  name="fanRpm"
+                  value={product.fanRpm}
+                  onChange={handleChange}
+                  placeholder="Fan RPM"
+                  className="w-full mt-2 border rounded-lg p-3"
+                />
+              </div>
+            )}
+
             {/* Fan Weight - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -419,7 +455,6 @@ export default function AddProduct() {
             </div>
 
             {/* Warranty/Garraty */}
-            {isFanCategory && (
             <div>
               <label className="font-semibold">Warranty/Guarantee</label>
 
@@ -432,7 +467,6 @@ export default function AddProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            )}
 
             {/* Stock */}
             <div>
