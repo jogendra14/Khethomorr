@@ -25,6 +25,7 @@ import EditDeal from "./Admin/components/deal/EditDeal.jsx";
 
 import Orders from "./Admin/pages/Orders.jsx";
 import Users from './Admin/pages/Users.jsx';
+import AddUser from "./Admin/components/users/AddUser.jsx";
 
 {/* USER RELATED */}
 import Home from "./pages/Home";
@@ -92,6 +93,7 @@ const App = () => {
             <Route path="/admin/edit-deal/:id" element={<EditDeal/>} /> 
             <Route path="orders" element={<Orders />} />
             <Route path="users" element={<Users />} />
+            <Route path="/users/add" element={<AddUser />} />
 
             <Route path="coupons" element={<Coupons />} />
             <Route path="banner" element={<Banner />} />

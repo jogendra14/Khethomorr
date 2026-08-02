@@ -2,8 +2,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Search, Plus, Edit, Trash2, UserCheck, UserX } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Users() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -241,7 +243,9 @@ export default function Users() {
           <p className="text-gray-500">Manage all registered users</p>
         </div>
 
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center gap-2">
+        <button 
+          onClick={() => navigate("/users/add")}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center gap-2">
           <Plus size={18} />
           Add User
         </button>
