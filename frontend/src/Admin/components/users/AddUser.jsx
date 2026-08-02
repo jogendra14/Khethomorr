@@ -138,7 +138,7 @@ export default function AddUser() {
 
       // Redirect to users list after 2 seconds
       setTimeout(() => {
-        navigate("/users");
+        navigate("/admin/users");
       }, 2000);
 
     } catch (err) {
