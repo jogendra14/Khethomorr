@@ -148,7 +148,7 @@ export const duplicate = async (req, res) => {
     delete productData.__v;
 
     // 3. Name mein "(Copy)" add karo
-    productData.name = `${productData.name}`;
+    productData.name = `${productData.name}(Copy)`;
     
     // 4. Optional: Stock 0 kar do (recommended)
     //productData.stock = 0;
