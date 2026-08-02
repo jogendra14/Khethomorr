@@ -302,10 +302,10 @@ export default function EditProduct() {
                   className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select fan Wattage</option>
-                  <option value="600">45</option>
-                  <option value="900">50</option>
-                  <option value="1200">55</option>
-                  <option value="1400">60</option>
+                  <option value="45">45</option>
+                  <option value="50">50</option>
+                  <option value="55">55</option>
+                  <option value="60">60</option>
                 </select>
               </div>
             )}
@@ -321,10 +321,10 @@ export default function EditProduct() {
                   className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Fan Voltage</option>
-                  <option value="600">240</option>
-                  <option value="900">250</option>
-                  <option value="1200">260</option>
-                  <option value="1400">440</option>
+                  <option value="240">240</option>
+                  <option value="250">250</option>
+                  <option value="260">260</option>
+                  <option value="440">440</option>
                 </select>
               </div>
             )}

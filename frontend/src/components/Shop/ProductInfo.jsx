@@ -77,7 +77,7 @@ export default function ProductInfo({ product }) {
   return (
     <div className="min-h-screen">
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
-      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name} ({capitalizeWords(product.color)})</h1>
+      <h1 className="text-xl md:text-2xl font-bold mt-2">{capitalizeWords(product.brand)} {capitalizeWords(product.name)} |  {capitalizeWords(product.subCategory)} fan | {product.fanSize}mm | {product.fanWattage} Watt | {product.fanVoltage}volt | {capitalizeWords(product.warranty_guarantee)} ({capitalizeWords(product.color)})</h1>
       <div className="flex items-center gap-2 mt-3">
         <div className="flex text-yellow-400">
           {[1, 2, 3, 4, 5].map((item) => (
@@ -205,25 +205,25 @@ export default function ProductInfo({ product }) {
               {/* Row 4: Category */}
               <tr className="border-b hover:bg-blue-50 transition duration-150">
                 <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Wattage</td>
-                <td className="px-6 py-4 text-gray-900">{product.wattage}</td>
+                <td className="px-6 py-4 text-gray-900">{product.fanWattage}</td>
               </tr>
 
               {/* Row 4: Subcategory */}
               <tr className="border-b hover:bg-blue-50 transition duration-150">
                 <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Voltage</td>
-                <td className="px-6 py-4 text-gray-900">{product.voltage}</td>
+                <td className="px-6 py-4 text-gray-900">{product.fanVoltage}</td>
               </tr>
 
               {/* Row 5: Price */}
               <tr className="border-b hover:bg-blue-50 transition duration-150">
                 <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Item Weight</td>
-                <td className="px-6 py-4 text-xl font-bold text-green-700">{product.weight}</td>
+                <td className="px-6 py-4 text-lg text-green-700">{product.weight} Kg</td>
               </tr>
 
               {/* Row 6: Color */}
               <tr className="hover:bg-blue-50 transition duration-150">
                 <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Warranty</td>
-                <td className="px-6 py-4 text-gray-500 italic">{product.warranty}</td>
+                <td className="px-6 py-4 text-gray-500 italic">{product.warranty_guarantee}</td>
               </tr>
             </tbody>
           </table>
