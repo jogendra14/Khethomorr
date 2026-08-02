@@ -4,42 +4,9 @@ import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { addProduct } from "../../../api/productApi";
 import { useNavigate } from "react-router-dom";
+import CategoryData from "../../data/CategoryData";
 
-// Category, Sub-Category, aur Brands ka data
-const categoryData = {
-  Fans: {
-    subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
-    brands: ["Crompton", "Havells", "Orient", "Usha", "Bajaj"]
-  },
-  Lighting: {
-    subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
-  },
-  Electricals: {
-    subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
-    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
-  },
-  Appliances: {
-    subCategories: ["Kitchen", "Bathroom", "Home"],
-    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
-  },
-  "Solar Product": {
-    subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
-    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
-  },
-  "Smart Home": {
-    subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
-    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
-  },
-  "Safety & Security": {
-    subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
-    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
-  },
-  Others: {
-    subCategories: ["Accessories", "Spare Parts"],
-    brands: ["Generic", "Local", "Premium"]
-  },
-};
+const categoryData = CategoryData();
 
 export default function AddProduct() {
   const navigate = useNavigate();
@@ -76,11 +43,6 @@ export default function AddProduct() {
     // Agar category change hoti hai toh subCategory aur brand reset karo
     if (name === "category") {
       updated.subCategory = "";
-      updated.brand = "";
-    }
-
-        // Agar subCategory change hoti hai toh brand reset karo
-    if (name === "subCategory") {
       updated.brand = "";
     }
    
@@ -243,7 +205,7 @@ export default function AddProduct() {
               </select>
             </div>
 
-                {/* Brand - Sub-Category select karne ke baad hi show hogi */}
+                {/* Brand Category select karne ke baad hi show hogi */}
             <div>
               <label className="font-semibold">Brand</label>
 
@@ -252,10 +214,10 @@ export default function AddProduct() {
                 value={product.brand}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.subCategory}
+                disabled={!product.category}
               >
                 <option value="">
-                  {product.subCategory ? "Select Brand" : "Select Sub-Category First"}
+                  {product.category ? "Select Brand" : "Select Category First"}
                 </option>
                 {brands.map((brand) => (
                   <option key={brand} value={brand}>

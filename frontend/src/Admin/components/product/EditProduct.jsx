@@ -1,44 +1,11 @@
 import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
-
+import  CategoryData  from "../../data/CategoryData";
 import { getProductById, updateProduct } from "../../../api/productApi";
 
 // Category, Sub-Category, aur Brands ka data
-const categoryData = {
-  Fans: {
-    subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
-    brands: ["Crompton", "Havells", "Orient", "Usha", "Bajaj"]
-  },
-  Lighting: {
-    subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
-  },
-  Electricals: {
-    subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
-    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
-  },
-  Appliances: {
-    subCategories: ["Kitchen", "Bathroom", "Home"],
-    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
-  },
-  "Solar Product": {
-    subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
-    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
-  },
-  "Smart Home": {
-    subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
-    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
-  },
-  "Safety & Security": {
-    subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
-    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
-  },
-  Others: {
-    subCategories: ["Accessories", "Spare Parts"],
-    brands: ["Generic", "Local", "Premium"]
-  },
-};
+const categoryData = CategoryData();
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -247,10 +214,10 @@ export default function EditProduct() {
                 value={product.brand}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.subCategory}
+                disabled={!product.category}
               >
                 <option value="">
-                  {product.subCategory ? "Select Brand" : "Select Sub-Category First"}
+                  {product.category ? "Select Brand" : "Select Category First"}
                 </option>
                 {brands.map((brand) => (
                   <option key={brand} value={brand}>
