@@ -98,7 +98,7 @@ export default function AddUser() {
         setLoading(false);
         return;
       }
-
+      
       // Prepare data for API
       const userData = {
         name: formData.name.trim(),
