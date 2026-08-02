@@ -91,7 +91,7 @@ export default function Users() {
         name: updatedUserData.name,
         email: updatedUserData.email,
         phone: updatedUserData.phone || "",
-        role: updatedUserData.role,
+        role: updatedUserData.role.toLowerCase(), // role lowercase
         status: updatedUserData.status,
       };
 
@@ -466,8 +466,8 @@ export default function Users() {
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                     disabled={saving}
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </div>
 
