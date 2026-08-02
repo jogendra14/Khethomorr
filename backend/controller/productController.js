@@ -79,7 +79,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description,  } = req.body;
+    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description, existingImages } = req.body;
   
     const product = await Product.findById(req.params.id);
     if (product) {
