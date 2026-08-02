@@ -32,13 +32,6 @@ const createProduct = async (req, res) => {
     oldPrice = Number(oldPrice);
     newPrice = Number(newPrice);
     discount = Number(discount);
-    fanSize = Number(fanSize);
-    fanWattage = Number(fanWattage);
-    fanWattage = Number(fanWattage);
-    airDelivery = Number(airDelivery);
-    fanRpm = Number(fanRpm);
-
-    weight = Number(weight);
     stock = Number(stock);
        
     const images = [];

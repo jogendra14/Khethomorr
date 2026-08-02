@@ -167,6 +167,7 @@ export default function AddProduct() {
               <label className="font-semibold">Category</label>
 
               <select
+                type="text"
                 name="category"
                 value={product.category}
                 onChange={handleChange}
@@ -186,6 +187,7 @@ export default function AddProduct() {
               <label className="font-semibold">Sub-Category</label>
 
               <select
+                type="text"
                 name="subCategory"
                 value={product.subCategory}
                 onChange={handleChange}
@@ -208,6 +210,7 @@ export default function AddProduct() {
               <label className="font-semibold">Brand</label>
 
               <select
+              type="text"
                 name="brand"
                 value={product.brand}
                 onChange={handleChange}
@@ -245,6 +248,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Fan Size</label>
                 <div>
                   <select
+                    type="string"
                     name="fanSize"
                     value={product.fanSize}
                     onChange={handleChange}
@@ -284,7 +288,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Fan Wattage</label>
         
                   <input
-                  type="number"
+                  type="string"
                   name="fanWattage"
                   value={product.fanWattage}
                   onChange={handleChange}
@@ -301,7 +305,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Fan Voltage</label>
            
                 <input
-                  type="number"
+                  type="string"
                   name="fanVoltage"
                   value={product.fanVoltage}
                   onChange={handleChange}
@@ -319,7 +323,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Air Delivery</label>
                 
                 <input
-                  type="number"
+                  type="string"
                   name="airDelivery"
                   value={product.airDelivery}
                   onChange={handleChange}
@@ -335,7 +339,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Fan RPMt</label>
                 
                 <input
-                  type="number"
+                  type="string"
                   name="fanRpm"
                   value={product.fanRpm}
                   onChange={handleChange}
@@ -351,7 +355,7 @@ export default function AddProduct() {
                 <label className="font-semibold">Fan Weight</label>
                 
                 <input
-                  type="number"
+                  type="string"
                   name="weight"
                   value={product.weight}
                   onChange={handleChange}

@@ -10,8 +10,8 @@ const router = express.Router();
 // ✅ Duplicate route add karo
 router.route('/:id/dupliCate').post(protect, admin, duplicate);
 
-router.route('/').get(getProducts).post(protect, admin, upload.array("images", 5), createProduct);
-router.route('/:id').get(getProductById).put(protect, admin, upload.array("images", 5), updateProduct).delete(protect, admin, deleteProduct);
+router.route('/').get(getProducts).post(protect, admin, upload.array("images", 10), createProduct);
+router.route('/:id').get(getProductById).put(protect, admin, upload.array("images", 10), updateProduct).delete(protect, admin, deleteProduct);
 
 
 export default router;

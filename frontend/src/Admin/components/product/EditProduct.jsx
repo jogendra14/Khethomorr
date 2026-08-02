@@ -169,6 +169,7 @@ export default function EditProduct() {
               <label className="font-semibold">Category</label>
 
               <select
+              type="text"
                 name="category"
                 value={product.category}
                 onChange={handleChange}
@@ -188,6 +189,7 @@ export default function EditProduct() {
               <label className="font-semibold">Sub-Category</label>
 
               <select
+              type="text"
                 name="subCategory"
                 value={product.subCategory}
                 onChange={handleChange}
@@ -209,6 +211,7 @@ export default function EditProduct() {
               <label className="font-semibold">Brand</label>
 
                <select
+               type="text"
                 name="brand"
                 value={product.brand}
                 onChange={handleChange}
@@ -245,6 +248,7 @@ export default function EditProduct() {
               <div>
                 <label className="font-semibold">Fan Size</label>
                 <select
+                type="string"
                   name="fanSize"
                   value={product.fanSize}
                   onChange={handleChange}
@@ -271,6 +275,7 @@ export default function EditProduct() {
                     onChange={handleChange}
                     placeholder="Color Name"
                     className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={!product.category}
                   />
                 </div>
               </div>
@@ -280,18 +285,15 @@ export default function EditProduct() {
             {isFanCategory && (
               <div>
                 <label className="font-semibold">Fan Wattage</label>
-                <select
+                 <input
+                  type="string"
                   name="fanWattage"
                   value={product.fanWattage}
                   onChange={handleChange}
-                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select fan Wattage</option>
-                  <option value="45">45</option>
-                  <option value="50">50</option>
-                  <option value="55">55</option>
-                  <option value="60">60</option>
-                </select>
+                  placeholder="Fan Wattage"
+                  className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
+                />
               </div>
             )}
 
@@ -299,18 +301,15 @@ export default function EditProduct() {
             {isFanCategory && (
               <div>
                 <label className="font-semibold">Fan Voltage</label>
-                <select
+                 <input
+                  type="string"
                   name="fanVoltage"
                   value={product.fanVoltage}
                   onChange={handleChange}
-                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Fan Voltage</option>
-                  <option value="240">240</option>
-                  <option value="250">250</option>
-                  <option value="260">260</option>
-                  <option value="440">440</option>
-                </select>
+                  placeholder="Fan Voltage"
+                  className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
+                />
               </div>
             )}
             
@@ -319,12 +318,13 @@ export default function EditProduct() {
               <div>
                 <label className="font-semibold">Air Delivery</label>
                 <input
-                  type="number"
+                  type="string"
                   name="airDelivery"
                   value={product.airDelivery}
                   onChange={handleChange}
                   placeholder="Fan Air-Delivery"
                   className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
                 />
               </div>
             )}
@@ -333,12 +333,13 @@ export default function EditProduct() {
               <div>
                 <label className="font-semibold">Fan RPM</label>
                 <input
-                  type="number"
+                  type="string"
                   name="fanRpm"
                   value={product.fanRpm}
                   onChange={handleChange}
                   placeholder="Fan RPM"
                   className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
                 />
               </div>
             )}
@@ -348,12 +349,13 @@ export default function EditProduct() {
               <div>
                 <label className="font-semibold">Fan Weight</label>
                 <input
-                  type="number"
+                  type="string"
                   name="weight"
                   value={product.weight}
                   onChange={handleChange}
                   placeholder="Fan Weight"
                   className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
                 />
               </div>
             )}
