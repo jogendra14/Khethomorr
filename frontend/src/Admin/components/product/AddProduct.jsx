@@ -282,20 +282,16 @@ export default function AddProduct() {
             {isFanCategory && (
               <div>
                 <label className="font-semibold">Fan Wattage</label>
-                <div>
-                  <select
-                    name="fanWattage"
-                    value={product.fanWattage}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Fan Wattage</option>
-                    <option value="45">45</option>
-                    <option value="50">50</option>
-                    <option value="55">55</option>
-                    <option value="60">60</option>
-                  </select>
-                </div>
+        
+                  <input
+                  type="number"
+                  name="fanWattage"
+                  value={product.fanWattage}
+                  onChange={handleChange}
+                  placeholder="Fan Watttage"
+                  className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
+                />
               </div>
             )}
 
@@ -303,20 +299,17 @@ export default function AddProduct() {
             {isFanCategory && (
               <div>
                 <label className="font-semibold">Fan Voltage</label>
-                <div>
-                  <select
-                    name="fanVoltage"
-                    value={product.fanVoltage}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Fan Voltage</option>
-                    <option value="240">240</option>
-                    <option value="250">250</option>
-                    <option value="260">260</option>
-                    <option value="440">440</option>
-                  </select>
-                </div>
+           
+                <input
+                  type="number"
+                  name="fanVoltage"
+                  value={product.fanVoltage}
+                  onChange={handleChange}
+                  placeholder="Fan Voltage"
+                  className="w-full mt-2 border rounded-lg p-3"
+                  disabled={!product.category}
+                />
+           
               </div>
             )}
 

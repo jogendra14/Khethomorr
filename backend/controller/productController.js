@@ -143,7 +143,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// @desc    Duplicate a product
+// @desc Duplicate a product
 export const duplicate = async (req, res) => {
 
   try {
