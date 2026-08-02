@@ -73,6 +73,8 @@ const adminLogin = async (req, res) => {
   }
 };
 
+
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({}).select('-password');
@@ -82,4 +84,87 @@ const getUsers = async (req, res) => {
   }
 };
 
-export { adminLogin, getUsers };
+const updateUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.status = status;
+    await user.save();
+
+    res.json({
+      message: "User status updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prevent deleting yourself
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: "Cannot delete your own account" });
+    }
+
+    await User.findByIdAndDelete(id);
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, role } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+    if (role) user.role = role;
+
+    await user.save();
+
+    res.json({
+      message: "User updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: user.status
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { adminLogin, getUsers, updateUserStatus, deleteUser, updateUser };
