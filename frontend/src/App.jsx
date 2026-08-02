@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./ScrollToTop.jsx";
 import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "./context/AuthContext";
 
 {/* ADMIN RELATED */}
 import ProtectedRoute from "./Admin/components/ProtectedRoute";
@@ -51,6 +52,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <ScrollToTop/>
+           <AuthProvider>
         <Routes>
           {/* USERS */}
           <Route path="/" element={<Home />} />
@@ -106,6 +108,7 @@ const App = () => {
           {/* Wishlist Page */}
           <Route path="/Wishlist" element={<Wishlist />} />
         </Routes>
+        </AuthProvider>
         <Toaster position="top-right" />
       </BrowserRouter>
   );

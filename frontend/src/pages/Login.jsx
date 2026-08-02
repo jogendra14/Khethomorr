@@ -1,11 +1,14 @@
+// frontend/src/pages/Login.jsx
 import { useState } from "react";
 import { FaGoogle, FaFacebookF, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
 import Kethomorr from "../assets/Kethomorr.jpeg";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -19,7 +22,6 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
-    // Clear error when user types
     if (error) setError("");
   };
 
@@ -30,7 +32,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields");
       return;
@@ -46,11 +47,8 @@ const Login = () => {
       });
 
       if (response && response.token) {
-        // Store token in localStorage
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("user", JSON.stringify(response));
-        
-        // Redirect to Home Page
+        // Use the login function from context
+        login(response, response.token);
         navigate("/");
       } else {
         setError("Invalid credentials. Please try again.");
@@ -66,19 +64,10 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center px-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-8">
-        {/* Logo */}
         <img src={Kethomorr} alt="logo" className="w-100 p-7" />
+        <h1 className="text-2xl font-bold text-center text-gray-700">Welcome Back</h1>
+        <p className="text-center text-gray-400 mt-2 mb-8">Please login to your account</p>
 
-        {/* Heading */}
-        <h1 className="text-2xl font-bold text-center text-gray-700">
-          Welcome Back
-        </h1>
-
-        <p className="text-center text-gray-400 mt-2 mb-8">
-          Please login to your account
-        </p>
-
-        {/* Error Message */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
             {error}
@@ -86,7 +75,6 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Email */}
           <input
             type="email"
             name="email"
@@ -97,7 +85,6 @@ const Login = () => {
             required
           />
 
-          {/* Password */}
           <div className="relative mb-2">
             <input
               type={showPassword ? "text" : "password"}
@@ -114,21 +101,16 @@ const Login = () => {
               onClick={togglePasswordVisibility}
               className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600"
             >
-              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
             </button>
           </div>
 
-          {/* Forgot Password */}
           <div className="text-right mb-6">
-            <button
-              type="button"
-              className="text-sm text-gray-400 hover:text-orange-500"
-            >
+            <button type="button" className="text-sm text-gray-400 hover:text-orange-500">
               Forgot password?
             </button>
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
@@ -148,27 +130,23 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="flex items-center my-8">
           <div className="flex-1 h-px bg-gray-300"></div>
           <span className="px-3 text-gray-400 text-sm">Or Login with</span>
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
-        {/* Social Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <button className="border rounded-xl py-3 flex justify-center items-center gap-3 hover:bg-gray-100 transition">
             <FaGoogle className="text-red-500" />
             Google
           </button>
-
           <button className="border rounded-xl py-3 flex justify-center items-center gap-3 hover:bg-gray-100 transition">
             <FaFacebookF className="text-blue-600" />
             Facebook
           </button>
         </div>
 
-        {/* Signup */}
         <p className="text-center text-gray-500 mt-8">
           Don't have an account?{" "}
           <Link to="/signUp" className="text-orange-500 font-semibold hover:underline">

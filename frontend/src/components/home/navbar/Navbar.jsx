@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiShoppingCart, FiChevronDown } from "react-icons/fi";
-import { Link } from "react-router-dom";
-import { useContext } from "react";
+import { useState, useContext } from "react";
+import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiShoppingCart, FiChevronDown, FiLogOut, FiUserCheck } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../../context/CartContext";
 import { WishlistContext } from "../../../context/WishlistContext";
+import { useAuth } from "../../../context/AuthContext";
 
 const Navbar = () => {
   const { cart } = useContext(CartContext);
   const { wishlist } = useContext(WishlistContext);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  
   const wishlistCount = wishlist.length;
-
-  const cartCount = cart.reduce(
-    (total, item) => total + item.quantity,
-    0
-  );
-
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -26,14 +26,22 @@ const Navbar = () => {
     { name: "Contact Us", path: "/contactUs" },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setDropdownOpen(false);
+    setMenuOpen(false);
+  };
+
   return (
     <>
       {/* Top Offer Bar */}
       <div className="bg-black text-white text-xs md:text-sm">
         <div className="max-w-7xl mx-auto px-4 h-10 flex items-center justify-center relative">
           <p className="font-medium">✨ Flat 20% OFF on Chandeliers | Free Delivery Across India</p>
-
-          <button className="absolute right-4 bg-red-600 hover:bg-red-700 px-2 md:px-3 py-1 rounded text-xs">Shop Now</button>
+          <button className="absolute right-4 bg-red-600 hover:bg-red-700 px-2 md:px-3 py-1 rounded text-xs">
+            Shop Now
+          </button>
         </div>
       </div>
 
@@ -42,17 +50,19 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-20 flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-11 h-11 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xl">K</div>
-
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-11 h-11 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xl">
+                K
+              </div>
               <div>
                 <h2 className="font-bold text-2xl tracking-wide">
                   KHETHO<span className="text-red-600">MORR</span>
                 </h2>
-
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest">Lighting • Home • Beyond</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                  Lighting • Home • Beyond
+                </p>
               </div>
-            </div>
+            </Link>
 
             {/* Search */}
             <div className="hidden lg:flex flex-1 mx-10">
@@ -62,55 +72,115 @@ const Navbar = () => {
                   placeholder="Search lights, fans, appliances..."
                   className="w-full border rounded-full h-11 pl-5 pr-12 outline-none focus:border-red-500"
                 />
-
                 <FiSearch className="absolute right-5 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
               </div>
             </div>
 
-            {/* Right Icons */}
+            {/* Right Icons - Desktop */}
             <div className="hidden md:flex items-center gap-8">
-              <Link to="/login">
-                <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
-                  <FiUser size={22} />
-                  <span className="text-xs">Login</span>
+              {/* User Section */}
+              {isAuthenticated && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 hover:text-red-600 transition"
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        {user.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                      <span className="text-xs">{user.name?.split(' ')[0] || "User"}</span>
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-sm font-semibold text-gray-800">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                      
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <FiUserCheck size={18} />
+                        My Profile
+                      </Link>
+                      
+                      <Link
+                        to="/orders"
+                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <FiShoppingCart size={18} />
+                        My Orders
+                      </Link>
+                      
+                      <Link
+                        to="/wishlist"
+                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <FiHeart size={18} />
+                        Wishlist
+                      </Link>
+                      
+                      <hr className="my-1" />
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                      >
+                        <FiLogOut size={18} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </Link>
+              ) : (
+                <Link to="/login">
+                  <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
+                    <FiUser size={22} />
+                    <span className="text-xs">Login</span>
+                  </div>
+                </Link>
+              )}
 
               <Link to="/wishlist">
                 <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
                   <FiHeart size={22} />
-
                   <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
                     {wishlistCount}
                   </span>
-
                   <span className="text-xs">Wishlist</span>
                 </div>
               </Link>
-              
-            <Link to="/cart">
-              <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
-                <FiShoppingCart size={22} />
-
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{cartCount}</span>
-
-                <span className="text-xs">Cart</span>
-              </div>
-            </Link>
-            </div>
-          
-
-            {/* Mobile */}
-            <div className="flex md:hidden items-center gap-5">
-              <FiSearch size={22} />
 
               <Link to="/cart">
-              <div className="relative">
-                <FiShoppingCart size={22} />
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]">{cartCount}</span>
-              </div>
+                <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
+                  <FiShoppingCart size={22} />
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
+                    {cartCount}
+                  </span>
+                  <span className="text-xs">Cart</span>
+                </div>
               </Link>
+            </div>
 
+            {/* Mobile Icons */}
+            <div className="flex md:hidden items-center gap-5">
+              <FiSearch size={22} />
+              <Link to="/cart">
+                <div className="relative">
+                  <FiShoppingCart size={22} />
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px]">
+                    {cartCount}
+                  </span>
+                </div>
+              </Link>
               <button onClick={() => setMenuOpen(true)}>
                 <FiMenu size={28} />
               </button>
@@ -118,14 +188,13 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Menu */}
+        {/* Desktop Navigation Links */}
         <nav className="hidden lg:block border-t">
           <div className="max-w-7xl mx-auto px-4">
             <ul className="flex justify-center gap-10 h-14 items-center text-sm font-semibold">
               {navLinks.map((item) => (
                 <li key={item.name} className="cursor-pointer hover:text-red-600 transition flex items-center gap-1">
                   <Link to={item.path}>{item.name}</Link>
-
                   {item.name === "Shop" && <FiChevronDown />}
                 </li>
               ))}
@@ -145,20 +214,32 @@ const Navbar = () => {
             <h2 className="font-bold text-xl">
               KHETHO<span className="text-red-600">MORR</span>
             </h2>
-
             <button onClick={() => setMenuOpen(false)}>
               <FiX size={28} />
             </button>
           </div>
 
+          {/* Mobile User Section */}
           <div className="p-5 border-b">
-            <Link
-              to="/login"
-              onClick={() => setMenuOpen(false)}
-              className="block w-full bg-red-600 text-white text-center py-3 rounded-lg"
-            >
-              Login / Sign Up
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                  {user.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+                <div>
+                  <p className="font-semibold">{user.name}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                </div>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className="block w-full bg-red-600 text-white text-center py-3 rounded-lg"
+              >
+                Login / Sign Up
+              </Link>
+            )}
           </div>
 
           <ul className="p-5 space-y-5 font-medium">
@@ -169,11 +250,28 @@ const Navbar = () => {
                 </Link>
               </li>
             ))}
+            
+            {/* Mobile Logout */}
+            {isAuthenticated && (
+              <li className="border-b pb-3 cursor-pointer text-red-600 hover:text-red-700">
+                <button onClick={handleLogout} className="w-full text-left">
+                  Logout
+                </button>
+              </li>
+            )}
           </ul>
         </div>
 
         <div className="absolute inset-0 bg-black/40 -z-10" onClick={() => setMenuOpen(false)} />
       </div>
+
+      {/* Click outside to close dropdown */}
+      {dropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setDropdownOpen(false)}
+        />
+      )}
     </>
   );
 };
