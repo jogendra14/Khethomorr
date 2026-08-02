@@ -159,7 +159,7 @@ export default function AddUser() {
 
   // Go back to users list
   const handleBack = () => {
-    navigate("/users");
+    navigate("/admin/users");
   };
 
   return (

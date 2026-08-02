@@ -244,7 +244,7 @@ export default function Users() {
         </div>
 
         <button 
-          onClick={() => navigate("/users/add")}
+          onClick={() => navigate("add")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center gap-2">
           <Plus size={18} />
           Add User

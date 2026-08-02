@@ -93,7 +93,7 @@ const App = () => {
             <Route path="/admin/edit-deal/:id" element={<EditDeal/>} /> 
             <Route path="orders" element={<Orders />} />
             <Route path="users" element={<Users />} />
-            <Route path="/users/add" element={<AddUser />} />
+            <Route path="users/add" element={<AddUser />} />
 
             <Route path="coupons" element={<Coupons />} />
             <Route path="banner" element={<Banner />} />
