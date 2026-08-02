@@ -3,7 +3,7 @@
 export const categoryData = {
   Fans: {
     subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
-    brands: ["Atomberg","Crompton", "Havells", "Orient", "Polycab", "Bajaj", "V-Guard"]
+    brands: ["Orient", "Crompton", "Atomberg", "Jonshon", "Rally", "Havells", "Ramy", "Sturlight", "Polycab", "Bajaj", "V-Guard"]
   },
   Lighting: {
     subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
