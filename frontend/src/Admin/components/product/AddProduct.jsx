@@ -55,6 +55,8 @@ export default function AddProduct() {
     discount: "",
     fanSize: "",
     color: "",
+    fanWattage: "",
+    fanVoltage: "",
     stock: "",
   });
 
@@ -135,7 +137,9 @@ export default function AddProduct() {
       formData.append("discount", product.discount);
 
       formData.append("fanSize", product.fanSize);
-      formData.append("color", product.color); 
+      formData.append("color", product.color);
+      formData.append("fanWattage", product.fanWattage);
+      formData.append("fanVoltage", product.fanVoltage);
       formData.append("stock", product.stock);
 
       images.forEach((img) => {
@@ -159,6 +163,8 @@ export default function AddProduct() {
         discount: "",
         fanSize: "",
         color: "",
+        fanWattage: "",
+        fanVoltage: "",
         stock: "",
       });
 
@@ -305,6 +311,66 @@ export default function AddProduct() {
               </div>
             )}
 
+            {/* Fan wattage - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Wattage</label>
+                <div>
+                  <select
+                    name="fanWattage"
+                    value={product.fanWattage}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Fan Wattage</option>
+                    <option value="600">45</option>
+                    <option value="900">50</option>
+                    <option value="1200">55</option>
+                    <option value="1400">60</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Fan Voltage - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Voltage</label>
+                <div>
+                  <select
+                    name="fanVoltage"
+                    value={product.fanVoltage}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Fan Voltage</option>
+                    <option value="600">240</option>
+                    <option value="900">250</option>
+                    <option value="1200">260</option>
+                    <option value="1400">440</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Fan Weight - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Weight</label>
+                
+                <input
+                  type="number"
+                  name="weight"
+                  value={product.weight}
+                  onChange={handleChange}
+                  placeholder="Fan Weight"
+                  className="w-full mt-2 border rounded-lg p-3"
+
+                  disabled={!product.brand}
+                />
+              </div>
+            )}
+           
              {/* Old Price - Brand select ke baad hi show karenge */}
             <div>
               <label className="font-semibold">Old Price</label>

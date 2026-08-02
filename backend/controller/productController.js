@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
+    let { brand, name, description, oldPrice, newPrice, discount , category, subCategory, fanSize, color, fanWattage, fanVoltage, weight, stock } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
@@ -42,17 +42,20 @@ const createProduct = async (req, res) => {
       }
     }
     const product = new Product({
+      brand,
       name,
       description,
       oldPrice,
       newPrice,
+      discount,
       category,
       subCategory,
       fanSize,
-      stock,
-      brand,
-      discount,
       color,
+      fanWattage,
+      fanVoltage,
+      weight,
+      stock,
       images,
     });
     const createdProduct = await product.save();
@@ -66,21 +69,24 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color, existingImages } = req.body;
+    const { brand, name, description, oldPrice, newPrice, discount, category, subCategory, fanSize, color, fanWattage, fanVoltage, weight, stock, existingImages } = req.body;
   
     const product = await Product.findById(req.params.id);
     if (product) {
+      product.brand = brand || product.brand;
       product.name = name || product.name;
       product.description = description || product.description;
       product.oldPrice = oldPrice || product.oldPrice;
       product.newPrice = newPrice || product.newPrice;
+      product.discount = discount || product.discount;
       product.category = category || product.category;
       product.subCategory = subCategory || product.subCategory;
       product.fanSize = fanSize || product.fanSize;
       product.color = color || product.color;
+      product.fanWattage = fanWattage || product.fanWattage;
+      product.fanVoltage = fanVoltage || product.fanVoltage;
+      product.weight = weight || product.weight;
       product.stock = stock || product.stock;
-      product.brand = brand || product.brand;
-      product.discount = discount || product.discount;
 
       // 🔥 इमेजेज को हैंडल करें
        let finalImages = [];

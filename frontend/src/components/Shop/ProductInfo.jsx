@@ -42,6 +42,16 @@ export default function ProductInfo({ product }) {
     fetchProduct();
   }, []);
 
+  // Helper function to capitalize first letter of each word
+  const capitalizeWords = (str) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   // Filter products based on current product's properties
   useEffect(() => {
     if (!product || allProducts.length === 0) return;
@@ -67,7 +77,7 @@ export default function ProductInfo({ product }) {
   return (
     <div className="min-h-screen">
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
-      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name} ({product.color})</h1>
+      <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name} ({capitalizeWords(product.color)})</h1>
       <div className="flex items-center gap-2 mt-3">
         <div className="flex text-yellow-400">
           {[1, 2, 3, 4, 5].map((item) => (
@@ -86,8 +96,8 @@ export default function ProductInfo({ product }) {
       <p className="mt-2 text-gray-700">
         <span className="font-bold">Brand : {product.brand}</span>
       </p>
-      <p className="text-gray-500 mt-1">{product.description}</p>
-
+      <span className="text-gray-500 mt-1 line-clamp-3">{product.description}</span>
+         
       {/* Color Section - Shows all matching products as color variants */}
       <h3 className="font-semibold mt-1" >Color : {product.color}</h3>
 
@@ -161,6 +171,67 @@ export default function ProductInfo({ product }) {
           </div>
         </div>
       </div>
+
+       
+        {/* Main Table */}
+        <h2 className="mt-4 pl-2 font-bold text-xl">Product Specification</h2>
+        <div className="overflow-x-auto mt-2 border rounded-lg ">
+          <table className="w-full text-sm">
+            <tbody>
+              {/* Row 1: Brand */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 w-1/3 bg-gray-50">Brand</td>
+                <td className="px-6 py-4 text-gray-900">{product.brand}</td>
+              </tr>
+
+              {/* Row 2: Product Name */}
+              <tr className="border-b  hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Colour</td>
+                <td className="px-6 py-4 text-gray-900">{product.color}</td>
+              </tr>
+
+              {/* Row 3: Category */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Electric fan design</td>
+                <td className="px-6 py-4 text-gray-500 italic">Ceiling Fan</td>
+              </tr>
+
+              {/* Row 4: Category */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Power Source</td>
+                <td className="px-6 py-4 text-gray-900">Corded Electric</td>
+              </tr>
+
+              {/* Row 4: Category */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Wattage</td>
+                <td className="px-6 py-4 text-gray-900">{product.wattage}</td>
+              </tr>
+
+              {/* Row 4: Subcategory */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Voltage</td>
+                <td className="px-6 py-4 text-gray-900">{product.voltage}</td>
+              </tr>
+
+              {/* Row 5: Price */}
+              <tr className="border-b hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Item Weight</td>
+                <td className="px-6 py-4 text-xl font-bold text-green-700">{product.weight}</td>
+              </tr>
+
+              {/* Row 6: Color */}
+              <tr className="hover:bg-blue-50 transition duration-150">
+                <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Warranty</td>
+                <td className="px-6 py-4 text-gray-500 italic">{product.warranty}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+
+
+  
     </div>
   );
 }

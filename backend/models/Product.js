@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
+    brand: { type: String, required: true },
     name: { type: String, required: true },
     description: { type: String, },
     oldPrice: { type: Number, required: true, },
@@ -9,15 +10,16 @@ const productSchema = new mongoose.Schema(
     discount: { type: Number, default: 0, },
     category: { type: String, required: true },
     subCategory: { type: String , required: true}, 
-
-    color: { type: String, },
     fanSize: { type: String },
+    color: { type: String, },
+    fanWattage: { type: String },
+    fanVoltage: { type: String },
+    weight: { type: String },
 
+    rating: { type: Number, default: 4.7 },
+    numReviews: { type: Number, default: 165 },
     stock: { type: Number, required: true },
     images: [{ type: String, required: true }],
-    rating: { type: Number, default: 25 },
-    numReviews: { type: Number, default: 0 },
-    brand: { type: String, required: true },
   },
   {
     timestamps: true,

@@ -30,6 +30,8 @@ export default function EditProduct() {
     discount: "",
     fanSize: "",
     color: "",
+    fanWattage: "",
+    fanVoltage: "",
     stock: "",
   });
 
@@ -121,11 +123,12 @@ export default function EditProduct() {
       formData.append("discount", product.discount);
 
       formData.append("fanSize", product.fanSize);
-      formData.append("stock", product.stock);
       formData.append("color", product.color);
+      formData.append("fanWattage", product.fanWattage);
+      formData.append("fanVoltage", product.fanVoltage);
+      formData.append("stock", product.stock);
 
       // 🔥 existingImages को JSON string में भेजें
-      // existingImages को सही फॉर्मेट में बदलें
       const imageUrls = existingImages.map((img) => (typeof img === "object" ? img.url : img));
       formData.append("existingImages", JSON.stringify(imageUrls));
 
@@ -146,6 +149,7 @@ export default function EditProduct() {
       alert(error.response?.data?.message || "Product Update Failed");
     }
   };
+
   // Check if selected category is "Fans"
   const isFanCategory = product.category === "Fans";
 
@@ -196,13 +200,10 @@ export default function EditProduct() {
 
             <div>
               <label className="font-semibold">Brand</label>
-
               <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
             </div>
-
             <div>
               <label className="font-semibold">Product Name</label>
-
               <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
             </div>
 
@@ -239,6 +240,59 @@ export default function EditProduct() {
                     className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+              </div>
+            )}
+
+            {/* Fan Wattage - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Wattage</label>
+                <select
+                  name="fanWattage"
+                  value={product.fanWattage}
+                  onChange={handleChange}
+                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select fan Wattage</option>
+                  <option value="600">45</option>
+                  <option value="900">50</option>
+                  <option value="1200">55</option>
+                  <option value="1400">60</option>
+                </select>
+              </div>
+            )}
+
+            {/* Fan Voltage - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Voltage</label>
+                <select
+                  name="fanVoltage"
+                  value={product.fanVoltage}
+                  onChange={handleChange}
+                  className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Fan Voltage</option>
+                  <option value="600">240</option>
+                  <option value="900">250</option>
+                  <option value="1200">260</option>
+                  <option value="1400">440</option>
+                </select>
+              </div>
+            )}
+            
+            {/* Fan Weight - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Weight</label>
+                <input
+                  type="number"
+                  name="weight"
+                  value={product.weight}
+                  onChange={handleChange}
+                  placeholder="Fan Weight"
+                  className="w-full mt-2 border rounded-lg p-3"
+                />
               </div>
             )}
 
