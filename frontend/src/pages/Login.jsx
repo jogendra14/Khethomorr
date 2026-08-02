@@ -50,8 +50,8 @@ const Login = () => {
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response));
         
-        // Redirect to dashboard or home
-        navigate("/dashboard");
+        // Redirect to Home Page
+        navigate("/");
       } else {
         setError("Invalid credentials. Please try again.");
       }
