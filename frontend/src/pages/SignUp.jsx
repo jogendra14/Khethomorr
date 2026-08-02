@@ -1,40 +1,105 @@
-import { FaGoogle, FaFacebookF, FaEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { FaGoogle, FaFacebookF, FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import Kethomorr from "../assets/Kethomorr.jpeg";
-import { registerUser } from "../api/authApi";
+import { registerUser, checkUserExists } from "../api/authApi";
 import { useState } from "react";
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-});
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
-  if (formData.password !== formData.confirmPassword) {
-    return alert("Passwords do not match");
-  }
+  // Check if email exists on blur or change
+  const handleEmailCheck = async (email) => {
+    if (!email) return;
+    
+    try {
+      const response = await checkUserExists(email);
+      if (response.exists) {
+        setEmailError("This email is already registered. Please login instead.");
+        return true; // Email exists
+      } else {
+        setEmailError("");
+        return false; // Email is available
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  };
 
-  try {
-    const data = await registerUser({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-    });
+  const handleEmailChange = async (e) => {
+    const email = e.target.value;
+    setFormData({...formData, email});
+    
+    // Check if email exists (debounced)
+    if (email) {
+      await handleEmailCheck(email);
+    } else {
+      setEmailError("");
+    }
+  };
 
-    alert("Registration Successful");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-    localStorage.setItem("token", data.token);
+    // Validate email again before submitting
+    const emailExists = await handleEmailCheck(formData.email);
+    if (emailExists) {
+      setLoading(false);
+      return;
+    }
 
-    console.log(data);
-  } catch (err) {
-    alert(err.response?.data?.message || "Registration Failed");
-  }
-};
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match ❌");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      alert("Registration Successful ✅");
+
+      // Save token and user data to localStorage
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user || data.data?.user));
+
+      console.log("Registration Data:", data);
+
+      // Redirect to dashboard or home page
+      navigate("/dashboard");
+      
+    } catch (err) {
+      // Handle specific error cases from backend
+      const errorMessage = err.response?.data?.message || "Registration Failed ❌";
+      
+      if (errorMessage.includes("already") || errorMessage.includes("exists")) {
+        setEmailError("This email is already registered. Please login instead.");
+      } else {
+        alert(errorMessage);
+      }
+      
+      console.error("Registration Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center px-4">
@@ -47,58 +112,100 @@ const handleSubmit = async (e) => {
 
         <p className="text-center text-gray-400 mt-2 mb-8">Create your account to get started</p>
 
-      <form onSubmit={handleSubmit}>
-
-        {/* Full Name */}
-        <input type="text" placeholder="Full Name" className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 mb-5" 
-          value={formData.name} onChange={(e)=> setFormData({...formData,name: e.target.value})}/>
-
-        {/* Email */}
-        <input
-          type="email"
-          placeholder="Email Address"
-          className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 mb-5"
-          value={formData.email}
-          onChange={(e)=> setFormData({...formData, email: e.target.value})}
+        <form onSubmit={handleSubmit}>
+          {/* Full Name */}
+          <input 
+            type="text" 
+            placeholder="Full Name" 
+            className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 mb-5" 
+            value={formData.name} 
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
           />
 
-        {/* Password */}
-        <div className="relative mb-5">
-          <input 
-            type="password" 
-            placeholder="Password" 
-            className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400" 
-            value={formData.password}  
-            onChange={(e)=> setFormData({...formData, password: e.target.value})}
+          {/* Email with validation */}
+          <div className="relative mb-5">
+            <input
+              type="email"
+              placeholder="Email Address"
+              className={`w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 ${
+                emailError ? "border-2 border-red-500" : ""
+              }`}
+              value={formData.email}
+              onChange={handleEmailChange}
+              onBlur={() => handleEmailCheck(formData.email)}
+              required
+            />
+            {emailError && (
+              <div className="flex items-center mt-1 text-red-500 text-sm">
+                <span className="mr-1">⚠️</span>
+                {emailError}
+              </div>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="relative mb-5">
+            <input 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Password" 
+              className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 pr-12" 
+              value={formData.password}  
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              required
+              minLength={6}
             />
 
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </button>
+          </div>
 
-          <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-        </div>
-
-        {/* Confirm Password */}
-        <div className="relative mb-6">
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400"
-            value={formData.confirmPassword}
-            onChange={(e)=> setFormData({...formData, confirmPassword: e.target.value})}
+          {/* Confirm Password */}
+          <div className="relative mb-6">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              className="w-full bg-gray-100 rounded-xl px-5 py-4 outline-none focus:ring-2 focus:ring-orange-400 pr-12"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+              required
+              minLength={6}
             />
 
-          <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-        </div>
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+            >
+              {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+            </button>
+          </div>
 
-        {/* Signup Button */}
-        <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-semibold text-lg transition">Create Account</button>
-         </form>
+          {/* Signup Button */}
+          <button 
+            type="submit" 
+            className={`w-full text-white py-4 rounded-xl font-semibold text-lg transition ${
+              emailError 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-orange-500 hover:bg-orange-600"
+            }`}
+            disabled={loading || !!emailError}
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+          </button>
+        </form>
 
         {/* Divider */}
         <div className="flex items-center my-8">
           <div className="flex-1 h-px bg-gray-300"></div>
-
           <span className="px-3 text-gray-400 text-sm">Or Sign Up with</span>
-
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
@@ -115,7 +222,7 @@ const handleSubmit = async (e) => {
           </button>
         </div>
 
-        {/* Login */}
+        {/* Login Link */}
         <p className="text-center text-gray-500 mt-8">
           Already have an account?{" "}
           <Link to="/login" className="text-orange-500 font-semibold hover:underline">

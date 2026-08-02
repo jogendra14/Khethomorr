@@ -1,3 +1,5 @@
+// backend/controller/authController.js
+
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -9,20 +11,21 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   try {
-const { name, email, password, role } = req.body;    
+    const { name, email, password, role } = req.body;    
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-const user = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-    role: role || "user"
-});    if (user) {
-      
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "user"
+    });
+    
+    if (user) {
       // Generate a mock OTP
       const otp = Math.floor(100000 + Math.random() * 900000);
       
@@ -35,7 +38,7 @@ const user = await User.create({
 
       await sendEmail({
         email: user.email,
-        subject: 'Welcome to ShopNest - Your OTP',
+        subject: 'Welcome to Khethomorr - Your OTP',
         message
       });
 
@@ -84,4 +87,82 @@ const getUsers = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getUsers };
+// ✅ NEW: Check if email exists
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ 
+        message: "Email is required" 
+      });
+    }
+
+    const user = await User.findOne({ email });
+    
+    res.json({ 
+      exists: !!user,
+      message: user ? "Email already registered" : "Email is available"
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: error.message 
+    });
+  }
+};
+
+// ✅ NEW: Get current user profile
+const getCurrentUser = async (req, res) => {
+  try {
+    // req.user is set by the protect middleware
+    const user = await User.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ 
+        message: "User not found" 
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: error.message 
+    });
+  }
+};
+
+// ✅ NEW: Logout user
+const logoutUser = async (req, res) => {
+  try {
+    // Since we're using JWT, logout is handled on client side
+    // by removing the token from localStorage
+    // But we can optionally implement a token blacklist here
+    
+    res.json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: error.message 
+    });
+  }
+};
+
+export { 
+  registerUser, 
+  loginUser, 
+  getUsers, 
+  checkEmail,      // ✅ Export new function
+  getCurrentUser,  // ✅ Export new function
+  logoutUser       // ✅ Export new function
+};
