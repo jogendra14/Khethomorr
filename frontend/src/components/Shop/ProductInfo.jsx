@@ -111,7 +111,7 @@ export default function ProductInfo({ product }) {
       {/* Color Section - Shows all matching products as color variants */}
       <h3 className="font-semibold mt-1">Color : {product.color}</h3>
 
-      <div className="">
+      <div className="flex gap-2 md:gap-3.5 py-2 flex-wrap">
         {colorVariants.length > 0 ?
           colorVariants.map((variant, index) => (
             <Link
