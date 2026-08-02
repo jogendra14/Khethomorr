@@ -1,6 +1,6 @@
 // frontend/src/admin/data/Category.jsx
 
-export const CategoryData = {
+export const categoryData = {
   Fans: {
     subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
     brands: ["Atomberg","Crompton", "Havells", "Orient", "Polycab", "Bajaj", "V-Guard"]
@@ -32,5 +32,5 @@ export const CategoryData = {
   Others: {
     subCategories: ["Accessories", "Spare Parts"],
     brands: ["Generic", "Local", "Premium"]
-  },
+  }
 };

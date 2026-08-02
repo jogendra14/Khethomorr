@@ -4,9 +4,7 @@ import { useState } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { addProduct } from "../../../api/productApi";
 import { useNavigate } from "react-router-dom";
-import { CategoryData } from "../../../data/CategoryData";
-
-const categoryData = CategoryData;
+import { categoryData } from "../../data/categoryData.js";
 
 export default function AddProduct() {
   const navigate = useNavigate();
