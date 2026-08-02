@@ -136,7 +136,7 @@ const deleteUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, role } = req.body;
+    const { name, email, phone, role, status } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -148,6 +148,8 @@ const updateUser = async (req, res) => {
     if (email) user.email = email;
     if (phone) user.phone = phone;
     if (role) user.role = role;
+    if (status) user.status = status;
+
 
     await user.save();
 
