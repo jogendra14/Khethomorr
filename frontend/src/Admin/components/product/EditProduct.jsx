@@ -4,15 +4,40 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { getProductById, updateProduct } from "../../../api/productApi";
 
+// Category, Sub-Category, aur Brands ka data
 const categoryData = {
-  Fans: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
-  Lighting: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-  Electricals: ["Switches", "Sockets", "MCB", "Wires", "Ragulator"],
-  Appliances: ["Kitchen", "Bathroom", "Home"],
-  "Solar Product": ["Solar Panel", "Solar Inverter", "Solar Battery"],
-  "Smart Home": ["Smart Switch", "Smart Plug", "Smart Camera"],
-  "Safety & Security": ["CCTV", "Door Lock", "Video Door Phone"],
-  Others: ["Accessories", "Spare Parts"],
+  Fans: {
+    subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
+    brands: ["Crompton", "Havells", "Orient", "Usha", "Bajaj"]
+  },
+  Lighting: {
+    subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
+    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
+  },
+  Electricals: {
+    subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
+    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
+  },
+  Appliances: {
+    subCategories: ["Kitchen", "Bathroom", "Home"],
+    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
+  },
+  "Solar Product": {
+    subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
+    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
+  },
+  "Smart Home": {
+    subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
+    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
+  },
+  "Safety & Security": {
+    subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
+    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
+  },
+  Others: {
+    subCategories: ["Accessories", "Spare Parts"],
+    brands: ["Generic", "Local", "Premium"]
+  },
 };
 
 export default function EditProduct() {
@@ -32,6 +57,8 @@ export default function EditProduct() {
     color: "",
     fanWattage: "",
     fanVoltage: "",
+    weight: "",
+    warranty_guarantee: "",
     stock: "",
   });
 
@@ -126,6 +153,8 @@ export default function EditProduct() {
       formData.append("color", product.color);
       formData.append("fanWattage", product.fanWattage);
       formData.append("fanVoltage", product.fanVoltage);
+      formData.append("weight", product.weight);
+      formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
 
       // 🔥 existingImages को JSON string में भेजें
@@ -152,6 +181,11 @@ export default function EditProduct() {
 
   // Check if selected category is "Fans"
   const isFanCategory = product.category === "Fans";
+
+      // Current category ke sub-categories aur brands
+  const currentCategoryData = product.category ? categoryData[product.category] : null;
+  const subCategories = currentCategoryData?.subCategories || [];
+  const brands = currentCategoryData?.brands || [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -187,24 +221,38 @@ export default function EditProduct() {
                 value={product.subCategory}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
               >
-                <option value="">Select Sub-Category</option>
-                {product.category &&
-                  categoryData[product.category].map((sub) => (
-                    <option key={sub} value={sub}>
-                      {sub}
-                    </option>
-                  ))}
+                <option value="">
+                  {product.category ? "Select Sub-Category" : "Select Category First"}
+                </option>
+                {subCategories.map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
               <label className="font-semibold">Brand</label>
-              <input type="text" name="brand" value={product.brand} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
-            </div>
-            <div>
-              <label className="font-semibold">Product Name</label>
-              <input type="text" name="name" value={product.name} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+
+               <select
+                name="brand"
+                value={product.brand}
+                onChange={handleChange}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.subCategory}
+              >
+                <option value="">
+                  {product.subCategory ? "Select Brand" : "Select Sub-Category First"}
+                </option>
+                {brands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Fan Size - Show only when category is Fans */}
@@ -306,6 +354,8 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="₹ Old Price"
                 className="w-full mt-2 border rounded-lg p-3"
+
+                disabled={!product.brand}
               />
             </div>
 
@@ -319,6 +369,7 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
               />
             </div>
 
@@ -332,8 +383,25 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="Discount"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.brand}
               />
             </div>
+
+             {/* Warranty/Garraty */}
+            {isFanCategory && (
+            <div>
+              <label className="font-semibold">Warranty/Guarantee</label>
+
+              <input
+                type="string"
+                name="warranty_guarantee"
+                value={product.warranty_guarantee}
+                onChange={handleChange}
+                placeholder="Warranty/Guarantee Period"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            )}
 
             <div>
               <label className="font-semibold">Stock</label>
@@ -349,10 +417,19 @@ export default function EditProduct() {
             </div>
           </div>
 
+          {/* Description */}
           <div>
             <label className="font-semibold">Description</label>
 
-            <textarea rows="5" name="description" value={product.description} onChange={handleChange} className="w-full mt-2 border rounded-lg p-3" />
+            <textarea
+              rows="3"
+              type="text"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              placeholder="Write Product Description..."
+              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Existing Images */}

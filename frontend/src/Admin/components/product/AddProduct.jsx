@@ -57,6 +57,8 @@ export default function AddProduct() {
     color: "",
     fanWattage: "",
     fanVoltage: "",
+    weight: "",
+    warranty_guarantee: "",
     stock: "",
   });
 
@@ -101,11 +103,8 @@ export default function AddProduct() {
 
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
-
     setImages(files);
-
     const previewImages = files.map((file) => URL.createObjectURL(file));
-
     setPreview(previewImages);
   };
 
@@ -140,6 +139,8 @@ export default function AddProduct() {
       formData.append("color", product.color);
       formData.append("fanWattage", product.fanWattage);
       formData.append("fanVoltage", product.fanVoltage);
+      formData.append("weight", product.weight);
+      formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
 
       images.forEach((img) => {
@@ -165,6 +166,8 @@ export default function AddProduct() {
         color: "",
         fanWattage: "",
         fanVoltage: "",
+        weight: "",
+        warranty_guarantee: "",
         stock: "",
       });
 
@@ -365,8 +368,6 @@ export default function AddProduct() {
                   onChange={handleChange}
                   placeholder="Fan Weight"
                   className="w-full mt-2 border rounded-lg p-3"
-
-                  disabled={!product.brand}
                 />
               </div>
             )}
@@ -417,6 +418,22 @@ export default function AddProduct() {
               />
             </div>
 
+            {/* Warranty/Garraty */}
+            {isFanCategory && (
+            <div>
+              <label className="font-semibold">Warranty/Guarantee</label>
+
+              <input
+                type="string"
+                name="warranty_guarantee"
+                value={product.warranty_guarantee}
+                onChange={handleChange}
+                placeholder="Warranty/Guarantee Period"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            )}
+
             {/* Stock */}
             <div>
               <label className="font-semibold">Stock</label>
@@ -428,7 +445,6 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="Available Stock"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
               />
             </div>
           </div>
@@ -439,12 +455,12 @@ export default function AddProduct() {
 
             <textarea
               rows="3"
+              type="text"
               name="description"
               value={product.description}
               onChange={handleChange}
               placeholder="Write Product Description..."
               className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={!product.brand}
             />
           </div>
 
