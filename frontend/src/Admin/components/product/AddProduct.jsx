@@ -23,6 +23,7 @@ export default function AddProduct() {
     fanWattage: "",
     fanVoltage: "",
     weight: "",
+    choose_W_G: "",
     warranty_guarantee: "",
     stock: "",
   });
@@ -102,6 +103,7 @@ export default function AddProduct() {
       formData.append("airDelivery", product.airDelivery);
       formData.append("fanRpm", product.fanRpm);
       formData.append("weight", product.weight);
+      formData.append("choose_W_G", product.choose_W_G);
       formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
 
@@ -130,6 +132,7 @@ export default function AddProduct() {
         oldPrice: "",
         newPrice: "",
         discount: "",
+        choose_W_G: "",
         warranty_guarantee: "",
         stock: "",
         description: "",
@@ -410,6 +413,24 @@ export default function AddProduct() {
                 disabled={!product.category}
               />
             </div>
+
+            {/* Choose Warranty/Guarantee */}
+            <div>
+                <label className="font-semibold">Choose Warranty/Guarantee</label>
+                <div>
+                  <select
+                    type="string"
+                    name="choose_W_G"
+                    value={product.choose_W_G}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Warranty or Guarantee</option>
+                    <option value="warranty">Warranty</option>
+                    <option value="guarantee">Guarantee</option>
+                  </select>
+                </div>
+              </div>
 
             {/* Warranty/Garraty */}
             <div>

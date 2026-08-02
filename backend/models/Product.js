@@ -18,6 +18,8 @@ const productSchema = new mongoose.Schema(
     oldPrice: { type: Number, required: true, },
     newPrice: { type: Number, required: true, },
     discount: { type: Number, default: 0, },
+
+    choose_W_G: { type: String, },
     warranty_guarantee: { type: String },
     rating: { type: Number, default: 4.7 },
     numReviews: { type: Number, default: 165 },

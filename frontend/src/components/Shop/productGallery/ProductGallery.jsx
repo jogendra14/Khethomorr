@@ -26,19 +26,18 @@ export default function ProductGallery({ product }) {
   };
 
   return (
-    <div>
-      {/* Main Image */}
-      <div className="relative overflow-hidden rounded-2xl  bg-gray-100">
-        {selectedImage && <img src={selectedImage} alt="Product" className="w-full h-100 object-cover" />}
+<div class="max-w-lg h-160 mx-auto bg-white rounded-lg shadow-lg overflow-hidden">      {/* Main Image */}
+<div class="w-full aspect-square bg-gray-50 flex items-center justify-center p-4">        
+  {selectedImage && <img src={selectedImage} alt="Product" className="w-w-full h-full object-contain " />}
 
         {/* Zoom Button */}
         <button className="absolute top-4 right-4 bg-white shadow-md rounded-full p-3 hover:bg-gray-100">
-          <FiHeart size={20} />
+          <FiSearch size={20} />
         </button>
       </div>
 
       {/* Thumbnail Slider */}
-      <div className="flex items-center gap-4 mt-6">
+      <div className="flex items-center gap-4 mt-6 px-4">
         {/* Left Arrow */}
         <button onClick={prevImage} className="w-10 h-10 pl-2.5 rounded-full border hidden lg:block items-center justify-center hover:bg-gray-100">
           <FiChevronLeft className="" />

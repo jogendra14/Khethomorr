@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description,  } = req.body;
+    let { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount, choose_W_G, warranty_guarantee, stock, description,  } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
@@ -56,6 +56,7 @@ const createProduct = async (req, res) => {
       oldPrice,
       newPrice,
       discount,
+      choose_W_G,
       warranty_guarantee,
       stock,
       description,
@@ -72,7 +73,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
 
   try {
-    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount,warranty_guarantee, stock, description, existingImages } = req.body;
+    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount, choose_W_G, warranty_guarantee, stock, description, existingImages } = req.body;
   
     const product = await Product.findById(req.params.id);
     if (product) {
@@ -90,6 +91,7 @@ const updateProduct = async (req, res) => {
       product.oldPrice = oldPrice || product.oldPrice;
       product.newPrice = newPrice || product.newPrice;
       product.discount = discount || product.discount;
+      product.choose_W_G = discount || product.choose_W_G;
       product.warranty_guarantee = warranty_guarantee || product.warranty_guarantee;
       product.stock = stock || product.stock;
       product.description = description || product.description;
