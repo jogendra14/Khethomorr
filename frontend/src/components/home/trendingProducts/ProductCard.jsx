@@ -33,11 +33,16 @@ const ProductCard = ({ product: productFromApi }) => {
           />
 
           {discount > 0 && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{discount}%</span>}
-          <Link onClick={ ()=>toggleWishlist(product) }>
-            <button className="absolute top-2 right-2 md:top-3 md:right-3 w-7 md:w-10 h-7 md:h-10 rounded-full bg-white shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition">
-              <FaHeart />
-            </button>
-          </Link>
+          <button
+            onClick={(e) => {
+              e.preventDefault(); // Link को ट्रिगर होने से रोकें
+              e.stopPropagation(); // Event bubbling रोकें
+              toggleWishlist(product);
+            }}
+            className="absolute top-2 right-2 md:top-3 md:right-3 w-7 md:w-10 h-7 md:h-10 rounded-full bg-white shadow flex items-center justify-center hover:bg-red-600 hover:text-white transition"
+          >
+            <FaHeart />
+          </button>
         </div>
 
         {/* Content */}

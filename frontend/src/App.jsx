@@ -49,7 +49,7 @@ import AdminProfile from "./Admin/pages/AdminProfile.jsx";
 
 const App = () => {
   return (
-      <BrowserRouter>
+    <BrowserRouter>
       <ScrollToTop/>
         <Routes>
           {/* USERS */}
