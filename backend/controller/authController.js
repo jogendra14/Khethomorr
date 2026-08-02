@@ -81,21 +81,57 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({
-        _id: user._id,
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email and password"
+      });
+    }
+
+    // ✅ Find user and include password field
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // ✅ Compare password
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+    // ✅ Generate token
+    const token = generateToken(user._id);
+
+    // ✅ Return user data (excluding password)
+    res.json({
+      success: true,
+      message: "Login successful",
+      token: token,
+      user: {
+        id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        token: generateToken(user._id)
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
-    }
+        role: user.role
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("❌ Login Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during login",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
   }
 };
 
