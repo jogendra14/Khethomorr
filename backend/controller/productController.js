@@ -26,7 +26,7 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    const { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
+    let { name, description, oldPrice, newPrice, category, subCategory, fanSize, stock, brand, discount, color } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
