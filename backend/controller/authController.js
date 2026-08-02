@@ -135,15 +135,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find({}).select('-password');
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 // ✅ NEW: Check if email exists
 const checkEmail = async (req, res) => {
   try {
@@ -218,7 +209,6 @@ const logoutUser = async (req, res) => {
 export { 
   registerUser, 
   loginUser, 
-  getUsers, 
   checkEmail,      // ✅ Export new function
   getCurrentUser,  // ✅ Export new function
   logoutUser       // ✅ Export new function

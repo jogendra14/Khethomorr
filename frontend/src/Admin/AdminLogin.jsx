@@ -17,7 +17,7 @@ const AdminLogin = () => {
     setError("");
 
     try {
-      const { data } = await API.post("/auth/login", {
+      const { data } = await API.post("/admin/login", {
   email,
   password,
 });

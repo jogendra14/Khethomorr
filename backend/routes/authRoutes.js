@@ -2,10 +2,9 @@ import express from "express";
 import {  
     registerUser, 
     loginUser, 
-    getUsers,
     checkEmail,
     getCurrentUser,
-    logoutUser
+    logoutUser,
 } from "../controller/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { admin } from "../middleware/adminMiddleware.js";
@@ -20,8 +19,5 @@ router.post("/check-email", checkEmail);  // ✅ POST, not GET, and no auth need
 // Protected routes (authentication required)
 router.get("/me", protect, getCurrentUser);  // ✅ GET, protect only, not admin
 router.post("/logout", protect, logoutUser); // ✅ POST, protect only
-
-// Admin only routes
-router.get("/users", protect, admin, getUsers); // ✅ Only admins can see all users
 
 export default router;
