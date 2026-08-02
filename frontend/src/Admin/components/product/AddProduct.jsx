@@ -237,7 +237,7 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder={product.brand ? "Enter Product Name" : "Select Brand First"}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -382,7 +382,7 @@ export default function AddProduct() {
                 placeholder="₹ Old Price"
                 className="w-full mt-2 border rounded-lg p-3"
                 
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -397,7 +397,7 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -412,7 +412,7 @@ export default function AddProduct() {
                 onChange={handleChange}
                 placeholder="Discount"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -469,7 +469,7 @@ export default function AddProduct() {
               <p className="font-semibold">Click to Upload Images</p>
               <p className="text-gray-500 text-sm">PNG, JPG, JPEG</p>
 
-              <input type="file" multiple hidden onChange={handleImages} disabled={!product.brand}  />
+              <input type="file" multiple hidden onChange={handleImages} disabled={!product.category}  />
             </label>
           </div>
 
@@ -494,7 +494,7 @@ export default function AddProduct() {
           <button 
             type="submit" 
             className="bg-blue-600 hover:bg-blue-700 transition text-white px-10 py-3 rounded-lg font-semibold"
-            disabled={!product.brand}
+            disabled={!product.category}
           >
             Add Product
           </button>

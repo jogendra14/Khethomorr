@@ -237,7 +237,7 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder={product.brand ? "Enter Product Name" : "Select Brand First"}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -370,7 +370,7 @@ export default function EditProduct() {
                 placeholder="₹ Old Price"
                 className="w-full mt-2 border rounded-lg p-3"
 
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -384,7 +384,7 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -398,7 +398,7 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="Discount"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.brand}
+                disabled={!product.category}
               />
             </div>
 
@@ -481,7 +481,11 @@ export default function EditProduct() {
                 {preview.map((img, index) => (
                   <div key={index} className="relative">
                     <img src={img} alt="" className="rounded-lg h-36 w-full object-cover border" />
-                    <button type="button" onClick={() => removeImage(index)} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full">
+                    <button 
+                      type="button" 
+                      onClick={() => removeImage(index)} 
+                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -490,7 +494,10 @@ export default function EditProduct() {
             </div>
           )}
 
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg">
+          <button 
+            type="submit" 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg"
+          >
             Update Product
           </button>
         </form>
