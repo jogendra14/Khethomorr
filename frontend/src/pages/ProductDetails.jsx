@@ -5,6 +5,7 @@ import ProductGallery from "../components/Shop/productGallery/ProductGallery";
 import ProductInfo from "../components/Shop/ProductInfo";
 import ReviewSection from "../components/Shop/ReviewSection";
 import RelatedProducts from "../components/Shop/RelatedProducts";
+import SimilarProduct from "../components/Shop/SimilarProducts.jsx";
 import Footer from "../components/home/footer/Footer";
 
 import { useState, useEffect } from "react";
@@ -56,12 +57,15 @@ export default function ProductDetails() {
         </div>
 
         {/* Reviews */}
-        <div className="max-w-7xl mx-auto px-6 mt-0">
+        <div className="max-w-7xl mx-auto px-6 mt-8 lg:mt-0">
           <ReviewSection />
         </div>
 
         {/* Related Products */}
 
+        <div className="max-w-7xl mx-auto px-6 ">
+          <SimilarProduct />
+        </div>
         <div className="max-w-7xl mx-auto px-6 ">
           <RelatedProducts />
         </div>

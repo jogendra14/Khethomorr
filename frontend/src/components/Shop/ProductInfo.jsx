@@ -77,8 +77,10 @@ export default function ProductInfo({ product }) {
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
       <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
       <h1 className="text-sm md:text-base  font-semibold mt-2">
-        {capitalizeWords(product.brand)} {capitalizeWords(product.name)} | {capitalizeWords(product.subCategory)} fan | {product.fanSize}mm | {product.fanRpm} RPM | {product.fanWattage} Watt | {product.fanVoltage}volt | {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} ({capitalizeWords(product.color)})
-        </h1>
+        {capitalizeWords(product.brand)} {capitalizeWords(product.name)} | {capitalizeWords(product.subCategory)} fan | {product.fanSize}mm | {product.fanRpm}{" "}
+        RPM | {product.fanWattage} Watt | {product.fanVoltage}volt | {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} (
+        {capitalizeWords(product.color)})
+      </h1>
       <div className="flex items-center gap-2 mt-3">
         <div className="flex text-yellow-400">
           {[1, 2, 3, 4, 5].map((item) => (
@@ -103,22 +105,27 @@ export default function ProductInfo({ product }) {
       {/* Color Section - Shows all matching products as color variants */}
       <h3 className="font-semibold mt-1">Color : {product.color}</h3>
 
-      <div className="flex gap-2 md:gap-3.5 py-2 flex-wrap">
-        {colorVariants.length > 0 ?
-          colorVariants.map((variant, index) => (
-            <Link
-              key={index}
-              to={`/product/${variant._id}`} // Navigate to product detail page with variant ID
-              className="cursor-pointer rounded-lg block"
-            >
-              <img
-                src={variant.images?.[0]}
-                className="w-22 h-23 md:w-30 md:h-30 transition duration-500 ease-in-out hover:scale-105 object-cover rounded-xl"
-                alt={variant.name || "Product variant"}
-              />
+      <div className="relative">
+        {/* Mobile: Horizontal Scroll */}
+        <div
+          className="flex gap-4 overflow-x-auto p-4 scroll-smooth snap-x snap-mandatory 
+                  sm:hidden [&::-webkit-scrollbar]:hidden"
+        >
+          {colorVariants.map((variant, index) => (
+            <Link key={index} to={`/product/${variant._id}`} className="shrink-0 snap-start">
+              <img src={variant.images?.[0]} className="w-25 h-25 object-cover rounded-lg shadow-md hover:scale-105 transition" alt={variant.name} />
             </Link>
-          ))
-        : <p className="text-gray-500 text-sm">No other color variants available</p>}
+          ))}
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+          {colorVariants.map((variant, index) => (
+            <Link key={index} to={`/product/${variant._id}`}>
+              <img src={variant.images?.[0]} className="w-full aspect-square object-cover rounded-lg shadow-md hover:scale-105 transition" alt={variant.name} />
+            </Link>
+          ))}
+        </div>
       </div>
 
       <Link to="/checkout">
@@ -126,13 +133,11 @@ export default function ProductInfo({ product }) {
       </Link>
 
       <div className="flex gap-4 mt-2">
-        <button onClick={ () => addToCart(product) } 
-          className="flex-1 bg-[#4F6B35] hover:bg-[#3f562b] text-white py-3 rounded-xl font-semibold transition">
-            Add To Cart
+        <button onClick={() => addToCart(product)} className="flex-1 bg-[#4F6B35] hover:bg-[#3f562b] text-white py-3 rounded-xl font-semibold transition">
+          Add To Cart
         </button>
-        <button onClick={ ()=> addToWishlist(product) } 
-          className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
-            <FiHeart size={22} />
+        <button onClick={() => addToWishlist(product)} className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
+          <FiHeart size={22} />
         </button>
       </div>
 

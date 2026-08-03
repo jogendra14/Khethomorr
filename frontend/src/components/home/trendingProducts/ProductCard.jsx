@@ -29,7 +29,7 @@ const ProductCard = ({ product: productFromApi }) => {
           <img
             src={product.images?.[0]}
             alt={product.name}
-            className="w-full h-35 sm:h-44 md:h-50 object-cover group-hover:scale-105 transition duration-500"
+            className="w-full h-35 md:h-44 lg:h-50 object-cover group-hover:scale-105 transition duration-500"
           />
 
           {discount > 0 && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{discount}%</span>}
