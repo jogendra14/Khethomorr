@@ -394,13 +394,20 @@ export default function AddProduct() {
               <div>
                 <label className="font-semibold">Fan Design</label>
                 <div>
-                  <input
+                  <select
                     type="string"
                     name="fanDesign"
                     value={product.fanDesign}
                     onChange={handleChange}
                     className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">Select Fan Design</option>
+                    <option value="Ceiling">Ceiling Fan</option>
+                    <option value="Tower">Tower Fan</option>
+                    <option value="Table">Table Fan</option>
+                    <option value="Pedestal">Pedestal Fan</option>
+                    <option value="Wall Mounted">Wall Mounted Fan</option>
+                  </select>
                 </div>
               </div>
             )}
