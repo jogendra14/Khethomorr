@@ -58,7 +58,7 @@ export default function ProductGallery({ product }) {
   };
 
   return (
-    <div className="max-w-lg lg:max-w-full lg:h-185 mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="max-w-lg lg:max-w-full lg:h-190 mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Main Image Container */}
       <div 
         ref={imageRef}

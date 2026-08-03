@@ -90,7 +90,8 @@ export default function ProductInfo({ product }) {
       <div className="mt-1 md:mt-2">
         <span className="text-red-700 text-3xl md:text-4xl">-{product.discount}% </span>
         <span className="text-2xl md:text-3xl font-semibold">₹{product.sellingPrice}</span>
-        <span className="line-through text-md md:text-lg text-gray-500">M.R.P.{product.MRP}</span>
+        <span className="text-md md:text-md ml-1.5 text-gray-700 font-semibold">M.R.P.</span>
+        <span className="line-through text-md md:text-lg text-gray-500">{product.MRP}</span>
       </div>
 
       <p className="mt-2 text-gray-700">
@@ -193,7 +194,7 @@ export default function ProductInfo({ product }) {
             {/* Row 3: Category */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
               <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Fan design</td>
-              <td className="px-6 py-3 text-gray-500 italic">Ceiling Fan</td>
+              <td className="px-6 py-3 text-gray-500 italic">{product.fanDesign}</td>
             </tr>
 
             {/* Row 4: Motor */}
@@ -236,7 +237,7 @@ export default function ProductInfo({ product }) {
             {/* Row 11: Item Weight */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
               <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Item Weight</td>
-              <td className="px-6 py-3 text-lg text-green-800">{product.weight} Kg</td>
+              <td className="px-6 py-3 text-md text-green-800">{product.weight} Kg</td>
             </tr>
 
             {/* Row 12: warranty_guarantee */}

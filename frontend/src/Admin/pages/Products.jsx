@@ -192,7 +192,7 @@ export default function Products() {
                     )}
                   </td>
 
-                  <td className="p-4">₹{product.newPrice}</td>
+                  <td className="p-4">₹{product.sellingPrice}</td>
 
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-sm ${
