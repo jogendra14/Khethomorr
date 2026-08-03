@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { categoryData, getTemplateForCategory } from '../../data/categoryData';
 import { getTemplateByCategory } from '../../data/ProductTemplates';
 import { addProduct } from '../../../api/productApi';
+import { useNavigate } from 'react-router-dom'; // ← Import this
 
 const ProductForm = () => {
+  const navigate = useNavigate(); // ← Initialize navigate
   const [selectedCategory, setSelectedCategory] = useState('');
   const [formFields, setFormFields] = useState([]);
   const [specifications, setSpecifications] = useState({});
   const [loading, setLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
+
   const [formData, setFormData] = useState({
     category: '',
     subCategory: '',
@@ -177,6 +180,10 @@ const handleSubmit = async (e) => {
       setSpecifications({});
       setSelectedCategory('');
       setImagePreviews([]);
+
+      // ✅ Navigate back to products page
+      navigate('/admin/products'); // or wherever your products list is
+
     } else {
       alert('❌ Failed to create product: ' + (response.message || 'Unknown error'));
     }
@@ -299,6 +306,8 @@ const handleSubmit = async (e) => {
               step="0.01"
             />
           </div>
+
+          {/*Selling Price */}
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
               Selling Price <span className="text-red-500 ml-1">*</span>
@@ -316,6 +325,7 @@ const handleSubmit = async (e) => {
           </div>
         </div>
 
+        {/* Discount % */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
@@ -333,6 +343,71 @@ const handleSubmit = async (e) => {
               step="0.01"
             />
           </div>
+
+           {/* Rating */}
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Rating <span className="text-red-500 ml-1">*</span>
+            </label>
+              <input
+                type="number"
+                name="rating"
+                value={formData.rating}
+                onChange={handleInputChange}
+                placeholder="Rating (e.g., 4.5)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none   focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Reviews */}
+          <div className="mb-4">
+             <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Reviews <span className="text-red-500 ml-1">*</span>
+            </label>
+              <input
+                type="number"
+                name="reviews"
+                value={formData.reviews}
+                onChange={handleInputChange}
+                placeholder="Number of Reviews"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm  
+                focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />  
+            </div>
+
+            {/* Choose W/G */}
+            <div className="mb-4">
+              <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Choose one <span className="text-red-500 ml-1">*</span>
+            </label>
+              <select
+                name="choose_W_G"
+                value={formData.choose_W_G}
+                onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Warranty or Guarantee</option>
+                <option value="warranty">Warranty</option>
+                <option value="guarantee">Guarantee</option>
+              </select>
+            </div>
+
+            {/* Warranty_Guarantee */}
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Warranty_Guarantee <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="string"
+              name="warranty_guarantee"
+              value={formData.warranty_guarantee}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 50"
+            />
+          </div>
+
+            {/* Stock */}
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
               Stock <span className="text-red-500 ml-1">*</span>
@@ -348,6 +423,7 @@ const handleSubmit = async (e) => {
               min="0"
             />
           </div>
+     
         </div>
 
         <div className="mb-4">

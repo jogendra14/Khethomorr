@@ -296,13 +296,13 @@ export default function EditProduct() {
 
             {/* Old Price */}
             <div>
-              <label className="font-semibold">Old Price *</label>
+              <label className="font-semibold">M.R.P *</label>
               <input
                 type="number"
                 name="MRP"
                 value={product.MRP}
                 onChange={handleChange}
-                placeholder="₹ Old Price"
+                placeholder="₹ M.R.P "
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -310,7 +310,7 @@ export default function EditProduct() {
 
             {/* New Price */}
             <div>
-              <label className="font-semibold">New Price *</label>
+              <label className="font-semibold">Selling Price *</label>
               <input
                 type="number"
                 name="sellingPrice"
