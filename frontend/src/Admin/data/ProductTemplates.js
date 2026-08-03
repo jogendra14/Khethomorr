@@ -8,28 +8,16 @@ export const PRODUCT_TEMPLATES = {
         options: ['Aerodynamic', 'Classic', 'Modern', 'Traditional', 'Slim', 'Decorative'],
         placeholder: 'Select fan design'
       },
-      color: {
-        label: 'Color',
-        type: 'select',
-        options: ['White', 'Black', 'Silver', 'Gold', 'Brown', 'Wooden'],
-        placeholder: 'Select color'
-      },
       motor: {
         label: 'Motor Type',
         type: 'select',
         options: ['100% Copper', 'Aluminum', 'Steel', 'BLDC'],
         placeholder: 'Select motor type'
       },
-      sweepSize: {
-        label: 'Sweep Size',
-        type: 'select',
-        options: ['900mm', '1200mm', '1400mm', '1500mm', '1600mm'],
-        placeholder: 'Select sweep size'
-      },
       bladeCount: {
         label: 'Blade Count',
         type: 'select',
-        options: ['3', '4', '5', '6'],
+        options: ['3', '4', '5', '6', '7', '8'],
         placeholder: 'Select blade count'
       },
       material: {
@@ -37,6 +25,16 @@ export const PRODUCT_TEMPLATES = {
         type: 'select',
         options: ['Aluminum', 'Steel', 'Plastic', 'Wood', 'Composite'],
         placeholder: 'Select material'
+      },
+      color: {
+        label: 'Color',
+        type: 'text',
+        placeholder: 'eg. Black'
+      },
+      sweepSize: {
+        label: 'Sweep Size',
+        type: 'text',
+        placeholder: 'eg. 1200mm'
       },
       fanWattage: {
         label: 'Wattage',
