@@ -48,70 +48,147 @@ const ProductForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // Calculate discount or selling price automatically
+  const calculatePrice = (field, value) => {
+    const mrp = parseFloat(formData.MRP) || 0;
+    const sellingPrice = parseFloat(formData.sellingPrice) || 0;
+    const discount = parseFloat(formData.discount) || 0;
 
-    try {
-      const formDataToSend = new FormData();
-      
-      // Add basic fields
-      Object.keys(formData).forEach(key => {
-        if (key !== 'images' && formData[key]) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-
-      // Get product type from template
-      const template = getTemplateByCategory(selectedCategory);
-      formDataToSend.append('productType', template.productType);
-
-      // Add specifications as JSON
-      formDataToSend.append('specifications', JSON.stringify(specifications));
-
-      // Add images
-      if (formData.images && formData.images.length > 0) {
-        formData.images.forEach(file => {
-          formDataToSend.append('images', file);
-        });
-      }
-
-      const response = await addProduct(formData)
-      
-      const data = await response.json();
-      if (data.success) {
-        alert('✅ Product created successfully!');
-        // Reset form
-        setFormData({
-          category: '',
-          subCategory: '',
-          brand: '',
-          name: '',
-          MRP: '',
-          sellingPrice: '',
-          discount: '0',
-          stock: '',
-          description: '',
-          images: []
-        });
-        setSpecifications({});
-        setSelectedCategory('');
-        setImagePreviews([]);
+    if (field === 'MRP') {
+      const newMrp = parseFloat(value) || 0;
+      if (discount > 0 && newMrp > 0) {
+        const newSellingPrice = newMrp - (newMrp * discount / 100);
+        setFormData(prev => ({
+          ...prev,
+          MRP: value,
+          sellingPrice: newSellingPrice.toFixed(2)
+        }));
       } else {
-        alert('❌ Failed to create product: ' + data.message);
+        setFormData(prev => ({ ...prev, MRP: value }));
       }
-    } catch (error) {
-      console.error('Error creating product:', error);
-      alert('❌ Error creating product. Please try again.');
-    } finally {
-      setLoading(false);
+    } 
+    else if (field === 'sellingPrice') {
+      const newSellingPrice = parseFloat(value) || 0;
+      if (mrp > 0 && newSellingPrice > 0) {
+        const newDiscount = ((mrp - newSellingPrice) / mrp) * 100;
+        setFormData(prev => ({
+          ...prev,
+          sellingPrice: value,
+          discount: newDiscount.toFixed(2)
+        }));
+      } else {
+        setFormData(prev => ({ ...prev, sellingPrice: value }));
+      }
+    }
+    else if (field === 'discount') {
+      const newDiscount = parseFloat(value) || 0;
+      if (mrp > 0 && newDiscount >= 0) {
+        const newSellingPrice = mrp - (mrp * newDiscount / 100);
+        setFormData(prev => ({
+          ...prev,
+          discount: value,
+          sellingPrice: newSellingPrice.toFixed(2)
+        }));
+      } else {
+        setFormData(prev => ({ ...prev, discount: value }));
+      }
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Handle price calculations for specific fields
+    if (name === 'MRP' || name === 'sellingPrice' || name === 'discount') {
+      calculatePrice(name, value);
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
+
+  // In ProductForm.js, update the handleSubmit function:
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const formDataToSend = new FormData();
+    
+    // Add basic fields - make sure all required fields have values
+    const requiredFields = ['category', 'subCategory', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`❌ ${field} is required`);
+        setLoading(false);
+        return;
+      }
+      formDataToSend.append(field, formData[field]);
+    }
+
+    // Add optional fields
+    if (formData.discount) formDataToSend.append('discount', formData.discount);
+    if (formData.description) formDataToSend.append('description', formData.description);
+
+    // Get product type from template
+    const template = getTemplateByCategory(selectedCategory);
+    if (template) {
+      formDataToSend.append('productType', template.productType || 'fan');
+    }
+
+    // Add specifications as JSON
+    console.log("Specifications being sent:", specifications);
+    formDataToSend.append('specifications', JSON.stringify(specifications));
+
+    // Add images - ensure at least one image
+    if (formData.images && formData.images.length > 0) {
+      formData.images.forEach(file => {
+        formDataToSend.append('images', file);
+      });
+    } else {
+      alert('❌ Please select at least one image');
+      setLoading(false);
+      return;
+    }
+
+    // Log the FormData contents for debugging
+    console.log("FormData entries:");
+    for (let pair of formDataToSend.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    const response = await addProduct(formDataToSend);
+    
+    if (response.success) {
+      alert('✅ Product created successfully!');
+      // Reset form
+      setFormData({
+        category: '',
+        subCategory: '',
+        brand: '',
+        name: '',
+        MRP: '',
+        sellingPrice: '',
+        discount: '',
+        stock: '',
+        description: '',
+        images: []
+      });
+      setSpecifications({});
+      setSelectedCategory('');
+      setImagePreviews([]);
+    } else {
+      alert('❌ Failed to create product: ' + (response.message || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error creating product:', error);
+    // Show more detailed error
+    const errorMessage = error.response?.data?.message || error.message || 'Please try again.';
+    alert(`❌ Error creating product: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -122,127 +199,24 @@ const ProductForm = () => {
     setImagePreviews(previews);
   };
 
-  const styles = {
-    container: {
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '20px',
-      backgroundColor: '#f9f9f9',
-      borderRadius: '8px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    },
-    title: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      marginBottom: '20px',
-      color: '#333',
-      textAlign: 'center'
-    },
-    formGroup: {
-      marginBottom: '16px'
-    },
-    label: {
-      display: 'block',
-      fontWeight: '500',
-      marginBottom: '4px',
-      color: '#555',
-      fontSize: '14px'
-    },
-    input: {
-      width: '100%',
-      padding: '8px 12px',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      fontSize: '14px',
-      boxSizing: 'border-box'
-    },
-    select: {
-      width: '100%',
-      padding: '8px 12px',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      fontSize: '14px',
-      backgroundColor: 'white',
-      boxSizing: 'border-box'
-    },
-    textarea: {
-      width: '100%',
-      padding: '8px 12px',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      fontSize: '14px',
-      boxSizing: 'border-box',
-      fontFamily: 'inherit',
-      resize: 'vertical'
-    },
-    row: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '16px'
-    },
-    sectionTitle: {
-      fontSize: '18px',
-      fontWeight: '600',
-      marginTop: '20px',
-      marginBottom: '12px',
-      color: '#444',
-      borderBottom: '2px solid #ddd',
-      paddingBottom: '8px'
-    },
-    imagePreview: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '8px',
-      marginTop: '8px'
-    },
-    imageName: {
-      backgroundColor: '#e9ecef',
-      padding: '4px 10px',
-      borderRadius: '4px',
-      fontSize: '12px',
-      color: '#555'
-    },
-    submitBtn: {
-      width: '100%',
-      padding: '10px',
-      backgroundColor: '#007bff',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      fontSize: '16px',
-      fontWeight: 'bold',
-      cursor: 'pointer',
-      marginTop: '20px'
-    },
-    submitBtnDisabled: {
-      backgroundColor: '#6c757d',
-      cursor: 'not-allowed'
-    },
-    required: {
-      color: 'red',
-      marginLeft: '4px'
-    },
-    specsGrid: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '16px'
-    }
-  };
-
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Add New Product</h2>
+    <div className="max-w-4xl mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-5 text-gray-800 text-center">
+        Add New Product
+      </h2>
 
       <form onSubmit={handleSubmit}>
         {/* Category Selection */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Category *</label>
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-gray-700 text-sm">
+            Category <span className="text-red-500 ml-1">*</span>
+          </label>
           <select 
             name="category" 
             value={formData.category}
             onChange={handleCategoryChange}
             required
-            style={styles.select}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Category</option>
             {Object.keys(categoryData).map(cat => (
@@ -253,14 +227,16 @@ const ProductForm = () => {
 
         {/* Sub Category */}
         {selectedCategory && (
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Sub Category *</label>
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Sub Category <span className="text-red-500 ml-1">*</span>
+            </label>
             <select 
               name="subCategory" 
               value={formData.subCategory}
               onChange={handleInputChange}
               required
-              style={styles.select}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Sub Category</option>
               {categoryData[selectedCategory]?.subCategories.map(sub => (
@@ -272,14 +248,16 @@ const ProductForm = () => {
 
         {/* Brand */}
         {selectedCategory && (
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Brand *</label>
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Brand <span className="text-red-500 ml-1">*</span>
+            </label>
             <select 
               name="brand" 
               value={formData.brand}
               onChange={handleInputChange}
               required
-              style={styles.select}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Brand</option>
               {categoryData[selectedCategory]?.brands.map(brand => (
@@ -290,101 +268,121 @@ const ProductForm = () => {
         )}
 
         {/* Basic Fields */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Product Name *</label>
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-gray-700 text-sm">
+            Product Name <span className="text-red-500 ml-1">*</span>
+          </label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
             required
-            style={styles.input}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter product name"
           />
         </div>
 
-        <div style={styles.row}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Old Price *</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              M.R.P <span className="text-red-500 ml-1">*</span>
+            </label>
             <input
               type="number"
               name="MRP"
               value={formData.MRP}
               onChange={handleInputChange}
               required
-              style={styles.input}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 2999"
+              step="0.01"
             />
           </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>New Price *</label>
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Selling Price <span className="text-red-500 ml-1">*</span>
+            </label>
             <input
               type="number"
               name="sellingPrice"
               value={formData.sellingPrice}
               onChange={handleInputChange}
               required
-              style={styles.input}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 2499"
+              step="0.01"
             />
           </div>
         </div>
 
-        <div style={styles.row}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Discount (%)</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Discount (%)
+            </label>
             <input
               type="number"
               name="discount"
               value={formData.discount}
               onChange={handleInputChange}
-              style={styles.input}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 10"
+              min="0"
+              max="100"
+              step="0.01"
             />
           </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Stock *</label>
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Stock <span className="text-red-500 ml-1">*</span>
+            </label>
             <input
               type="number"
               name="stock"
               value={formData.stock}
               onChange={handleInputChange}
               required
-              style={styles.input}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 50"
+              min="0"
             />
           </div>
         </div>
 
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Description</label>
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-gray-700 text-sm">
+            Description
+          </label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleInputChange}
             rows="3"
-            style={styles.textarea}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
             placeholder="Enter product description"
           />
         </div>
 
         {/* Dynamic Specifications */}
         {selectedCategory && formFields.length > 0 && (
-          <div>
-            <h3 style={styles.sectionTitle}>Product Specifications</h3>
-            <div style={styles.specsGrid}>
+          <div className="mt-5">
+            <h3 className="text-lg font-semibold mt-4 mb-3 text-gray-700 border-b-2 border-gray-300 pb-2">
+              Product Specifications
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {formFields.map((field) => (
-                <div key={field.key} style={styles.formGroup}>
-                  <label style={styles.label}>
+                <div key={field.key} className="mb-4">
+                  <label className="block font-medium mb-1 text-gray-700 text-sm">
                     {field.label}
-                    {field.required && <span style={styles.required}>*</span>}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   {field.type === 'select' ? (
                     <select
                       value={specifications[field.key] || ''}
                       onChange={(e) => handleSpecificationChange(field.key, e.target.value)}
                       required={field.required}
-                      style={styles.select}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select {field.label}</option>
                       {field.options?.map(option => (
@@ -397,7 +395,7 @@ const ProductForm = () => {
                       onChange={(e) => handleSpecificationChange(field.key, e.target.value)}
                       placeholder={field.placeholder}
                       rows="3"
-                      style={styles.textarea}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
                     />
                   ) : (
                     <input
@@ -406,7 +404,7 @@ const ProductForm = () => {
                       onChange={(e) => handleSpecificationChange(field.key, e.target.value)}
                       placeholder={field.placeholder}
                       required={field.required}
-                      style={styles.input}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   )}
                 </div>
@@ -416,20 +414,22 @@ const ProductForm = () => {
         )}
 
         {/* Images */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Product Images *</label>
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-gray-700 text-sm">
+            Product Images <span className="text-red-500 ml-1">*</span>
+          </label>
           <input
             type="file"
             accept="image/*"
             multiple
             onChange={handleImageChange}
             required
-            style={styles.input}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {imagePreviews.length > 0 && (
-            <div style={styles.imagePreview}>
+            <div className="flex flex-wrap gap-2 mt-2">
               {imagePreviews.map((preview, index) => (
-                <span key={index} style={styles.imageName}>
+                <span key={index} className="bg-gray-200 px-3 py-1 rounded text-xs text-gray-700">
                   Image {index + 1}
                 </span>
               ))}
@@ -439,10 +439,11 @@ const ProductForm = () => {
 
         <button 
           type="submit" 
-          style={{
-            ...styles.submitBtn,
-            ...(loading ? styles.submitBtnDisabled : {})
-          }}
+          className={`w-full py-3 px-4 rounded-md text-white font-bold text-base transition-colors ${
+            loading 
+              ? 'bg-gray-500 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
           disabled={loading}
         >
           {loading ? 'Creating Product...' : 'Create Product'}

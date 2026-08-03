@@ -92,36 +92,39 @@ const getProductById = async (req, res) => {
 // ============================
 const createProduct = async (req, res) => {
   try {
+    console.log("Request body:", req.body);
+    console.log("Files received:", req.files?.length || 0);
+
     const {
       category,
       subCategory,
       brand,
       name,
-      oldPrice,
-      newPrice,
+      MRP, // Changed from oldPrice to MRP to match frontend
+      sellingPrice, // Changed from newPrice to sellingPrice
       discount,
-      rating,
-      reviews,
-      choose_W_G,
-      warranty_guarantee,
       stock,
       description,
       productType = 'fan',
       specifications = {}
     } = req.body;
 
+    // Validate required fields
+    if (!category || !subCategory || !brand || !name || !MRP || !sellingPrice || !stock) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: category, subCategory, brand, name, MRP, sellingPrice, stock are required"
+      });
+    }
+
     const productData = {
       category,
       subCategory,
       brand,
       name,
-      oldPrice: Number(oldPrice),
-      newPrice: Number(newPrice),
+      oldPrice: Number(MRP),
+      newPrice: Number(sellingPrice),
       discount: Number(discount) || 0,
-      rating: Number(rating) || 4.4,
-      reviews: Number(reviews) || 225,
-      choose_W_G: choose_W_G || '',
-      warranty_guarantee: warranty_guarantee || '',
       stock: Number(stock),
       description: description || '',
       productType: productType || 'fan',
@@ -136,28 +139,40 @@ const createProduct = async (req, res) => {
           const result = await cloudinary.uploader.upload(file.path);
           images.push(result.secure_url);
           // Delete temporary file
-          fs.unlinkSync(file.path);
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
+          // Continue with other images even if one fails
         }
       }
     }
     productData.images = images;
 
-    // Handle specifications
-    const specMap = new Map();
-    
-    // Case 1: specifications from body (JSON)
-    if (specifications && typeof specifications === 'object') {
-      Object.entries(specifications).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          specMap.set(key, value);
-        }
-      });
+    // Handle specifications - parse JSON if string
+    let specObj = {};
+    if (typeof specifications === 'string') {
+      try {
+        specObj = JSON.parse(specifications);
+      } catch (e) {
+        console.error("Failed to parse specifications JSON:", e);
+        specObj = {};
+      }
+    } else if (typeof specifications === 'object') {
+      specObj = specifications;
     }
 
-    // Case 2: Individual fields (backward compatibility)
-    const allFields = [
+    // Convert specifications to Map
+    const specMap = new Map();
+    Object.entries(specObj).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        specMap.set(key, value);
+      }
+    });
+
+    // Also check for individual field values from form data
+    const individualFields = [
       'fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 
       'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight',
       'chimneyType', 'chimneySize', 'motorPower', 'suctionCapacity', 
@@ -169,7 +184,7 @@ const createProduct = async (req, res) => {
       'features', 'ipRating', 'warranty'
     ];
 
-    allFields.forEach(field => {
+    individualFields.forEach(field => {
       if (req.body[field] !== undefined && req.body[field] !== null && req.body[field] !== '') {
         specMap.set(field, req.body[field]);
       }
@@ -188,9 +203,11 @@ const createProduct = async (req, res) => {
     
   } catch (error) {
     console.error("Create product error:", error);
+    // Send detailed error for debugging
     res.status(500).json({ 
       success: false,
-      message: error.message 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

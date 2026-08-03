@@ -26,7 +26,8 @@ export const getProduct = async () => {
   }
 };
 
-// ✅ Add Product
+
+// ✅ Add Product - Improved error handling
 export const addProduct = async (formData) => {
   try {
     const response = await API.post("/products", formData, {
@@ -37,6 +38,11 @@ export const addProduct = async (formData) => {
     return response.data;
   } catch (error) {
     console.error("Error adding product:", error);
+    // Log the full error response
+    if (error.response) {
+      console.error("Error response data:", error.response.data);
+      console.error("Error response status:", error.response.status);
+    }
     throw error;
   }
 };

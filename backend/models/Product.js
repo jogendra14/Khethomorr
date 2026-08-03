@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
 
     MRP: { type: Number, required: true },
     sellingPrice: { type: Number, required: true },
-    discount: { type: Number, default: 0 },
+    discount: { type: Number, },
     rating: { type: Number, default: 4.4 },
     reviews: { type: Number, default: 225 },
 

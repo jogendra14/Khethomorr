@@ -16,7 +16,7 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
 //import categoryRoutes from "./routes/categoryRoutes.js";     
 //import subCategoryRoutes from "./routes/subCategoryRoutes.js";
-
+import { errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
@@ -57,6 +57,9 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/home", homeRoutes);
+
+// Add after all routes
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
