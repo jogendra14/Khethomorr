@@ -1,6 +1,6 @@
 import { FaStar} from "react-icons/fa";
 
-export default function ReviewSection() {
+export default function ReviewSection({product}) {
   const ratingData = [
     { star: 5, value: 90 },
     { star: 4, value: 70 },
@@ -17,7 +17,7 @@ export default function ReviewSection() {
 
         {/* Left */}
         <div>
-          <h1 className="text-3xl font-bold">4.7</h1>
+          <h1 className="text-3xl font-bold">{product.rating}</h1>
 
           <div className="flex text-yellow-400 text-xl mt-1">
             {[1, 2, 3, 4, 5].map((item) => (
@@ -25,7 +25,7 @@ export default function ReviewSection() {
             ))}
           </div>
 
-          <p className="text-gray-500 mt-1">Based on 128 Reviews</p>
+          <p className="text-gray-500 mt-1">Based on {product.reviews} Reviews</p>
 
           <div className="mt-3 space-y-1">
             {ratingData.map((item) => (

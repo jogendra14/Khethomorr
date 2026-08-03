@@ -57,7 +57,7 @@ export default function ProductDetails() {
 
         {/* Reviews */}
         <div className="max-w-7xl mx-auto px-3 mt-8 lg:mt-0">
-          <ReviewSection />
+          <ReviewSection product={product}/>
         </div>
 
         {/* similar or related Products */}

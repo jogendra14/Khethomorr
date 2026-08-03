@@ -89,10 +89,9 @@ export default function ProductInfo({ product }) {
         <span className="text-gray-500">{product.reviews} Reviews</span>
       </div>
       <div className="mt-1 md:mt-2">
-        <span className="text-red-700 text-2xl md:text-3xl">-{product.discount}% </span>
-        <span className="text-xl md:text-2xl font-semibold">₹{product.sellingPrice}</span>
-        <span className="text-xs mx-1 md:text-sm text-gray-600">M.R.P.</span>
-        <span className="line-through text-xs md:text-sm text-gray-500">{product.MRP}</span>
+        <span className="text-red-700 text-3xl md:text-4xl">-{product.discount}% </span>
+        <span className="text-2xl md:text-3xl font-semibold">₹{product.sellingPrice}</span>
+        <span className="line-through text-md md:text-lg text-gray-500">M.R.P.{product.MRP}</span>
       </div>
 
       <p className="mt-2 text-gray-700">
