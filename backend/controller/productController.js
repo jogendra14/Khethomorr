@@ -16,7 +16,7 @@ const getProducts = async (req, res) => {
       sort = 'createdAt',
       order = 'desc',
       page = 1,
-      limit = 10,
+      limit = 100,
       search 
     } = req.query;
 
