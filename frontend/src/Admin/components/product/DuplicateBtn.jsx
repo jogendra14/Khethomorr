@@ -1,4 +1,5 @@
-// components/admin/DuplicateButton.jsx
+// frontend/src/components/admin/DuplicateButton.jsx
+
 import { Copy } from "lucide-react";
 import { useState } from "react";
 import { duplicateProduct } from "../../../api/productApi";
@@ -18,10 +19,10 @@ export default function DuplicateButton({ id, onDuplicateSuccess }) {
     setIsDuplicating(true);
 
     try {
-      await duplicateProduct(id);
+      const response = await duplicateProduct(id);
       
-      // Success message
-      alert(`Product successfully! New product`);
+      // ✅ Fix: Success message
+      alert(`✅ Product duplicated successfully!`);
       
       // Parent component ko update karne ke liye callback
       if (onDuplicateSuccess) {
@@ -29,7 +30,9 @@ export default function DuplicateButton({ id, onDuplicateSuccess }) {
       }
     } 
     catch (error) {
-      alert(error.response?.data?.message || "Failed to duplicate button duplicate product");
+      // ✅ Fix: Better error message
+      alert(error.response?.data?.message || "❌ Failed to duplicate product");
+      console.error("Duplicate error:", error);
     } 
     finally {
       setIsDuplicating(false);

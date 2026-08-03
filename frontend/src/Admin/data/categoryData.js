@@ -1,36 +1,47 @@
-// frontend/src/admin/data/Category.jsx
-
 export const categoryData = {
   Fans: {
     subCategories: ["Classic", "Designer", "BLDC", "Antique", "Chandelier"],
-    brands: ["Orient", "Crompton", "Atomberg", "Jonshon", "Rally", "Havells", "Ramy", "Sturlight", "Polycab", "Bajaj", "V-Guard"]
+    brands: ["Orient", "Crompton", "Atomberg", "Jonshon", "Rally", "Havells", "Ramy", "Sturlight", "Polycab", "Bajaj", "V-Guard"],
+    template: "Fans"
   },
   Lighting: {
     subCategories: ["LED Bulbs", "Tube Lights", "Panel Lights", "Flood Lights"],
-    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"]
+    brands: ["Philips", "Havells", "Syska", "Wipro", "Orient"],
+    template: "Lighting"
   },
   Electricals: {
     subCategories: ["Switches", "Sockets", "MCB", "Wires", "Regulator"],
-    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"]
+    brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"],
+    template: "Electricals"
   },
   Appliances: {
     subCategories: ["Kitchen", "Bathroom", "Home"],
-    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"]
+    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"],
+    template: "Appliances"
   },
   "Solar Product": {
     subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],
-    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"]
+    brands: ["Luminous", "Su-Kam", "Exide", "Microtek", "V-Guard"],
+    template: "Solar Product"
   },
   "Smart Home": {
     subCategories: ["Smart Switch", "Smart Plug", "Smart Camera"],
-    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"]
+    brands: ["Xiaomi", "TP-Link", "Wipro", "Syska", "Havells"],
+    template: "Smart Home"
   },
   "Safety & Security": {
     subCategories: ["CCTV", "Door Lock", "Video Door Phone"],
-    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"]
+    brands: ["CP Plus", "Hikvision", "Dahua", "Godrej", "Yale"],
+    template: "Safety & Security"
   },
   Others: {
     subCategories: ["Accessories", "Spare Parts"],
-    brands: ["Generic", "Local", "Premium"]
+    brands: ["Generic", "Local", "Premium"],
+    template: "Others"
   }
+};
+
+// Get template name from category
+export const getTemplateForCategory = (category) => {
+  return categoryData[category]?.template || "Others";
 };

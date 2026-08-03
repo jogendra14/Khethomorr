@@ -1,10 +1,11 @@
+// frontend/src/pages/Admin/EditProduct.jsx
+
 import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
-import { categoryData }  from "../../data/categoryData.js";
-import { getProductById, updateProduct } from "../../../api/productApi";
-
-// Category, Sub-Category, aur Brands ka data
+import { categoryData } from "../../data/categoryData.js";
+import { getProductById, updateProduct } from "../../../api/productApi.js";
+import { getTemplateByCategory, PRODUCT_TEMPLATES } from "../../data/ProductTemplates.js";
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -12,35 +13,64 @@ export default function EditProduct() {
 
   const [product, setProduct] = useState({
     category: "",
-      subCategory: "",
-      brand: "",
-      name: "",
-      
-      oldPrice: "",
-      newPrice: "",
-      discount: "",
-      rating: "",
-      rewiews: "",
-      choose_W_G: "",
-      warranty_guarantee: "",
-      stock: "",
-      description: "",
-
-      fanDesign: "",
-      color: "",
-      motor: "",
-      sweepSize: "",
-      bladeCount: "",
-      material: "",
-      fanWattage: "",
-      airDelivery: "",
-      fanRpm: "",
-      weight: "",
+    subCategory: "",
+    brand: "",
+    name: "",
+    MRP: "",
+    sellingPrice: "",
+    discount: "",
+    rating: "",
+    reviews: "",
+    choose_W_G: "",
+    warranty_guarantee: "",
+    stock: "",
+    description: "",
+    productType: "fan",
+    specifications: {}
   });
 
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [specFields, setSpecFields] = useState([]);
+
+  // Fetch Product
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const data = await getProductById(id);
+        
+        // Extract specifications from product
+        const specs = data.specifications || {};
+        
+        setProduct({
+          ...data,
+          specifications: specs
+        });
+        
+        setExistingImages(data.images || []);
+        
+        // Get template fields for this category
+        if (data.category) {
+          const template = getTemplateByCategory(data.category);
+          const fields = Object.keys(template.fields).map(key => ({
+            key,
+            ...template.fields[key]
+          }));
+          setSpecFields(fields);
+        }
+        
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        alert("Failed to load product data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,55 +80,66 @@ export default function EditProduct() {
       [name]: value,
     };
 
-    const oldPrice = Number(name === "oldPrice" ? value : updated.oldPrice);
-    const newPrice = Number(name === "newPrice" ? value : updated.newPrice);
+    const MRP = Number(name === "MRP" ? value : updated.MRP);
+    const sellingPrice = Number(name === "sellingPrice" ? value : updated.sellingPrice);
     const discount = Number(name === "discount" ? value : updated.discount);
 
-    // Old Price + New Price => Discount
-    if ((name === "oldPrice" || name === "newPrice") && oldPrice > 0 && newPrice > 0) {
-      updated.discount = (((oldPrice - newPrice) / oldPrice) * 100).toFixed(0);
+    // Auto-calculate discount
+    if ((name === "MRP" || name === "sellingPrice") && MRP > 0 && sellingPrice > 0) {
+      updated.discount = (((MRP - sellingPrice) / MRP) * 100).toFixed(0);
     }
 
-    // Old Price + Discount => New Price
-    if (name === "discount" && oldPrice > 0) {
-      updated.newPrice = (oldPrice - (oldPrice * discount) / 100).toFixed(2);
+    // Auto-calculate new price from discount
+    if (name === "discount" && MRP > 0) {
+      updated.sellingPrice = (MRP - (MRP * discount) / 100).toFixed(2);
     }
 
     setProduct(updated);
   };
 
-  // Fetch Product
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const data = await getProductById(id);
-        setProduct(data);
-        setExistingImages(data.images || []);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        alert("Failed to load product data");
+  // Handle specification changes
+  const handleSpecChange = (key, value) => {
+    setProduct(prev => ({
+      ...prev,
+      specifications: {
+        ...prev.specifications,
+        [key]: value
       }
-    };
-    fetchProduct();
-  }, [id]);
+    }));
+  };
+
+  // Category change handler - update spec fields
+  const handleCategoryChange = (e) => {
+    const category = e.target.value;
+    setProduct(prev => ({ ...prev, category, subCategory: "", brand: "" }));
+    
+    // Update spec fields based on category
+    if (category) {
+      const template = getTemplateByCategory(category);
+      const fields = Object.keys(template.fields).map(key => ({
+        key,
+        ...template.fields[key]
+      }));
+      setSpecFields(fields);
+      
+      // Reset specifications
+      setProduct(prev => ({ ...prev, specifications: {} }));
+    }
+  };
 
   // Image Upload
   const handleImages = (e) => {
     const files = Array.from(e.target.files);
-
     setImages(files);
     const imagePreview = files.map((file) => URL.createObjectURL(file));
     setPreview(imagePreview);
   };
 
-  // Remove Image
   const removeImage = (index) => {
     const newImages = [...images];
     const newPreview = [...preview];
-
     newImages.splice(index, 1);
     newPreview.splice(index, 1);
-
     setImages(newImages);
     setPreview(newPreview);
   };
@@ -115,62 +156,65 @@ export default function EditProduct() {
     try {
       const formData = new FormData();
 
-    formData.append("category", product.category);
+      // Basic fields
+      formData.append("category", product.category);
       formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
       formData.append("name", product.name);
-      
-      formData.append("oldPrice", product.oldPrice);
-      formData.append("newPrice", product.newPrice);
-      formData.append("discount", product.discount);
-      formData.append("rating", product.rating);
-      formData.append("reviews", product.rewiews);
-      
-      formData.append("choose_W_G", product.choose_W_G);
-      formData.append("warranty_guarantee", product.warranty_guarantee);
+      formData.append("MRP", product.MRP);
+      formData.append("sellingPrice", product.sellingPrice);
+      formData.append("discount", product.discount || 0);
+      formData.append("rating", product.rating || 4.4);
+      formData.append("reviews", product.reviews || 225);
+      formData.append("choose_W_G", product.choose_W_G || "");
+      formData.append("warranty_guarantee", product.warranty_guarantee || "");
       formData.append("stock", product.stock);
-      formData.append("description", product.description);
+      formData.append("description", product.description || "");
+      
+      // Product type
+      const template = getTemplateByCategory(product.category);
+      formData.append("productType", template.productType || "fan");
 
-      formData.append("fanDesign", product.fanDesign);
-      formData.append("color", product.color);
-      formData.append("motor", product.motor);
-      formData.append("sweepSize", product.sweepSize);
-      formData.append("bladeCount", product.bladeCount);
-      formData.append("material", product.material);
-      formData.append("fanWattage", product.fanWattage);
-      formData.append("airDelivery", product.airDelivery);
-      formData.append("fanRpm", product.fanRpm);
-      formData.append("weight", product.weight);
+      // ✅ Specifications as JSON
+      formData.append("specifications", JSON.stringify(product.specifications));
 
-      // 🔥 existingImages को JSON string में भेजें
-      const imageUrls = existingImages.map((img) => (typeof img === "object" ? img.url : img));
+      // Existing Images
+      const imageUrls = existingImages.map((img) => 
+        typeof img === "object" ? img.url : img
+      );
       formData.append("existingImages", JSON.stringify(imageUrls));
 
-      // नई इमेजेज
+      // New Images
       images.forEach((img) => {
         formData.append("images", img);
       });
 
-      // 🔍 Debug के लिए
-      console.log("Existing Images:", imageUrls);
-      console.log("New Images:", images.length);
-
       await updateProduct(id, formData);
-      alert("Product Updated Successfully");
+      alert("✅ Product Updated Successfully");
       navigate("/admin/products");
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Product Update Failed");
+      alert(error.response?.data?.message || "❌ Product Update Failed");
     }
   };
 
-  // Check if selected category is "Fans"
-  const isFanCategory = product.category === "Fans";
-
-      // Current category ke sub-categories aur brands
+  // Get current category data
   const currentCategoryData = product.category ? categoryData[product.category] : null;
   const subCategories = currentCategoryData?.subCategories || [];
   const brands = currentCategoryData?.brands || [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading product...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -179,198 +223,176 @@ export default function EditProduct() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
-
-              <div>
-              <label className="font-semibold">Category</label>
-
+            {/* Category */}
+            <div>
+              <label className="font-semibold">Category *</label>
               <select
-                type="text"
                 name="category"
                 value={product.category}
-                onChange={handleChange}
+                onChange={handleCategoryChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
               >
                 <option value="">Select Category</option>
                 {Object.keys(categoryData).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
 
-            {/* Sub-Category - Category select karne ke baad hi show hogi */}
+            {/* Sub-Category */}
             <div>
-              <label className="font-semibold">Sub-Category</label>
-
+              <label className="font-semibold">Sub-Category *</label>
               <select
-                type="text"
                 name="subCategory"
                 value={product.subCategory}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!product.category}
+                required
               >
                 <option value="">
                   {product.category ? "Select Sub-Category" : "Select Category First"}
                 </option>
                 {subCategories.map((sub) => (
-                  <option key={sub} value={sub}>
-                    {sub}
-                  </option>
+                  <option key={sub} value={sub}>{sub}</option>
                 ))}
               </select>
             </div>
 
-                {/* Brand Category select karne ke baad hi show hogi */}
+            {/* Brand */}
             <div>
-              <label className="font-semibold">Brand</label>
-
+              <label className="font-semibold">Brand *</label>
               <select
-              type="text"
                 name="brand"
                 value={product.brand}
                 onChange={handleChange}
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!product.category}
+                required
               >
                 <option value="">
                   {product.category ? "Select Brand" : "Select Category First"}
                 </option>
                 {brands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
+                  <option key={brand} value={brand}>{brand}</option>
                 ))}
               </select>
             </div>
-               
-             {/* Product Name - Brand select karne ke baad hi show karenge */}
+
+            {/* Product Name */}
             <div>
-              <label className="font-semibold">Product Name</label>
+              <label className="font-semibold">Product Name *</label>
               <input
                 type="text"
                 name="name"
                 value={product.name}
                 onChange={handleChange}
-                placeholder={product.brand ? "Enter Product Name" : "Select Brand First"}
+                placeholder="Enter Product Name"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
+                required
               />
             </div>
 
-             {/* Old Price - Brand select ke baad hi show karenge */}
+            {/* Old Price */}
             <div>
-              <label className="font-semibold">Old Price</label>
-
+              <label className="font-semibold">Old Price *</label>
               <input
                 type="number"
-                name="oldPrice"
-                value={product.oldPrice}
+                name="MRP"
+                value={product.MRP}
                 onChange={handleChange}
                 placeholder="₹ Old Price"
-                className="w-full mt-2 border rounded-lg p-3"
-                
-                disabled={!product.category}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
-              {/* New Price */}
+            {/* New Price */}
             <div>
-              <label className="font-semibold">New Price</label>
-
+              <label className="font-semibold">New Price *</label>
               <input
                 type="number"
-                name="newPrice"
-                value={product.newPrice}
+                name="sellingPrice"
+                value={product.sellingPrice}
                 onChange={handleChange}
                 placeholder="₹ Selling Price"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
+                required
               />
             </div>
 
             {/* Discount */}
             <div>
               <label className="font-semibold">Discount %</label>
-
               <input
                 type="number"
                 name="discount"
                 value={product.discount}
                 onChange={handleChange}
-                placeholder="Discount"
+                placeholder="Discount %"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
               />
             </div>
 
-            {/* rating */}
+            {/* Rating */}
             <div>
               <label className="font-semibold">Rating</label>
-
               <input
                 type="number"
                 name="rating"
                 value={product.rating}
                 onChange={handleChange}
-                placeholder="Rating"
+                placeholder="Rating (e.g., 4.5)"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
+                step="0.1"
               />
             </div>
 
             {/* Reviews */}
             <div>
               <label className="font-semibold">Reviews</label>
-
               <input
                 type="number"
                 name="reviews"
                 value={product.reviews}
                 onChange={handleChange}
-                placeholder="Reviews"
+                placeholder="Number of Reviews"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
               />
             </div>
 
-            {/* Choose Warranty/Guarantee */}
+            {/* Choose W/G */}
             <div>
-                <label className="font-semibold">Choose Warranty/Guarantee</label>
-                <div>
-                  <select
-                    type="string"
-                    name="choose_W_G"
-                    value={product.choose_W_G}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Warranty or Guarantee</option>
-                    <option value="warranty">Warranty</option>
-                    <option value="guarantee">Guarantee</option>
-                  </select>
-                </div>
-              </div>
+              <label className="font-semibold">Choose Warranty/Guarantee</label>
+              <select
+                name="choose_W_G"
+                value={product.choose_W_G}
+                onChange={handleChange}
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Warranty or Guarantee</option>
+                <option value="warranty">Warranty</option>
+                <option value="guarantee">Guarantee</option>
+              </select>
+            </div>
 
-            {/* Warranty/Garraty */}
+            {/* Warranty Period */}
             <div>
               <label className="font-semibold">Warranty/Guarantee Period</label>
-
               <input
-                type="string"
+                type="text"
                 name="warranty_guarantee"
                 value={product.warranty_guarantee}
                 onChange={handleChange}
-                placeholder="Period"
+                placeholder="e.g., 2 Years"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Stock */}
             <div>
-              <label className="font-semibold">Stock</label>
-
+              <label className="font-semibold">Stock *</label>
               <input
                 type="number"
                 name="stock"
@@ -378,189 +400,63 @@ export default function EditProduct() {
                 onChange={handleChange}
                 placeholder="Available Stock"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
-          
+          </div>
 
-            {/* Fan Design - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Design</label>
-                <div>
-                  <input
-                    type="string"
-                    name="fanDesign"
-                    value={product.fanDesign}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+          {/* ✅ Dynamic Specifications - Category ke hisaab se */}
+          {product.category && specFields.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4 border-b pb-2">
+                Product Specifications
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                {specFields.map((field) => (
+                  <div key={field.key}>
+                    <label className="font-semibold">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    {field.type === 'select' ? (
+                      <select
+                        value={product.specifications[field.key] || ''}
+                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
+                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select {field.label}</option>
+                        {field.options?.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : field.type === 'textarea' ? (
+                      <textarea
+                        value={product.specifications[field.key] || ''}
+                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        rows="3"
+                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={product.specifications[field.key] || ''}
+                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
+                        placeholder={field.placeholder}
+                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
-
-
-             {/* Fan Color - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Color</label>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    name="color"
-                    value={product.color}
-                    onChange={handleChange}
-                    placeholder="Color Name"
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />                
-                </div>
-              </div>
-            )}
-
-             {/* Fan Motor - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Motor</label>
-                  <select
-                    type="String"
-                    name="motor"
-                    value={product.motor}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Motor</option>
-                    <option value="Induction">Induction</option>
-                    <option value="BLDC">BLDC</option>
-                  </select>              
-              </div>
-            )}
-
-             {/* Fan SweepSize - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Sweep Size</label>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    name="sweepSize"
-                    value={product.sweepSize}
-                    onChange={handleChange}
-                    placeholder="Enter Seep Size "
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />                
-                </div>
-              </div>
-            )}
-
-             {/* Fan bladeCount - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Blade Count</label>
-                 <select
-                    type="String"
-                    name="bladeCount"
-                    value={product.bladeCount}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Blade Count</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                  </select> 
-              </div>
-            )}
-
-             {/* Fan Material - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Material</label>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    name="material"
-                    value={product.material}
-                    onChange={handleChange}
-                    placeholder="Color Name"
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  />                
-                </div>
-              </div>
-            )}
-
-            {/* Fan wattage - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Wattage</label>
-        
-                  <input
-                  type="string"
-                  name="fanWattage"
-                  value={product.fanWattage}
-                  onChange={handleChange}
-                  placeholder="Fan Watttage"
-                  className="w-full mt-2 border rounded-lg p-3"
-                  disabled={!product.category}
-                />
-              </div>
-            )}
-
-            {/* Fan Air Delivery - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Air Delivery</label>
-                
-                <input
-                  type="string"
-                  name="airDelivery"
-                  value={product.airDelivery}
-                  onChange={handleChange}
-                  placeholder="Air Delivery"
-                  className="w-full mt-2 border rounded-lg p-3"
-                />
-              </div>
-            )}
-
-            {/* Fan RPM - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan RPMt</label>
-                
-                <input
-                  type="string"
-                  name="fanRpm"
-                  value={product.fanRpm}
-                  onChange={handleChange}
-                  placeholder="Fan RPM"
-                  className="w-full mt-2 border rounded-lg p-3"
-                />
-              </div>
-            )}
-
-            {/* Fan Weight - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Weight</label>
-                
-                <input
-                  type="string"
-                  name="weight"
-                  value={product.weight}
-                  onChange={handleChange}
-                  placeholder="Fan Weight"
-                  className="w-full mt-2 border rounded-lg p-3"
-                />
-              </div>
-            )}
             </div>
-            
-             {/* Description */}
+          )}
+
+          {/* Description */}
           <div>
             <label className="font-semibold">Description</label>
-
             <textarea
-              rows="3"
-              type="text"
+              rows="4"
               name="description"
               value={product.description}
               onChange={handleChange}
@@ -576,8 +472,16 @@ export default function EditProduct() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
                 {existingImages.map((img, index) => (
                   <div key={index} className="relative">
-                    <img src={img.url || img} alt="" className="rounded-lg h-36 w-full object-cover border" />
-                    <button type="button" onClick={() => removeExistingImage(index)} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full">
+                    <img 
+                      src={typeof img === "object" ? img.url : img} 
+                      alt="" 
+                      className="rounded-lg h-36 w-full object-cover border" 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => removeExistingImage(index)} 
+                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                    >
                       <FaTrash />
                     </button>
                   </div>
@@ -592,8 +496,8 @@ export default function EditProduct() {
             <label className="mt-3 flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-52 cursor-pointer hover:border-blue-500 transition">
               <FaUpload className="text-5xl text-blue-600 mb-4" />
               <p className="font-semibold">Click to Upload Images</p>
-              <p className="text-gray-500 text-sm">PNG, JPG, JPEG</p>
-              <input type="file" multiple hidden onChange={handleImages} />
+              <p className="text-gray-500 text-sm">PNG, JPG, JPEG (Max 5MB each)</p>
+              <input type="file" multiple hidden onChange={handleImages} accept="image/*" />
             </label>
           </div>
 
@@ -608,7 +512,7 @@ export default function EditProduct() {
                     <button 
                       type="button" 
                       onClick={() => removeImage(index)} 
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full"
+                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
                     >
                       <FaTrash />
                     </button>
@@ -618,12 +522,21 @@ export default function EditProduct() {
             </div>
           )}
 
-          <button 
-            type="submit" 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg"
-          >
-            Update Product
-          </button>
+          <div className="flex gap-4">
+            <button 
+              type="submit" 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg"
+            >
+              Update Product
+            </button>
+            <button 
+              type="button" 
+              onClick={() => navigate("/admin/products")} 
+              className="bg-gray-400 hover:bg-gray-500 text-white px-10 py-3 rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>

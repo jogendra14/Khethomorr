@@ -2,40 +2,75 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
+    // Common fields for all products
     category: { type: String, required: true },
-    subCategory: { type: String , required: true}, 
+    subCategory: { type: String },
     brand: { type: String, required: true },
     name: { type: String, required: true },
 
-    oldPrice: { type: Number, required: true, },
-    newPrice: { type: Number, required: true, },
-    discount: { type: Number, default: 0, },
+    MRP: { type: Number, required: true },
+    sellingPrice: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
     rating: { type: Number, default: 4.4 },
     reviews: { type: Number, default: 225 },
 
-    choose_W_G: { type: String, },
+    choose_W_G: { type: String },
     warranty_guarantee: { type: String },
     stock: { type: Number, required: true },
-    description: { type: String, },
+    description: { type: String },
     images: [{ type: String, required: true }],
 
-     // Fan Items    
-    fanDesign: { type: String, },
-    color: { type: String, },
-    motor: {type: String},
-    sweepSize: {type: String},
-    bladeCount: {type: String},
-    material: {type: String},
-    fanWattage: { type: String },
-    airDelivery: {type: String },
-    fanRpm: {type: String },
-    weight: { type: String },  
+    // Product type identification
+    productType: { 
+      type: String, 
+      enum: ['fan', 'lighting', 'electricals', 'appliances', 'solar', 'smartHome', 'safety', 'others'],
+      required: true,
+      default: 'fan'
+    },
+
+    // Dynamic specifications stored as Map
+    specifications: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: new Map()
+    }
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-const Product = mongoose.model("Product", productSchema);
+// Indexes for better query performance
+productSchema.index({ category: 1, subCategory: 1 });
+productSchema.index({ name: 'text' });
+productSchema.index({ brand: 1 });
+productSchema.index({ newPrice: 1 });
 
+// Instance method to get formatted specifications
+productSchema.methods.getSpecs = function() {
+  const specs = {};
+  if (this.specifications) {
+    this.specifications.forEach((value, key) => {
+      specs[key] = value;
+    });
+  }
+  return specs;
+};
+
+// Static method to get product type template fields
+productSchema.statics.getTemplateFields = function(productType) {
+  const templates = {
+    fan: ['fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight'],
+    lighting: ['lightType', 'wattage', 'colorTemperature', 'lumens', 'beamAngle', 'dimmable', 'ipRating'],
+    electricals: ['electricalType', 'rating', 'voltage', 'pole', 'color', 'material'],
+    appliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
+    solar: ['solarType', 'powerRating', 'voltage', 'efficiency', 'panelType', 'batteryType'],
+    smartHome: ['smartType', 'connectivity', 'compatibility', 'color', 'features'],
+    safety: ['securityType', 'resolution', 'lensType', 'nightVision', 'lockType', 'ipRating'],
+    others: ['productTypeName', 'material', 'color']
+  };
+  return templates[productType] || [];
+};
+
+const Product = mongoose.model("Product", productSchema);
 export default Product;
