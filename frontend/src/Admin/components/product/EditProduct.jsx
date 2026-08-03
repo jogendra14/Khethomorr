@@ -380,22 +380,7 @@ export default function EditProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-          </div>
-
-           {/* Description */}
-          <div>
-            <label className="font-semibold">Description</label>
-
-            <textarea
-              rows="3"
-              type="text"
-              name="description"
-              value={product.description}
-              onChange={handleChange}
-              placeholder="Write Product Description..."
-              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          
 
             {/* Fan Design - Show only when category is Fans */}
             {isFanCategory && (
@@ -567,6 +552,22 @@ export default function EditProduct() {
                 />
               </div>
             )}
+            </div>
+            
+             {/* Description */}
+          <div>
+            <label className="font-semibold">Description</label>
+
+            <textarea
+              rows="3"
+              type="text"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              placeholder="Write Product Description..."
+              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           {/* Existing Images */}
           {existingImages.length > 0 && (
