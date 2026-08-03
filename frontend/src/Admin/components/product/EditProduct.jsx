@@ -25,6 +25,7 @@ export default function EditProduct() {
     warranty_guarantee: "",
     stock: "",
     description: "",
+    includeComponents: '',
     productType: "fan",
     specifications: {}
   });
@@ -389,6 +390,21 @@ export default function EditProduct() {
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* Include Components */}
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Include Components <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              name="includeComponents"
+              value={product.includeComponents}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 50"
+            />
+          </div>
 
             {/* Stock */}
             <div>

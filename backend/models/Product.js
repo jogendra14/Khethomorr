@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
     warranty_guarantee: { type: String },
     stock: { type: Number, required: true },
     description: { type: String },
+    includeComponents: [{ type: String }],
     images: [{ type: String, required: true }],
 
     // Product type identification

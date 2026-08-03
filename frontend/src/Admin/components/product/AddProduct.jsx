@@ -22,6 +22,7 @@ const ProductForm = () => {
     discount: '0',
     stock: '',
     description: '',
+    includeComponents: '',
     images: []
   });
 
@@ -175,6 +176,7 @@ const handleSubmit = async (e) => {
         discount: '',
         stock: '',
         description: '',
+        includeComponents: '',
         images: []
       });
       setSpecifications({});
@@ -398,9 +400,24 @@ const handleSubmit = async (e) => {
               Warranty_Guarantee <span className="text-red-500 ml-1">*</span>
             </label>
             <input
-              type="string"
+              type="text"
               name="warranty_guarantee"
               value={formData.warranty_guarantee}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 50"
+            />
+          </div>
+
+          {/* Include Components */}
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Include Components <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              name="includeComponents"
+              value={formData.includeComponents}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 50"

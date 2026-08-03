@@ -104,17 +104,25 @@ const createProduct = async (req, res) => {
       sellingPrice, 
       discount,
       stock,
+      includeComponents,
       description,
       productType = 'fan',
       specifications = {}
     } = req.body;
 
     // Validate required fields
-    if (!category || !subCategory || !brand || !name || !MRP || !sellingPrice || !stock) {
+    if (!category || !brand || !name || !MRP || !sellingPrice || !stock) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: category, subCategory, brand, name, MRP, sellingPrice, stock are required"
+        message: "Missing required fields: category, brand, name, MRP, sellingPrice, stock are required"
       });
+    }
+
+    // String ko array mein convert karo
+    if (typeof includeComponents === 'string' && includeComponents.trim()) {
+      includeComponents = includeComponents.split(',').map(item => item.trim());
+    } else {
+      includeComponents = [];
     }
 
     const productData = {
@@ -126,6 +134,7 @@ const createProduct = async (req, res) => {
       sellingPrice: Number(sellingPrice),
       discount: Number(discount),
       stock: Number(stock),
+      includeComponents,
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()
