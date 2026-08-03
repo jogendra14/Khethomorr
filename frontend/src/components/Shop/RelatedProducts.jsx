@@ -31,7 +31,7 @@ export default function RelatedProducts() {
     },[]);
 
   return (
-    <section className="mt-10">
+    <section className="max-w-7xl mx-auto mt-8">
       {/* Heading */}
       <div className="flex justify-between products-center  mb-4">
         <div className="">
@@ -42,13 +42,13 @@ export default function RelatedProducts() {
       </div>
 
       {/* Cards */}
-      <div className="flex gap-2 py-3 overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory">
+      <div className="flex gap-2 py-3 overflow-x-auto hide-scrollbar scroll-smooth ">
         {allProducts.map((product) => (
-          <div key={product._id} className="group bg-white shadow-lg hove:shadow-lg transition-transform duration-300">
+          <div key={product._id} className="group rounded-sm bg-white shadow-md hove:shadow-lg transition-transform duration-300">
             
             {/* Image */}
-            <Link className=" shrink-0 snap-start">
-              <div className="relative overflow-hidden">
+            <Link className="">
+              <div className="relative overflow-hidden w-50">
               <img src={product.images?.[0]} 
                 alt="productImage" 
                 className="w-full h-48 object-cover group-hover:scale-105 transition duration-500" />
@@ -64,15 +64,16 @@ export default function RelatedProducts() {
             <div className="p-2">
               <h3 className="text-lg font-bold mt-0 line-clamp-1">{product.name}</h3>
               
-              <div className="flex products-center gap-2 ">
-                <FaStar className="text-yellow-400" />
-                <span className="font-medium">{product.rating}</span>
+              <div className="flex gap-2 ">
+                <FaStar className="self-center text-yellow-400" />
+                <span className="self-center">{product.rating}</span>
               </div>
 
-              <div className="flex justify-between products-center gap-14 mt-3">
-                <span className="text-2xl font-bold text-green-700">₹{product.newPrice}</span>
+              <div className="flex justify-between mt-3">
+                <span className="text-2xl self-end font-bold text-green-700">₹{product.newPrice}</span>
 
-                <Link className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
+                <Link to="/checkout"
+                className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "../../../index.css";
 
 export default function ProductGallery({ product }) {
@@ -17,7 +17,7 @@ export default function ProductGallery({ product }) {
       setSelectedImage(images[0]);
     }
   }, [images]);
-
+  
   const nextImage = () => {
     if (currentIndex < images.length - 1) {
       setSelectedImage(images[currentIndex + 1]);
@@ -62,7 +62,7 @@ export default function ProductGallery({ product }) {
       {/* Main Image Container */}
       <div 
         ref={imageRef}
-        className="relative w-full bg-gray-50 flex aspect-square items-center justify-center "
+        className="relative w-full bg-gray-50  flex aspect-square items-center justify-center "
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -71,7 +71,7 @@ export default function ProductGallery({ product }) {
           <img
             src={selectedImage}
             alt="Product"
-            className="w-full h-full object-cover pointer-events-none"
+            className="w-full h-full object-cover mb-6 pointer-events-none"
             draggable={false}
           />
         )}

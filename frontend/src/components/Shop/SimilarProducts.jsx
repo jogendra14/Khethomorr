@@ -66,7 +66,7 @@ export default function SimilarProducts({ product }) {
   }
 
   return (
-    <section className="mt-10">
+    <section className="max-w-7xl mx-auto mt-8">
       {/* Heading */}
       <div className="flex justify-between products-center mb-4">
         <div className="">
@@ -77,20 +77,21 @@ export default function SimilarProducts({ product }) {
       </div>
 
       {/* Cards */}
-      <div className="flex gap-2 py-3 overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory">
+      <div className="flex gap-2 py-3 overflow-x-auto  hide-scrollbar scroll-smooth">
         {/* FIX 2: Use product.id instead of index as the key */}
         {similarProducts.map((productItem) => (
-          <div key={productItem._id} className="group bg-white shadow-lg hove:shadow-lg transition-transform duration-300">
+          <div key={productItem._id} className="group rounded-sm bg-white shadow-md hove:shadow-lg transition-transform duration-300">
             
             {/* Image */}
-            <Link className=" snap-start">
-              <div className="relative overflow-hidden">
+            <Link className="">
+              <div className="relative overflow-hidden w-50">
                 {/* FIX 3: Added a fallback in case images is null/undefined */}
                 <img 
                   src={productItem.images?.[0] || "https://via.placeholder.com/300"} 
                   alt="ProductImage"
                   className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
                 />
+                {productItem.discount > 0 && <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{productItem.discount}% OFF</span>}
 
                 <button className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-red-500 hover:text-white transition">
                   <FaHeart />
@@ -100,18 +101,20 @@ export default function SimilarProducts({ product }) {
 
             {/* Content */}
             <div className="p-2">
-              <h3 className="text-lg font-bold mt-0 line-clamp-1">{productItem.name}</h3>
+              <h3 className="text-lg leading-5.5 font-semibold mt-0 line-clamp-2">{productItem.name}</h3>
               
-              <div className="flex products-center gap-2">
-                <FaStar className="text-yellow-400" />
-                <span className="font-medium">{productItem.rating}</span>
+              <div className="flex gap-2">
+                <span><FaStar className="self-center text-yellow-400" /></span>
+                <span className="self-center">{productItem.rating}</span>
               </div>
 
-              <div className="flex justify-between products-center gap-14 mt-3">
-                <span className="text-2xl font-bold text-green-700">₹{productItem.newPrice}</span>
+              <div className="flex justify-between mt-3">
+                <span className="text-xl self-end font-bold text-green-700">{productItem.sellingPrice}</span>
 
-                <Link className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
+                <Link to="/checkout"
+                  className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
               </div>
+    
             </div>
           </div>
         ))}

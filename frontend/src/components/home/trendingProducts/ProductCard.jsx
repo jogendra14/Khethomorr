@@ -32,7 +32,7 @@ const ProductCard = ({ product: productFromApi }) => {
             className="w-full h-35 md:h-44 lg:h-50 object-cover group-hover:scale-105 transition duration-500"
           />
 
-          {discount > 0 && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{discount}%</span>}
+          {discount > 0 && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{discount}% OFF</span>}
           <button
             onClick={(e) => {
               e.preventDefault(); // Link को ट्रिगर होने से रोकें
@@ -60,16 +60,16 @@ const ProductCard = ({ product: productFromApi }) => {
           </div>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="text-lg md:text-2xl font-bold text-red-600">₹{product.newPrice}</span>
+            <span className="text-lg md:text-2xl font-bold text-red-600">₹{product.sellingPrice}</span>
 
-            <span className="text-gray-400 text-sm md:text-md line-through">₹{product.oldPrice}</span>
+            <span className="text-gray-400 text-sm md:text-md line-through">₹{product.MRP}</span>
           </div>
         </div>
       </Link>
           <div className="px-2 pb-1.5 md:pb-2 ">
           <button
             onClick={ () => addToCart(product) }
-            className="border w-full bg-black text-sm md:text-base hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 transition"
+            className="border w-full active:scale-95 transition-transform duration-150 bg-black text-sm md:text-base hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 "
           >
             <FaShoppingCart />
             Add To Cart

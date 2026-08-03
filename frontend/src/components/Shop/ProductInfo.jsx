@@ -76,7 +76,7 @@ export default function ProductInfo({ product }) {
       <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
       <h1 className="text-sm md:text-base  font-semibold mt-2">
         {capitalizeWords(product.brand)} {capitalizeWords(product.name)} | {capitalizeWords(product.subCategory)} fan | {product.fanSize}mm | {product.fanRpm}{" "}
-        RPM | {product.fanWattage} Watt | {product.fanVoltage}volt | {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} (
+        RPM | {product.fanWattage} Watt | {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} (
         {capitalizeWords(product.color)})
       </h1>
       <div className="flex items-center gap-2 mt-3">
@@ -86,13 +86,13 @@ export default function ProductInfo({ product }) {
           ))}
         </div>
         <span className="font-semibold">{product.rating}</span>
-        <span className="text-gray-500">{product.numReviews} Reviews</span>
+        <span className="text-gray-500">{product.reviews} Reviews</span>
       </div>
       <div className="mt-1 md:mt-2">
         <span className="text-red-700 text-2xl md:text-3xl">-{product.discount}% </span>
-        <span className="text-xl md:text-2xl font-semibold">₹{product.newPrice}</span>
+        <span className="text-xl md:text-2xl font-semibold">₹{product.sellingPrice}</span>
         <span className="text-xs mx-1 md:text-sm text-gray-600">M.R.P.</span>
-        <span className="line-through text-xs md:text-sm text-gray-500">{product.oldPrice}</span>
+        <span className="line-through text-xs md:text-sm text-gray-500">{product.MRP}</span>
       </div>
 
       <p className="mt-2 text-gray-700">
@@ -131,7 +131,7 @@ export default function ProductInfo({ product }) {
       </Link>
 
       <div className="flex gap-4 mt-2">
-        <button onClick={() => addToCart(product)} className="flex-1 border bg-white hover:bg-red-600 hover:text-white text-black py-3 rounded-xl font-semibold transition">
+        <button onClick={() => addToCart(product)} className="flex-1 border active:scale-95 transition-transform duration-150 bg-white hover:bg-red-600 hover:text-white text-black py-3 rounded-xl font-semibold ">
           Add To Cart
         </button>
         <button onClick={() => addToWishlist(product)} className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
