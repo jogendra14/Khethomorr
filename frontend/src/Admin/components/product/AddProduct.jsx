@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { categoryData, getTemplateForCategory } from '../../data/categoryData';
 import { getTemplateByCategory } from '../../data/ProductTemplates';
+import { addProduct } from '../../../api/productApi';
 
 const ProductForm = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -75,10 +76,7 @@ const ProductForm = () => {
         });
       }
 
-      const response = await fetch('http://localhost:5000/api/products', {
-        method: 'POST',
-        body: formDataToSend
-      });
+      const response = await addProduct(formData)
       
       const data = await response.json();
       if (data.success) {
