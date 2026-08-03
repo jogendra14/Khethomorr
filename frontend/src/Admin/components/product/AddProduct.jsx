@@ -10,22 +10,32 @@ export default function AddProduct() {
   const navigate = useNavigate();
 
   const [product, setProduct] = useState({
-    name: "",
-    description: "",
-    category: "",
-    subCategory: "",
-    brand: "",
-    oldPrice: "",
-    newPrice: "",
-    discount: "",
-    fanSize: "",
-    color: "",
-    fanWattage: "",
-    fanVoltage: "",
-    weight: "",
-    choose_W_G: "",
-    warranty_guarantee: "",
-    stock: "",
+    
+      category: "",
+      subCategory: "",
+      brand: "",
+      name: "",
+      
+      oldPrice: "",
+      newPrice: "",
+      discount: "",
+      rating: "",
+      rewiews: "",
+      choose_W_G: "",
+      warranty_guarantee: "",
+      stock: "",
+      description: "",
+
+      fanDesign: "",
+      color: "",
+      motor: "",
+      sweepSize: "",
+      bladeCount: "",
+      material: "",
+      fanWattage: "",
+      airDelivery: "",
+      fanRpm: "",
+      weight: "",
   });
 
   const [images, setImages] = useState([]);
@@ -86,26 +96,32 @@ export default function AddProduct() {
     try {
       const formData = new FormData();
 
-      formData.append("name", product.name);
-      formData.append("description", product.description);
       formData.append("category", product.category);
       formData.append("subCategory", product.subCategory);
       formData.append("brand", product.brand);
-
+      formData.append("name", product.name);
+      
       formData.append("oldPrice", product.oldPrice);
       formData.append("newPrice", product.newPrice);
       formData.append("discount", product.discount);
-
-      formData.append("fanSize", product.fanSize);
-      formData.append("color", product.color);
-      formData.append("fanWattage", product.fanWattage);
-      formData.append("fanVoltage", product.fanVoltage);
-      formData.append("airDelivery", product.airDelivery);
-      formData.append("fanRpm", product.fanRpm);
-      formData.append("weight", product.weight);
+      formData.append("rating", product.rating);
+      formData.append("reviews", product.rewiews);
+      
       formData.append("choose_W_G", product.choose_W_G);
       formData.append("warranty_guarantee", product.warranty_guarantee);
       formData.append("stock", product.stock);
+      formData.append("description", product.description);
+
+      formData.append("fanDesign", product.fanDesign);
+      formData.append("color", product.color);
+      formData.append("motor", product.motor);
+      formData.append("sweepSize", product.sweepSize);
+      formData.append("bladeCount", product.bladeCount);
+      formData.append("material", product.material);
+      formData.append("fanWattage", product.fanWattage);
+      formData.append("airDelivery", product.airDelivery);
+      formData.append("fanRpm", product.fanRpm);
+      formData.append("weight", product.weight);
 
       images.forEach((img) => {
         formData.append("images", img);
@@ -119,25 +135,31 @@ export default function AddProduct() {
       // Form Reset
       setProduct({
         category: "",
-        subCategory: "",
-        brand: "",
-        name: "",
-        fanSize: "",
-        color: "",
-        fanWattage: "",
-        fanVoltage: "",
-        airDelivery: "",
-        fanRpm: "",
-        weight: "",
-        oldPrice: "",
-        newPrice: "",
-        discount: "",
-        choose_W_G: "",
-        warranty_guarantee: "",
-        stock: "",
-        description: "",
-      });
+      subCategory: "",
+      brand: "",
+      name: "",
+      
+      oldPrice: "",
+      newPrice: "",
+      discount: "",
+      rating: "",
+      rewiews: "",
+      choose_W_G: "",
+      warranty_guarantee: "",
+      stock: "",
+      description: "",
 
+      fanDesign: "",
+      color: "",
+      motor: "",
+      sweepSize: "",
+      bladeCount: "",
+      material: "",
+      fanWattage: "",
+      airDelivery: "",
+      fanRpm: "",
+      weight: "",
+    });
 
       setImages([]);
       setPreview([]);
@@ -245,24 +267,156 @@ export default function AddProduct() {
               />
             </div>
 
-            {/* Fan Size - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Size</label>
+             {/* Old Price - Brand select ke baad hi show karenge */}
+            <div>
+              <label className="font-semibold">Old Price</label>
+
+              <input
+                type="number"
+                name="oldPrice"
+                value={product.oldPrice}
+                onChange={handleChange}
+                placeholder="₹ Old Price"
+                className="w-full mt-2 border rounded-lg p-3"
+                
+                disabled={!product.category}
+              />
+            </div>
+
+              {/* New Price */}
+            <div>
+              <label className="font-semibold">New Price</label>
+
+              <input
+                type="number"
+                name="newPrice"
+                value={product.newPrice}
+                onChange={handleChange}
+                placeholder="₹ Selling Price"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
+              />
+            </div>
+
+            {/* Discount */}
+            <div>
+              <label className="font-semibold">Discount %</label>
+
+              <input
+                type="number"
+                name="discount"
+                value={product.discount}
+                onChange={handleChange}
+                placeholder="Discount"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
+              />
+            </div>
+
+            {/* rating */}
+            <div>
+              <label className="font-semibold">Rating</label>
+
+              <input
+                type="number"
+                name="rating"
+                value={product.rating}
+                onChange={handleChange}
+                placeholder="Rating"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
+              />
+            </div>
+
+            {/* Reviews */}
+            <div>
+              <label className="font-semibold">Reviews</label>
+
+              <input
+                type="number"
+                name="reviews"
+                value={product.reviews}
+                onChange={handleChange}
+                placeholder="Reviews"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!product.category}
+              />
+            </div>
+
+            {/* Choose Warranty/Guarantee */}
+            <div>
+                <label className="font-semibold">Choose Warranty/Guarantee</label>
                 <div>
                   <select
                     type="string"
-                    name="fanSize"
-                    value={product.fanSize}
+                    name="choose_W_G"
+                    value={product.choose_W_G}
                     onChange={handleChange}
                     className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select Fan Size</option>
-                    <option value="600">600</option>
-                    <option value="900">900</option>
-                    <option value="1200">1200</option>
-                    <option value="1400">1400</option>
+                    <option value="">Select Warranty or Guarantee</option>
+                    <option value="warranty">Warranty</option>
+                    <option value="guarantee">Guarantee</option>
                   </select>
+                </div>
+              </div>
+
+            {/* Warranty/Garraty */}
+            <div>
+              <label className="font-semibold">Warranty/Guarantee Period</label>
+
+              <input
+                type="string"
+                name="warranty_guarantee"
+                value={product.warranty_guarantee}
+                onChange={handleChange}
+                placeholder="Period"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Stock */}
+            <div>
+              <label className="font-semibold">Stock</label>
+
+              <input
+                type="number"
+                name="stock"
+                value={product.stock}
+                onChange={handleChange}
+                placeholder="Available Stock"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+           {/* Description */}
+          <div>
+            <label className="font-semibold">Description</label>
+
+            <textarea
+              rows="3"
+              type="text"
+              name="description"
+              value={product.description}
+              onChange={handleChange}
+              placeholder="Write Product Description..."
+              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+            {/* Fan Design - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Design</label>
+                <div>
+                  <input
+                    type="string"
+                    name="fanDesign"
+                    value={product.fanDesign}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
               </div>
             )}
@@ -285,6 +439,78 @@ export default function AddProduct() {
               </div>
             )}
 
+             {/* Fan Motor - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Motor</label>
+                  <select
+                    type="String"
+                    name="motor"
+                    value={product.motor}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Motor</option>
+                    <option value="Induction">Induction</option>
+                    <option value="BLDC">BLDC</option>
+                  </select>              
+              </div>
+            )}
+
+             {/* Fan SweepSize - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Sweep Size</label>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    name="sweepSize"
+                    value={product.sweepSize}
+                    onChange={handleChange}
+                    placeholder="Enter Seep Size "
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  />                
+                </div>
+              </div>
+            )}
+
+             {/* Fan bladeCount - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Blade Count</label>
+                 <select
+                    type="String"
+                    name="bladeCount"
+                    value={product.bladeCount}
+                    onChange={handleChange}
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Blade Count</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                  </select> 
+              </div>
+            )}
+
+             {/* Fan Material - Show only when category is Fans */}
+            {isFanCategory && (
+              <div>
+                <label className="font-semibold">Fan Material</label>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    name="material"
+                    value={product.material}
+                    onChange={handleChange}
+                    placeholder="Color Name"
+                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  />                
+                </div>
+              </div>
+            )}
+
             {/* Fan wattage - Show only when category is Fans */}
             {isFanCategory && (
               <div>
@@ -299,24 +525,6 @@ export default function AddProduct() {
                   className="w-full mt-2 border rounded-lg p-3"
                   disabled={!product.category}
                 />
-              </div>
-            )}
-
-            {/* Fan Voltage - Show only when category is Fans */}
-            {isFanCategory && (
-              <div>
-                <label className="font-semibold">Fan Voltage</label>
-           
-                <input
-                  type="string"
-                  name="fanVoltage"
-                  value={product.fanVoltage}
-                  onChange={handleChange}
-                  placeholder="Fan Voltage"
-                  className="w-full mt-2 border rounded-lg p-3"
-                  disabled={!product.category}
-                />
-           
               </div>
             )}
 
@@ -368,113 +576,7 @@ export default function AddProduct() {
               </div>
             )}
            
-             {/* Old Price - Brand select ke baad hi show karenge */}
-            <div>
-              <label className="font-semibold">Old Price</label>
-
-              <input
-                type="number"
-                name="oldPrice"
-                value={product.oldPrice}
-                onChange={handleChange}
-                placeholder="₹ Old Price"
-                className="w-full mt-2 border rounded-lg p-3"
-                
-                disabled={!product.category}
-              />
-            </div>
-
-              {/* New Price */}
-            <div>
-              <label className="font-semibold">New Price</label>
-
-              <input
-                type="number"
-                name="newPrice"
-                value={product.newPrice}
-                onChange={handleChange}
-                placeholder="₹ Selling Price"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
-              />
-            </div>
-
-            {/* Discount */}
-            <div>
-              <label className="font-semibold">Discount %</label>
-
-              <input
-                type="number"
-                name="discount"
-                value={product.discount}
-                onChange={handleChange}
-                placeholder="Discount"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
-              />
-            </div>
-
-            {/* Choose Warranty/Guarantee */}
-            <div>
-                <label className="font-semibold">Choose Warranty/Guarantee</label>
-                <div>
-                  <select
-                    type="string"
-                    name="choose_W_G"
-                    value={product.choose_W_G}
-                    onChange={handleChange}
-                    className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Warranty or Guarantee</option>
-                    <option value="warranty">Warranty</option>
-                    <option value="guarantee">Guarantee</option>
-                  </select>
-                </div>
-              </div>
-
-            {/* Warranty/Garraty */}
-            <div>
-              <label className="font-semibold">Warranty/Guarantee</label>
-
-              <input
-                type="string"
-                name="warranty_guarantee"
-                value={product.warranty_guarantee}
-                onChange={handleChange}
-                placeholder="Warranty/Guarantee Period"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Stock */}
-            <div>
-              <label className="font-semibold">Stock</label>
-
-              <input
-                type="number"
-                name="stock"
-                value={product.stock}
-                onChange={handleChange}
-                placeholder="Available Stock"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-           {/* Description */}
-          <div>
-            <label className="font-semibold">Description</label>
-
-            <textarea
-              rows="3"
-              type="text"
-              name="description"
-              value={product.description}
-              onChange={handleChange}
-              placeholder="Write Product Description..."
-              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            
 
           {/* Image Upload */}
           <div>

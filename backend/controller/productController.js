@@ -26,14 +26,40 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     // 1. Sabse pehle req.body se data nikaalein
-    let { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount, choose_W_G, warranty_guarantee, stock, description,  } = req.body;
+    let {
+      category,
+      subCategory,
+      brand,
+      name,
+
+      oldPrice,
+      newPrice,
+      discount,
+      rating, 
+      rewiews,
+      choose_W_G,
+      warranty_guarantee,
+      stock,
+      description,
+      
+      fanDesign,
+      color,
+      motor,
+      sweepSize,
+      bladeCount,
+      material,
+      fanWattage,
+      airDelivery,
+      fanRpm,
+      weight,      
+    } = req.body;
 
     // 👇 2. IMPORTANT: Numbers ko explicitly Number type mein cast karein
     oldPrice = Number(oldPrice);
     newPrice = Number(newPrice);
     discount = Number(discount);
     stock = Number(stock);
-       
+
     const images = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -46,71 +72,110 @@ const createProduct = async (req, res) => {
       subCategory,
       brand,
       name,
-      fanSize,
-      color,
-      fanWattage,
-      fanVoltage,
-      airDelivery,
-      fanRpm,
-      weight,
+
       oldPrice,
       newPrice,
       discount,
+      rating, 
+      rewiews,
       choose_W_G,
       warranty_guarantee,
       stock,
       description,
+      
+      fanDesign,
+      color,
+      motor,
+      sweepSize,
+      bladeCount,
+      material,
+      fanWattage,
+      airDelivery,
+      fanRpm,
+      weight,
+
       images,
     });
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
-  } 
-  catch (error) {
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 const updateProduct = async (req, res) => {
-
   try {
-    const { category, subCategory, brand, name,  fanSize, color, fanWattage, fanVoltage, airDelivery, fanRpm, weight, oldPrice, newPrice, discount, choose_W_G, warranty_guarantee, stock, description, existingImages } = req.body;
-  
+    const {
+     category,
+      subCategory,
+      brand,
+      name,
+
+      oldPrice,
+      newPrice,
+      discount,
+      rating, 
+      rewiews,
+      choose_W_G,
+      warranty_guarantee,
+      stock,
+      description,
+      
+      fanDesign,
+      color,
+      motor,
+      sweepSize,
+      bladeCount,
+      material,
+      fanWattage,
+      airDelivery,
+      fanRpm,
+      weight,
+
+      existingImages,
+    } = req.body;
+
     const product = await Product.findById(req.params.id);
     if (product) {
       product.category = category || product.category;
       product.subCategory = subCategory || product.subCategory;
       product.brand = brand || product.brand;
       product.name = name || product.name;
-      product.fanSize = fanSize || product.fanSize;
-      product.color = color || product.color;
-      product.fanWattage = fanWattage || product.fanWattage;
-      product.fanVoltage = fanVoltage || product.fanVoltage;
-      product.airDelivery = airDelivery || product.airDelivery;
-      product.fanRpm = fanRpm || product.fanRpm;
-      product.weight = weight || product.weight;
+
       product.oldPrice = oldPrice || product.oldPrice;
       product.newPrice = newPrice || product.newPrice;
       product.discount = discount || product.discount;
-      product.choose_W_G = discount || product.choose_W_G;
+      product.rating = rating || product.rating;
+      product.reviews = rewiews || product.reviews;
+      product.choose_W_G = choose_W_G || product.choose_W_G;
       product.warranty_guarantee = warranty_guarantee || product.warranty_guarantee;
       product.stock = stock || product.stock;
       product.description = description || product.description;
 
+      product.fanDesign = fanDesign || product.fanDesign;
+      product.color = color || product.color;
+      product.motor = motor || product.motor;
+      product.sweepSize = sweepSize || product.sweepSize;
+      product.bladeCount = bladeCount || product.bladeCount;
+      product.material = material || product.material;
+      product.fanWattage = fanWattage || product.fanWattage;
+      product.airDelivery = airDelivery || product.airDelivery;
+      product.fanRpm = fanRpm || product.fanRpm;
+      product.weight = weight || product.weight;
+
       // 🔥 इमेजेज को हैंडल करें
-       let finalImages = [];
+      let finalImages = [];
       // 1. पहले existingImages को पार्स करें (अगर भेजी गई हैं)
       if (existingImages) {
         try {
           const parsedExisting = JSON.parse(existingImages);
           finalImages = [...parsedExisting];
-        }
-        catch (e) {
+        } catch (e) {
           finalImages = [existingImages];
         }
-      }
-      else {
+      } else {
         finalImages = [...product.images];
-      } 
+      }
       // 2. नई इमेजेज को क्लाउडिनरी पर अपलोड करें और जोड़ें
       if (req.files && req.files.length > 0) {
         const newImages = [];
@@ -127,12 +192,10 @@ const updateProduct = async (req, res) => {
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
-    } 
-    else {
+    } else {
       res.status(404).json({ message: "Product not found" });
     }
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({ message: error.message });
   }
@@ -140,17 +203,16 @@ const updateProduct = async (req, res) => {
 
 // @desc Duplicate a product
 export const duplicate = async (req, res) => {
-
   try {
     const productId = req.params.id;
-    
+
     // 1. Original product find karo
     const originalProduct = await Product.findById(productId);
-    
+
     if (!originalProduct) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Product not found' 
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
       });
     }
 
@@ -163,7 +225,7 @@ export const duplicate = async (req, res) => {
 
     // 3. Name mein "(Copy)" add karo
     productData.name = `${productData.name}(Copy)`;
-    
+
     // 4. Optional: Stock 0 kar do (recommended)
     //productData.stock = 0;
 
@@ -173,17 +235,15 @@ export const duplicate = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Product duplicated successfully',
-      product: duplicatedProduct
+      message: "Product duplicated successfully",
+      product: duplicatedProduct,
     });
-
-  } 
-  catch (error) {
-    console.error('Duplicate product error:', error);
+  } catch (error) {
+    console.error("Duplicate product error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to controller duplicate product',
-      error: error.message
+      message: "Failed to controller duplicate product",
+      error: error.message,
     });
   }
 };

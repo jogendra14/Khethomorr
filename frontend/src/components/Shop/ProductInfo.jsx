@@ -17,7 +17,6 @@ export default function ProductInfo({ product }) {
   const { addToCart } = useContext(CartContext);
   const { addToWishlist } = useContext(WishlistContext);
 
-  console.log("color", product);
   // Fetch all products
   const fetchProduct = async () => {
     try {
@@ -62,7 +61,6 @@ export default function ProductInfo({ product }) {
 
       return categoryMatch && subCategoryMatch && brandMatch && nameMatch;
     });
-    console.log("Filtered color variants - ", filteredProducts);
 
     // Set the filtered products as color variants
     setColorVariants(filteredProducts);
@@ -108,7 +106,7 @@ export default function ProductInfo({ product }) {
       <div className="relative">
         {/* Mobile: Horizontal Scroll */}
         <div
-          className="flex gap-4 overflow-x-auto p-4 scroll-smooth snap-x snap-mandatory 
+          className="flex gap-4 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory 
                   sm:hidden [&::-webkit-scrollbar]:hidden"
         >
           {colorVariants.map((variant, index) => (
@@ -119,7 +117,7 @@ export default function ProductInfo({ product }) {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+        <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 py-4">
           {colorVariants.map((variant, index) => (
             <Link key={index} to={`/product/${variant._id}`}>
               <img src={variant.images?.[0]} className="w-full aspect-square object-cover rounded-lg shadow-md hover:scale-105 transition" alt={variant.name} />
@@ -133,7 +131,7 @@ export default function ProductInfo({ product }) {
       </Link>
 
       <div className="flex gap-4 mt-2">
-        <button onClick={() => addToCart(product)} className="flex-1 bg-[#4F6B35] hover:bg-[#3f562b] text-white py-3 rounded-xl font-semibold transition">
+        <button onClick={() => addToCart(product)} className="flex-1 border bg-white hover:bg-red-600 hover:text-white text-black py-3 rounded-xl font-semibold transition">
           Add To Cart
         </button>
         <button onClick={() => addToWishlist(product)} className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
@@ -184,60 +182,69 @@ export default function ProductInfo({ product }) {
           <tbody>
             {/* Row 1: Brand */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 w-1/3 bg-gray-50">Brand</td>
-              <td className="px-6 py-4 text-gray-900">{product.brand}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 w-1/3 bg-gray-50">Brand</td>
+              <td className="px-6 py-3 text-gray-900">{product.brand}</td>
             </tr>
 
             {/* Row 2: Colour */}
             <tr className="border-b  hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Colour</td>
-              <td className="px-6 py-4 text-gray-900">{product.color}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Colour</td>
+              <td className="px-6 py-3 text-gray-900">{product.color}</td>
             </tr>
 
             {/* Row 3: Category */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Electric fan design</td>
-              <td className="px-6 py-4 text-gray-500 italic">Ceiling Fan</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Fan design</td>
+              <td className="px-6 py-3 text-gray-500 italic">Ceiling Fan</td>
             </tr>
 
-            {/* Row 4: Category */}
+            {/* Row 4: Motor */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Power Source</td>
-              <td className="px-6 py-4 text-gray-900">Corded Electric</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Motor</td>
+              <td className="px-6 py-3 text-gray-900">{product.motor}</td>
+            </tr>
+            {/* Row 5: Blade count */}
+            <tr className="border-b hover:bg-blue-50 transition duration-150">
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Blade Count</td>
+              <td className="px-6 py-3 text-gray-900">{product.bladeCount}</td>
+            </tr>
+            {/* Row 6: Blade Material */}
+            <tr className="border-b hover:bg-blue-50 transition duration-150">
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Material</td>
+              <td className="px-6 py-3 text-gray-900">{product.bladeMaterial}</td>
+            </tr>
+            {/* Row 7: Sweep Size 1200mm */}
+            <tr className="border-b hover:bg-blue-50 transition duration-150">
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Sweep Size</td>
+              <td className="px-6 py-3 text-gray-900">{product.sweepSize}</td>
             </tr>
 
-            {/* Row 5: AirDelivery */}
+            {/* Row 8: AirDelivery */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Air Delivery</td>
-              <td className="px-6 py-4 text-gray-900">{product.airDelivery}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Air Delivery</td>
+              <td className="px-6 py-3 text-gray-900">{product.airDelivery}</td>
             </tr>
-            {/* Row 6: Fan RPM */}
+            {/* Row 9: Fan RPM */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">RPM</td>
-              <td className="px-6 py-4 text-gray-900">{product.fanRpm}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">RPM</td>
+              <td className="px-6 py-3 text-gray-900">{product.fanRpm}</td>
             </tr>
-            {/* Row 7: Wattage */}
+            {/* Row 10: Wattage */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Wattage</td>
-              <td className="px-6 py-4 text-gray-900">{product.fanWattage}</td>
-            </tr>
-
-            {/* Row 8: Voltage */}
-            <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Voltage</td>
-              <td className="px-6 py-4 text-gray-900">{product.fanVoltage}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Wattage</td>
+              <td className="px-6 py-3 text-gray-900">{product.fanWattage}</td>
             </tr>
 
-            {/* Row 5: Item Weight */}
+            {/* Row 11: Item Weight */}
             <tr className="border-b hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Item Weight</td>
-              <td className="px-6 py-4 text-lg text-green-700">{product.weight} Kg</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Item Weight</td>
+              <td className="px-6 py-3 text-lg text-green-800">{product.weight} Kg</td>
             </tr>
 
-            {/* Row 6: warranty_guarantee */}
+            {/* Row 12: warranty_guarantee */}
             <tr className="hover:bg-blue-50 transition duration-150">
-              <td className="px-6 py-4 border-r font-bold text-gray-700 bg-gray-50">Warranty</td>
-              <td className="px-6 py-4 text-gray-500 italic">{product.warranty_guarantee}</td>
+              <td className="px-6 py-3 border-r font-bold text-gray-700 bg-gray-50">Warranty</td>
+              <td className="px-6 py-3 text-gray-800 italic">{product.warranty_guarantee}</td>
             </tr>
           </tbody>
         </table>

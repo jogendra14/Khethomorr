@@ -14,7 +14,6 @@ import { getProductById } from "../api/productApi";
 
 export default function ProductDetails() {
   const { id } = useParams();
-
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export default function ProductDetails() {
       <Navbar />
       <div className="bg-gray-50 min-h-screen">
         {/* Breadcrumb */}
-        <div className="max-w-7xl mx-auto px-6 py-5 text-sm text-gray-500">
+        <div className="max-w-7xl mx-auto px-3 py-5 text-sm text-gray-500">
           Home
           <span className="mx-2">/</span>
           Jackets
@@ -48,7 +47,7 @@ export default function ProductDetails() {
         </div>
 
         {/* Product */}
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-3">
           <div className="grid lg:grid-cols-2 gap-10">
             <ProductGallery product={product} />
 
@@ -57,17 +56,16 @@ export default function ProductDetails() {
         </div>
 
         {/* Reviews */}
-        <div className="max-w-7xl mx-auto px-6 mt-8 lg:mt-0">
+        <div className="max-w-7xl mx-auto px-3 mt-8 lg:mt-0">
           <ReviewSection />
         </div>
 
-        {/* Related Products */}
-
-        <div className="max-w-7xl mx-auto px-6 ">
-          <SimilarProduct />
+        {/* similar or related Products */}
+        <div className="max-w-7xl mx-auto px-3 ">
+          <SimilarProduct product={product} />
         </div>
-        <div className="max-w-7xl mx-auto px-6 ">
-          <RelatedProducts />
+        <div className="max-w-7xl mx-auto px-3 ">
+          <RelatedProducts product={product}/>
         </div>
       </div>
       <Footer />

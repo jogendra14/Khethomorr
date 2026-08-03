@@ -1,87 +1,78 @@
 import { FaHeart, FaStar } from "react-icons/fa";
-
-const products = [
-  {
-    id: 1,
-    name: "Trail Windbreaker",
-    category: "Jacket",
-    price: "$129",
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600",
-  },
-  {
-    id: 2,
-    name: "Winter Hoodie",
-    category: "Hoodie",
-    price: "$99",
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600",
-  },
-  {
-    id: 3,
-    name: "Classic T-Shirt",
-    category: "T-Shirt",
-    price: "$59",
-    rating: 4.7,
-    image: "https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=600",
-  },
-  {
-    id: 4,
-    name: "Outdoor Sweatshirt",
-    category: "Sweatshirt",
-    price: "$149",
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600",
-  },
-];
+import "../../index.css";
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getProduct } from "../../api/productApi";
 
 export default function RelatedProducts() {
+  const [ allProducts, setAllProducts ] = useState([]);
+
+   // Fetch all products
+    const fetchProduct = async () => {
+      try {
+        const response = await getProduct();
+  
+        if (Array.isArray(response)) {
+          setAllProducts(response);
+        } else if (response && typeof response === "object") {
+          setAllProducts([response]);
+        } else {
+          console.error("Unexpected API response format:", response);
+          setAllProducts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setAllProducts([]);
+      }
+    };
+
+    useEffect(() => {
+      fetchProduct();
+    },[]);
+
   return (
     <section className="mt-10">
       {/* Heading */}
-
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-3xl font-bold">You May Also Like</h2>
-
-          <p className="text-gray-500 mt-1">Explore Best products.</p>
+      <div className="flex justify-between products-center  mb-4">
+        <div className="">
+          <h2 className="text-2xl lg:text-3xl font-bold">You May Also Like</h2>
+          <p className="text-gray-500 text-sm lg:text-lg mt-1">Explore Best products.</p>
         </div>
-
-        <button className="hidden md:block border px-4 py-2 rounded-lg hover:bg-black hover:text-white transition">View All</button>
+        <Link className="hidden md:block font-semibold text-lg px-4 rounded-lg hover:text-red-800 transition duration-200">View All</Link>
       </div>
 
       {/* Cards */}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {products.map((item) => (
-          <div key={item.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition overflow-hidden">
+      <div className="flex gap-2 py-3 overflow-x-auto hide-scrollbar scroll-smooth snap-x snap-mandatory">
+        {allProducts.map((product) => (
+          <div key={product._id} className="group bg-white shadow-lg hove:shadow-lg transition-transform duration-300">
             
             {/* Image */}
-            <div className="relative overflow-hidden">
-              <img src={item.image} alt={item.name} className="w-full h-65 object-cover group-hover:scale-110 transition duration-500" />
+            <Link className=" shrink-0 snap-start">
+              <div className="relative overflow-hidden">
+              <img src={product.images?.[0]} 
+                alt="productImage" 
+                className="w-full h-48 object-cover group-hover:scale-105 transition duration-500" />
 
-              <button className="absolute top-4 right-4 bg-white p-3 rounded-full shadow hover:bg-red-500 hover:text-white transition">
+              <button className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-red-500 hover:text-white transition">
                 <FaHeart />
               </button>
-            </div>
+              </div>
+            </Link>
 
             {/* Content */}
 
-            <div className="p-3">
-              <p className="text-sm text-gray-500">{item.category}</p>
-
-              <h3 className="text-lg font-bold mt-0">{item.name}</h3>
-
-              <div className="flex items-center gap-2 mt-1">
+            <div className="p-2">
+              <h3 className="text-lg font-bold mt-0 line-clamp-1">{product.name}</h3>
+              
+              <div className="flex products-center gap-2 ">
                 <FaStar className="text-yellow-400" />
-
-                <span className="font-medium">{item.rating}</span>
+                <span className="font-medium">{product.rating}</span>
               </div>
 
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-2xl font-bold text-green-700">{item.price}</span>
+              <div className="flex justify-between products-center gap-14 mt-3">
+                <span className="text-2xl font-bold text-green-700">₹{product.newPrice}</span>
 
-                <button className="bg-[#4F6B35] text-white px-5 py-1.5 rounded-lg hover:bg-[#3d5429] transition">View</button>
+                <Link className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
               </div>
             </div>
           </div>
