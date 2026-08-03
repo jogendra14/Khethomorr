@@ -11,8 +11,8 @@ const productSchema = new mongoose.Schema(
     MRP: { type: Number, required: true },
     sellingPrice: { type: Number, required: true },
     discount: { type: Number, },
-    rating: { type: Number, default: 4.4 },
-    reviews: { type: Number, default: 225 },
+    rating: { type: Number, },
+    reviews: { type: Number, },
 
     choose_W_G: { type: String },
     warranty_guarantee: { type: String },

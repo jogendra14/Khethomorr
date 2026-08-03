@@ -23,7 +23,7 @@ export const PRODUCT_TEMPLATES = {
       material: {
         label: 'Material',
         type: 'select',
-        options: ['Aluminum', 'Steel', 'Plastic', 'Wood', 'Composite'],
+        options: ['Aluminum', 'ABS', 'Wood', 'Composite'],
         placeholder: 'Select material'
       },
       color: {
