@@ -75,8 +75,7 @@ export default function ProductInfo({ product }) {
       <span className="inline-block bg-gray-100 px-2 py-1 rounded-full text-sm font-medium">New Arrival</span>
       <h1 className="text-xl md:text-2xl font-bold mt-2">{product.name}</h1>
       <h1 className="text-sm md:text-base  font-semibold mt-2">
-        {capitalizeWords(product.brand)} {capitalizeWords(product.name)} | {capitalizeWords(product.subCategory)} fan | {product.fanSize}mm | {product.fanRpm}{" "}
-        RPM | {product.fanWattage} Watt | {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} (
+        {capitalizeWords(product.brand)} {capitalizeWords(product.name)} | {capitalizeWords(product.subCategory)} |  {capitalizeWords(product.warranty_guarantee)} {capitalizeWords(product.choose_W_G)} (
         {capitalizeWords(product.color)})
       </h1>
       <div className="flex items-center gap-2 mt-3">

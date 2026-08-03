@@ -230,7 +230,7 @@ const updateProduct = async (req, res) => {
       brand,
       name,
       MRP,
-      sellingPricePrice,
+      sellingPrice,
       discount,
       rating,
       reviews,
