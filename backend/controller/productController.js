@@ -100,8 +100,8 @@ const createProduct = async (req, res) => {
       subCategory,
       brand,
       name,
-      MRP, // Changed from oldPrice to MRP to match frontend
-      sellingPrice, // Changed from newPrice to sellingPrice
+      MRP,
+      sellingPrice, 
       discount,
       stock,
       description,
@@ -122,9 +122,9 @@ const createProduct = async (req, res) => {
       subCategory,
       brand,
       name,
-      oldPrice: Number(MRP),
-      newPrice: Number(sellingPrice),
-      discount: Number(discount) || 0,
+      MRP: Number(MRP),
+      sellingPrice: Number(sellingPrice),
+      discount: Number(discount),
       stock: Number(stock),
       description: description || '',
       productType: productType || 'fan',
@@ -229,8 +229,8 @@ const updateProduct = async (req, res) => {
       subCategory,
       brand,
       name,
-      oldPrice,
-      newPrice,
+      MRP,
+      sellingPricePrice,
       discount,
       rating,
       reviews,
@@ -248,9 +248,9 @@ const updateProduct = async (req, res) => {
     if (subCategory) product.subCategory = subCategory;
     if (brand) product.brand = brand;
     if (name) product.name = name;
-    if (oldPrice) product.oldPrice = Number(oldPrice);
-    if (newPrice) product.newPrice = Number(newPrice);
-    if (discount !== undefined) product.discount = Number(discount);
+    if (MRP) product.MRP = Number(MRP);
+    if (sellingPrice) product.sellingPrice = Number(sellingPrice);
+    if (discount) product.discount = Number(discount);
     if (rating) product.rating = Number(rating);
     if (reviews) product.reviews = Number(reviews);
     if (choose_W_G !== undefined) product.choose_W_G = choose_W_G;
