@@ -1,6 +1,7 @@
 // backend/controllers/reviewController.js
 import Review from "../models/Review.js";
 import Product from "../models/Product.js";
+import mongoose from 'mongoose'; 
 
 // @desc    Create a review
 // @route   POST /api/reviews

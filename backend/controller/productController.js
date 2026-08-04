@@ -2,6 +2,7 @@ import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
 import fs from 'fs';
 
+console.log('mongoose is:', typeof mongoose);
 // ============================
 // ✅ GET ALL PRODUCTS
 // ============================
