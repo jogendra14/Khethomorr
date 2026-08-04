@@ -95,7 +95,7 @@ const createProduct = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Files received:", req.files?.length || 0);
 
-    let {
+    const {
       category,
       subCategory,
       brand,
@@ -118,7 +118,8 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // String ko array mein convert karo
+    // ✅ Correct way: 'const' ki jagah 'let' use karo aur condition fix karo
+    let includeComponentsList = [];
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
       includeComponentsList = includeComponents.split(',').map(item => item.trim());
     } else if (Array.isArray(includeComponents)) {
