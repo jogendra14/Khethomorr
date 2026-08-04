@@ -107,14 +107,7 @@ console.log("PRODUCT DATA:", product);
       value,
     }));
   }
-
-  if (specs.length === 0) {
-    return (
-      <div className="text-sm text-gray-500 py-4">
-        No specifications available for this product.
-      </div>
-    );
-  }
+  
   return (
     <div className="overflow-x-auto mx-2 pb-1.5 bg-gray-50">
       <table className="w-full text-sm  rounded-lg">
