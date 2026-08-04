@@ -26,7 +26,7 @@ export default function SubCategory({
       { id: "decorative", name: "Decorative Lights" },
     ],
     kitchenAppliance: [
-      { id: "all-appliance", name: "All" },
+      { id: "all-kitchenAppliance", name: "All" },
       { id: "chimney", name: "Chimney" },
       { id: "waterPurifier", name: "Water Purifier" },
       { id: "cookTop", name: "CookTop" },
@@ -38,7 +38,7 @@ export default function SubCategory({
       { id: "iron", name: "Iron" },
     ],
     bathroomAppliance: [
-      { id: "all-appliance", name: "All" },
+      { id: "all-bathroomAppliance", name: "All" },
       { id: "kitchen", name: "Kitchen" },
       { id: "laundry", name: "Laundry" },
       { id: "cooling", name: "Cooling" },

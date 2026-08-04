@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
+import {Link} from "react-router-dom"
 import { getProduct } from "../api/productApi.js";
 import ShowProduct from "../components/Shop/ShowProduct.jsx";
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import Category from "../components/Shop/category/Category.jsx";
 import Footer from "../components/home/footer/Footer.jsx";
+import "../index.css"
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("all"); // 🔥 "all" default
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSubCategory, setSelectedSubCategory] = useState("all-fans");
 
   useEffect(() => {
@@ -24,17 +26,13 @@ export default function Product() {
     fetchProducts();
   }, []);
 
-  // FILTER LOGIC - Filter by category and sub-category
+  // FILTER LOGIC
   const filteredProducts = products.filter((product) => {
-    // 1. Main category filter (Convert both to lowercase for case-insensitive matching)
     if (selectedCategory !== "all" && product.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
       return false;
     }
 
-    // 2. Sub-category filter (Direct exact match)
     if (selectedSubCategory && !selectedSubCategory.startsWith('all-')) {
-      // Check if the product's subCategory matches the selected ID directly
-      // (Assuming your database uses the same IDs like "classic", "designer", "bldc")
       const productSub = product.subCategory?.toLowerCase();
       const selectedSub = selectedSubCategory.toLowerCase();
 
@@ -46,11 +44,11 @@ export default function Product() {
     return true;
   });
 
-    // Group products by brand
+  // Group products by brand
   const groupProductsByBrand = (products) => {
     const grouped = {};
     products.forEach(product => {
-      const brand = product.brand || "Unbranded"; // fallback if brand is missing
+      const brand = product.brand || "Unbranded";
       if (!grouped[brand]) {
         grouped[brand] = [];
       }
@@ -62,7 +60,6 @@ export default function Product() {
   const groupedProducts = groupProductsByBrand(filteredProducts);
   const brandNames = Object.keys(groupedProducts);
 
-  // Check if we're on a specific subcategory (not "all")
   const isSubCategorySelected = selectedSubCategory && !selectedSubCategory.startsWith(`all-`);
 
   return (
@@ -78,24 +75,31 @@ export default function Product() {
       <div className="min-h-screen">
         <div className="max-w-7xl m-2 mx-auto flex gap-2 sm:gap-3 md:gap-5 lg:gap-6">
       
-            {filteredProducts.length > 0 ? (
+          {filteredProducts.length > 0 ? (
             isSubCategorySelected ? (
-              // Show products grouped by brand when subcategory is selected
-              <div className="space-y-8">
+              // 🔥 FIXED: Products grouped by brand with horizontal scroll
+              <div className="space-y-8 w-full"> {/* Added w-full */}
                 {brandNames.map((brand) => (
-                  <div key={brand} className="bg-white mt-2 rounded-xl p-4">
+                  <div key={brand} className="bg-white mt-4 rounded-xl w-full"> {/* Added w-full */}
+
+                  <div className="flex justify-between  pr-8">
                     {/* Brand Name Header */}
-                    <h2 className="text-2xl font-bold text-gray-800  pb-3 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-4">
                       {brand}
                       <span className="text-sm font-normal text-gray-500 ml-3">
                         ({groupedProducts[brand].length} products)
                       </span>
                     </h2>
+                    <Link className="font-bold text-md lg:text-lg hover:text-red-600">View All</Link>
+                    </div>
                     
-                    {/* Products Grid for this brand */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    {/* 🔥 FIXED: Products Grid for this brand */}
+                    <div className="flex gap-2 md:gap-3 lg:gap-4 overflow-x-auto hide-scrollbar overflow-y-hidden pb-4 px-2">
                       {groupedProducts[brand].map((product) => (
-                        <ShowProduct key={product._id} product={product} />
+                        // 🔥 FIXED: Removed shrink-0 and added proper sizing
+                        <div key={product._id} className="min-w-50 max-w-62.5 shrink-0">
+                          <ShowProduct product={product} />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -103,14 +107,14 @@ export default function Product() {
               </div>
             ) : (
               // Show all products in a grid when "All" subcategory is selected
-              <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5  gap-2 sm:gap-4">
+              <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 w-full"> {/* Added w-full */}
                 {filteredProducts.map((product) => (
                   <ShowProduct key={product._id} product={product} />
                 ))}
               </div>
             )
           ) : (
-            <p className="text-center text-gray-500 py-10">
+            <p className="text-center text-gray-500 py-10 w-full"> {/* Added w-full */}
               No products found in this category.
             </p>
           )}

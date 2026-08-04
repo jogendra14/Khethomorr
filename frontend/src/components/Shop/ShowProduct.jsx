@@ -38,7 +38,7 @@ export default function ShowProduct({ product }) {
       </Link>
         <div className="px-2 mt-2.5 md:pb-1">
           <button onClick = { () => addToCart(product) }
-            className="w-full flex font-bold justify-center items-center gap-2 mt-1 border text-red-500  border-red-600 hover:bg-red-600 hover:text-white rounded-xs md:rounded-md py-1 md:py-1">
+            className="w-full flex justify-center items-center gap-2 mt-1 border text-red-500 font-bold border-red-600 hover:bg-red-600 hover:text-white rounded-xs md:rounded-md py-1 md:py-1">
               <BsCartCheck/>
             <span className="text-sm sm:text-md md:text-lg ">
               Add to Cart</span>
