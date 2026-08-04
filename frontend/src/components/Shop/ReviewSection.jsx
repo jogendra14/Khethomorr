@@ -1,7 +1,8 @@
 // frontend/src/components/Shop/ReviewSection.jsx
+
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { getProductReviews, getReviewStats, createReview, deleteReview } from "../../api/reviewApi";
+import { getProductReviews, getReviewStats, createReview, deleteReview } from "../../api/reviewApi.js";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 

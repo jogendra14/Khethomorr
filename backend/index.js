@@ -51,7 +51,7 @@ app.get("/", (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
-app.use("/api/review", reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 //app.use("/api/categories", categoryRoutes);           
 //app.use("/api/subcategories", subCategoryRoutes);     
 app.use("/api/deals", dealsRoutes);
