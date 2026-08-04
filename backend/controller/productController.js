@@ -91,7 +91,6 @@ const getProductById = async (req, res) => {
 // ✅ CREATE PRODUCT
 // ============================
 // In your backend controller, update the createProduct function:
-
 const createProduct = async (req, res) => {
   try {
     console.log("Request body:", req.body);
@@ -105,16 +104,19 @@ const createProduct = async (req, res) => {
       MRP,
       sellingPrice, 
       discount,
-      rating,              // ✅ Added
-      reviews,             // ✅ Added
-      choose_W_G,          // ✅ Added
-      warranty_guarantee,  // ✅ Added
+      rating,
+      reviews,
+      choose_W_G,
+      warranty_guarantee,
       stock,
-      includeComponents,
+      includeComponents,  // ← Make sure this is captured
       description,
       productType = 'fan',
       specifications = {}
     } = req.body;
+
+    // ✅ Log to see what's coming
+    console.log("includeComponents received:", includeComponents);
 
     // Validate required fields
     if (!category || !brand || !name || !MRP || !sellingPrice || !stock) {
@@ -124,14 +126,28 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // Handle includeComponents - convert to array
+    // ✅ FIX: Handle includeComponents properly
     let includeComponentsList = [];
+    
+    // If it's a string, split by comma
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
       includeComponentsList = includeComponents.split(',').map(item => item.trim());
-    } else if (Array.isArray(includeComponents)) {
+    } 
+    // If it's already an array, use it
+    else if (Array.isArray(includeComponents)) {
       includeComponentsList = includeComponents;
     }
+    // If it's an object with length property (like from MongoDB)
+    else if (includeComponents && typeof includeComponents === 'object') {
+      // Convert object to array if needed
+      if (includeComponents.length !== undefined) {
+        includeComponentsList = Array.from(includeComponents);
+      }
+    }
 
+    console.log("Processed includeComponents:", includeComponentsList);
+
+    // Create product data
     const productData = {
       category,
       subCategory: subCategory || '',
@@ -140,12 +156,12 @@ const createProduct = async (req, res) => {
       MRP: Number(MRP),
       sellingPrice: Number(sellingPrice),
       discount: discount ? Number(discount) : 0,
-      rating: rating ? Number(rating) : 0,           // ✅ Added
-      reviews: reviews ? Number(reviews) : 0,        // ✅ Added
-      choose_W_G: choose_W_G || '',                  // ✅ Added
-      warranty_guarantee: warranty_guarantee || '',  // ✅ Added
+      rating: rating ? Number(rating) : 0,
+      reviews: reviews ? Number(reviews) : 0,
+      choose_W_G: choose_W_G || '',
+      warranty_guarantee: warranty_guarantee || '',
       stock: Number(stock),
-      includeComponents: includeComponentsList,
+      includeComponents: includeComponentsList, // ← This will now have data
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()
@@ -168,7 +184,7 @@ const createProduct = async (req, res) => {
     }
     productData.images = images;
 
-    // Handle specifications - parse JSON if string
+    // Handle specifications
     let specObj = {};
     if (typeof specifications === 'string') {
       try {
@@ -189,7 +205,7 @@ const createProduct = async (req, res) => {
       }
     });
 
-    // ✅ Also check for individual field values from form data
+    // Check for individual field values
     const individualFields = [
       'fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 
       'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight',
@@ -213,6 +229,8 @@ const createProduct = async (req, res) => {
     const product = new Product(productData);
     const createdProduct = await product.save();
     
+    console.log("Product created with includeComponents:", createdProduct.includeComponents);
+    
     res.status(201).json({
       success: true,
       message: "Product created successfully",
@@ -228,6 +246,9 @@ const createProduct = async (req, res) => {
     });
   }
 };
+
+
+
 // ============================
 // ✅ UPDATE PRODUCT (CLEAN VERSION)
 // ============================

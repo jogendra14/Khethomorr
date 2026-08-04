@@ -172,7 +172,7 @@ export const PRODUCT_TEMPLATES = {
   KitchenAppliances: {
     productType: 'kitchenAppliances',
     fields: {
-      applianceType: {
+      productType: {
         label: 'Appliance Type',
         type: 'select',
         options: ['lovely', 'bad', 'meAdd', 'kro'],

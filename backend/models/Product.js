@@ -66,7 +66,7 @@ productSchema.statics.getTemplateFields = function(productType) {
     fan: ['fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight'],
     lighting: ['lightType', 'wattage', 'colorTemperature', 'lumens', 'beamAngle', 'dimmable', 'ipRating'],
     electricals: ['electricalType', 'rating', 'voltage', 'pole', 'color', 'material'],
-    kitchenAppliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
+    kitchenAppliances: ['productType', 'power', 'capacity', 'material', 'color'],
     BathroomAppliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
     solar: ['solarType', 'powerRating', 'voltage', 'efficiency', 'panelType', 'batteryType'],
     smartHome: ['smartType', 'connectivity', 'compatibility', 'color', 'features'],

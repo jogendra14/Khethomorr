@@ -112,6 +112,8 @@ const ProductForm = () => {
   // In ProductForm.js, update the handleSubmit function:
 // In ProductForm.js, update the handleSubmit function:
 
+// In ProductForm.js - Update the handleSubmit function
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
@@ -119,7 +121,7 @@ const handleSubmit = async (e) => {
   try {
     const formDataToSend = new FormData();
     
-    // Add basic fields - make sure all required fields have values
+    // Add basic fields
     const requiredFields = ['category', 'subCategory', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -130,15 +132,14 @@ const handleSubmit = async (e) => {
       formDataToSend.append(field, formData[field]);
     }
 
-    // ✅ Add ALL optional fields including the missing ones
+    // ✅ Add ALL optional fields including includeComponents
     const optionalFields = [
       'discount', 
       'description', 
-      'rating',           // ✅ Added
-      'reviews',          // ✅ Added
-      'choose_W_G',       // ✅ Added
-      'warranty_guarantee', // ✅ Added
-      'includeComponents'  // ✅ Added
+      'rating',
+      'reviews',
+      'choose_W_G',
+      'warranty_guarantee'
     ];
     
     for (const field of optionalFields) {
@@ -147,24 +148,31 @@ const handleSubmit = async (e) => {
       }
     }
 
+    // ✅ CRITICAL FIX: Handle includeComponents properly
+    // If it's a string with commas, convert to array format
+    if (formData.includeComponents) {
+      // Send as a comma-separated string - backend will split it
+      formDataToSend.append('includeComponents', formData.includeComponents);
+    }
+
     // Get product type from template
     const template = getTemplateByCategory(selectedCategory);
     if (template) {
       formDataToSend.append('productType', template.productType || 'fan');
     }
 
-    // ✅ Send specifications as JSON
+    // Add specifications as JSON
     console.log("Specifications being sent:", specifications);
     formDataToSend.append('specifications', JSON.stringify(specifications));
 
-    // ✅ Also send individual specification fields (for backend to pick up)
+    // ✅ Also send individual specification fields
     Object.keys(specifications).forEach(key => {
       if (specifications[key] !== undefined && specifications[key] !== '') {
         formDataToSend.append(key, specifications[key]);
       }
     });
 
-    // Add images - ensure at least one image
+    // Add images
     if (formData.images && formData.images.length > 0) {
       formData.images.forEach(file => {
         formDataToSend.append('images', file);
@@ -175,7 +183,7 @@ const handleSubmit = async (e) => {
       return;
     }
 
-    // Log the FormData contents for debugging
+    // Log for debugging
     console.log("FormData entries:");
     for (let pair of formDataToSend.entries()) {
       console.log(pair[0], pair[1]);
@@ -196,11 +204,11 @@ const handleSubmit = async (e) => {
         discount: '',
         stock: '',
         description: '',
-        rating: '',          // ✅ Added
-        reviews: '',         // ✅ Added
-        choose_W_G: '',      // ✅ Added
-        warranty_guarantee: '', // ✅ Added
-        includeComponents: '',
+        rating: '',
+        reviews: '',
+        choose_W_G: '',
+        warranty_guarantee: '',
+        includeComponents: '', // Reset this too
         images: []
       });
       setSpecifications({});
@@ -218,6 +226,8 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
+
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData(prev => ({ ...prev, images: files }));
