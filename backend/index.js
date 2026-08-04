@@ -14,6 +14,7 @@ import ordersRoutes from "./routes/ordersRoutes.js";
 import paymentsRoutes from "./routes/paymentsRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js"
 //import categoryRoutes from "./routes/categoryRoutes.js";     
 //import subCategoryRoutes from "./routes/subCategoryRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
+app.use("/api/review", reviewRoutes);
 //app.use("/api/categories", categoryRoutes);           
 //app.use("/api/subcategories", subCategoryRoutes);     
 app.use("/api/deals", dealsRoutes);
