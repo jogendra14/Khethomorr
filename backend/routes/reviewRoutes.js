@@ -19,7 +19,7 @@ router.route("/stats/:productId")
   .get(getReviewStats);
 
 router.route("/")
-  .post(protect, createReview);
+  .post(createReview);
 
 router.route("/:id")
   .put(protect, updateReview)

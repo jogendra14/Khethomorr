@@ -226,10 +226,10 @@ export default function ReviewSection({ product }) {
                     style={{ width: `${item.value}%` }}
                   />
                 </div>
-                <span className="text-sm text-gray-500 min-w-[40px]">
+                <span className="text-sm text-gray-500 min-w-10">
                   {item.value}%
                 </span>
-                <span className="text-sm text-gray-400 min-w-[40px]">
+                <span className="text-sm text-gray-400 min-w-10">
                   ({item.count})
                 </span>
               </div>

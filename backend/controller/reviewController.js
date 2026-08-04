@@ -10,7 +10,7 @@ export const createReview = async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
 
-    // Check if product exists
+   {/* // Check if product exists
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -24,12 +24,12 @@ export const createReview = async (req, res) => {
 
     if (existingReview) {
       return res.status(400).json({ message: "You already reviewed this product" });
-    }
+    } */ }
 
     const review = await Review.create({
       productId,
-      userId: req.user._id,
-      userName: req.user.name,
+      //userId: req.user._id,
+      //userName: req.user.name,
       rating,
       comment,
       isVerifiedPurchase: false, // You can implement order verification later
@@ -165,10 +165,11 @@ export const deleteReview = async (req, res) => {
       return res.status(404).json({ message: "Review not found" });
     }
 
-    // Check if user owns the review or is admin
+  {/*  // Check if user owns the review or is admin
     if (review.userId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized" });
     }
+  */}
 
     await review.deleteOne();
     await updateProductRating(review.productId);
