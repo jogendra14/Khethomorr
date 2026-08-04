@@ -1,5 +1,4 @@
 // backend/routes/reviewRoutes.js
-console.log('mongoose is:', typeof mongoose);
 
 import express from "express";
 import {
