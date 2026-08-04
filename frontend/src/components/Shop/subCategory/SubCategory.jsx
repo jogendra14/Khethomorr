@@ -25,11 +25,23 @@ export default function SubCategory({
       { id: "panel-lights", name: "Panel Lights" },
       { id: "decorative", name: "Decorative Lights" },
     ],
-    appliance: [
-      { id: "all-appliance", name: "All Appliances" },
-      { id: "kitchen", name: "Kitchen Appliances" },
-      { id: "laundry", name: "Laundry Appliances" },
-      { id: "cooling", name: "Cooling Appliances" },
+    kitchenAppliance: [
+      { id: "all-appliance", name: "All" },
+      { id: "chimney", name: "Chimney" },
+      { id: "waterPurifier", name: "Water Purifier" },
+      { id: "cookTop", name: "CookTop" },
+      { id: "hobs", name: "Hobs" },
+      { id: "mixerGrinder", name: "Mixer Grinder" },
+      { id: "vaccumCleaner", name: "Vaccum Cleaner" },
+      { id: "riceCooker", name: "Rice Cooker" },
+      { id: "steamIron", name: "Steam Iron" },
+      { id: "iron", name: "Iron" },
+    ],
+    bathroomAppliance: [
+      { id: "all-appliance", name: "All" },
+      { id: "kitchen", name: "Kitchen" },
+      { id: "laundry", name: "Laundry" },
+      { id: "cooling", name: "Cooling" },
     ],
     electrical: [
       { id: "all-electrical", name: "All Electrical" },
@@ -60,7 +72,7 @@ export default function SubCategory({
             onClick={() => setSelectedSubCategory(sub.id)}
             className={`px-2.5 py-1 text-sm rounded-full transition-all duration-200 ${
               selectedSubCategory === sub.id
-                ? "bg-blue-100 text-blue-700 font-medium border border-blue-300"
+                ? "bg-blue-100 font-medium border border-blue-300"
                 : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
             }`}
           >

@@ -36,7 +36,7 @@ export default function ProductDetails() {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-3 py-5 text-sm text-gray-500">
           Home

@@ -5,13 +5,13 @@ export const PRODUCT_TEMPLATES = {
       fanDesign: {
         label: 'Fan Design',
         type: 'select',
-        options: ['Aerodynamic', 'Classic', 'Modern', 'Traditional', 'Slim', 'Decorative'],
+        options: ['Ceiling Fan', 'Stand Fan', 'Table Fan', 'Wall Fan', 'Tower Fan', 'Pedestal Fan'],
         placeholder: 'Select fan design'
       },
       motor: {
         label: 'Motor Type',
         type: 'select',
-        options: ['100% Copper', 'Aluminum', 'Steel', 'BLDC'],
+        options: ['100% Copper',  'Aluminum', 'Steel', 'BLDC'],
         placeholder: 'Select motor type'
       },
       bladeCount: {
@@ -169,13 +169,58 @@ export const PRODUCT_TEMPLATES = {
       }
     }
   },
-  Appliances: {
-    productType: 'appliances',
+  KitchenAppliances: {
+    productType: 'kitchenAppliances',
     fields: {
       applianceType: {
         label: 'Appliance Type',
         type: 'select',
-        options: ['Kitchen', 'Bathroom', 'Home', 'Office'],
+        options: ['lovely', 'bad', 'meAdd', 'kro'],
+        placeholder: 'Select appliance type'
+      },
+      power: {
+        label: 'Power Rating',
+        type: 'select',
+        options: ['500W', '750W', '1000W', '1500W', '2000W', '2500W'],
+        placeholder: 'Select power rating'
+      },
+      voltage: {
+        label: 'Voltage',
+        type: 'select',
+        options: ['220V', '240V'],
+        placeholder: 'Select voltage'
+      },
+      capacity: {
+        label: 'Capacity',
+        type: 'text',
+        placeholder: 'e.g., 5L'
+      },
+      material: {
+        label: 'Material',
+        type: 'select',
+        options: ['Stainless Steel', 'Plastic', 'Glass', 'Aluminum', 'Copper'],
+        placeholder: 'Select material'
+      },
+      color: {
+        label: 'Color',
+        type: 'select',
+        options: ['White', 'Black', 'Silver', 'Red', 'Blue', 'Green'],
+        placeholder: 'Select color'
+      },
+      specialFeatures: {
+        label: 'Special Features',
+        type: 'text',
+        placeholder: 'e.g., Auto shut-off, Timer'
+      }
+    }
+  },
+  BathroomAppliances: {
+    productType: 'bathroomAppliances',
+    fields: {
+      applianceType: {
+        label: 'Appliance Type',
+        type: 'select',
+        options: ['Chimney', 'Bathroom', 'Home', 'Office'],
         placeholder: 'Select appliance type'
       },
       power: {

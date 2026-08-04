@@ -75,7 +75,7 @@ export default function Product() {
         setSelectedSubCategory={setSelectedSubCategory}
       />
 
-      <div className="bg-gray-100 min-h-screen">
+      <div className="min-h-screen">
         <div className="max-w-7xl m-2 mx-auto flex gap-2 sm:gap-3 md:gap-5 lg:gap-6">
       
             {filteredProducts.length > 0 ? (
@@ -83,7 +83,7 @@ export default function Product() {
               // Show products grouped by brand when subcategory is selected
               <div className="space-y-8">
                 {brandNames.map((brand) => (
-                  <div key={brand} className="bg-white mt-2 rounded-xl shadow-lg p-4">
+                  <div key={brand} className="bg-white mt-2 rounded-xl p-4">
                     {/* Brand Name Header */}
                     <h2 className="text-2xl font-bold text-gray-800  pb-3 mb-4">
                       {brand}
@@ -103,7 +103,7 @@ export default function Product() {
               </div>
             ) : (
               // Show all products in a grid when "All" subcategory is selected
-              <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5  gap-2 sm:gap-4">
                 {filteredProducts.map((product) => (
                   <ShowProduct key={product._id} product={product} />
                 ))}

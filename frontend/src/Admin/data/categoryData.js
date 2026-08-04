@@ -14,10 +14,15 @@ export const categoryData = {
     brands: ["Anchor", "Havells", "Legrand", "GM", "Polycab"],
     template: "Electricals"
   },
-  Appliances: {
-    subCategories: ["Kitchen", "Bathroom", "Home"],
-    brands: ["Prestige", "Hawkins", "Butterfly", "Bajaj", "Usha"],
-    template: "Appliances"
+  KitchenAppliances: {
+    subCategories: ["Chimney", "Water Purifier", "CookTop", "Hobs", "Mixer Grinder", "Vaccum Cleaner", "Rice Cooker", "Steam Iron", "Iron" ],
+    brands: ["Preethi", "Atomberg", "Puriet", "Ao Smith", "Eureka Forbes", "Rally", "Havells", "Bajaj",  "Elica", "Faber", "Pigeon", "Bosch", "Sujata"],
+    template: "KitchenAppliances"
+  },
+  BathroomAppliances: {
+    subCategories: [""],
+    brands: ["Preethi", "Atomberg", "Puriet", "Ao Smith", "Eureka Forbes", "Rally", "Havells", "Bajaj",  "Elica", "Faber", "Pigeon", "Bosch", "Sujata"],
+    template: "BathroomAppliances"
   },
   "Solar Product": {
     subCategories: ["Solar Panel", "Solar Inverter", "Solar Battery"],

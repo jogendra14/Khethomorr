@@ -26,7 +26,7 @@ const productSchema = new mongoose.Schema(
     // Product type identification
     productType: { 
       type: String, 
-      enum: ['fan', 'lighting', 'electricals', 'appliances', 'solar', 'smartHome', 'safety', 'others'],
+      enum: ['fan', 'lighting', 'electricals', 'kitchenAppliances', 'bathroomAppliances', 'solar', 'smartHome', 'safety', 'others'],
       required: true,
       default: 'fan'
     },
@@ -66,7 +66,8 @@ productSchema.statics.getTemplateFields = function(productType) {
     fan: ['fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight'],
     lighting: ['lightType', 'wattage', 'colorTemperature', 'lumens', 'beamAngle', 'dimmable', 'ipRating'],
     electricals: ['electricalType', 'rating', 'voltage', 'pole', 'color', 'material'],
-    appliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
+    kitchenAppliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
+    BathroomAppliances: ['applianceType', 'power', 'capacity', 'material', 'color'],
     solar: ['solarType', 'powerRating', 'voltage', 'efficiency', 'panelType', 'batteryType'],
     smartHome: ['smartType', 'connectivity', 'compatibility', 'color', 'features'],
     safety: ['securityType', 'resolution', 'lensType', 'nightVision', 'lockType', 'ipRating'],

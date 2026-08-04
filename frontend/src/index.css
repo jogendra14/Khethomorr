@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base{
+  body{
+    @apply max-w-7xl mx-auto;
+  }
+}
+
 /* Hide horizontal scrollbar */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

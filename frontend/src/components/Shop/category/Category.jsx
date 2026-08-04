@@ -16,7 +16,8 @@ export default function Category({
     { id: "all", name: "All", icon: "📋" },
     { id: "fans", name: "Fans", icon: "🌀" },
     { id: "lighting", name: "Lighting", icon: "💡" },
-    { id: "appliance", name: "Appliance", icon: "🔌" },
+    { id: "kitchenAppliance", name: "Kitchen Appliance", icon: "🔌" },
+    { id: "bathroomAppliance", name: "Bathroom Appliance", icon: "🔌" },
     { id: "electrical", name: "Electrical", icon: "⚡" },
     { id: "solar", name: "Solar", icon: "☀️" },
     { id: "other", name: "Other", icon: "📦" },
@@ -36,17 +37,17 @@ export default function Category({
   };
 
   return (
-    <div className="bg-white shadow-sm border-b sticky top-0 z-40">
+    <div className="bg-white  shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Categories */}
-        <div className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-hide">
           {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`shrink-0 px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-1 ${
+                className={`shrink-0 px-2 py-1.5 rounded-full transition-all duration-200 flex items-center gap-1 ${
                 selectedCategory === category.id
-                  ? "bg-blue-600 text-white shadow-lg"
+                  ? "bg-red-600 text-white shadow-md"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -67,7 +68,7 @@ export default function Category({
 
         {/* Sub-Categories - Using SubCategory component */}
         {selectedCategory !== "all" && expandedCategory === selectedCategory && (
-          <div className="py-3 border-t border-gray-100">
+          <div className="py-2 border-t border-gray-100">
             <SubCategory 
               selectedCategory={selectedCategory}
               selectedSubCategory={selectedSubCategory}

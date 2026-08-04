@@ -101,11 +101,11 @@ export default function Hero({ slides }) {
                     </span>
                   </h1>
 
-                  <p className="text-gray-600 mt-5 text-lg">
+                  <p className="text-gray-600 mt-4 text-lg">
                     {slide.description || slide.desc}
                   </p>
 
-                  <div className="flex gap-4 mt-8 flex-wrap">
+                  <div className="flex gap-4 mt-6 flex-wrap">
 
                     <Link to="/shop" 
                       className="bg-red-600 hover:bg-red-700 text-white px-7 py-3 rounded-xl transition">
@@ -119,7 +119,7 @@ export default function Hero({ slides }) {
 
                   </div>
 
-                  <div className="flex flex-wrap gap-6 mt-8">
+                  <div className="flex flex-wrap gap-3 mt-6">
 
                     <div className="flex items-center gap-2">
                       <FaCheckCircle className="text-red-600" />

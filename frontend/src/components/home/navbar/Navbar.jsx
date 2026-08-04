@@ -10,10 +10,10 @@ const Navbar = () => {
   const { wishlist } = useContext(WishlistContext);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   const wishlistCount = wishlist.length;
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -34,33 +34,68 @@ const Navbar = () => {
   };
 
   return (
-    <>
+    <div className="max-w-7xl mx-auto">
+      <style>
+        {`
+    @keyframes marquee {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    .animate-marquee {
+      animation: marquee 18s linear infinite;
+      will-change: transform;
+    }
+  `}
+      </style>
       {/* Top Offer Bar */}
-      <div className="bg-black text-white text-xs md:text-sm">
-        <div className="max-w-7xl mx-auto px-4 h-10 flex items-center justify-center relative">
-          <p className="font-medium">✨ Flat 20% OFF on Chandeliers | Free Delivery Across India</p>
-          <button className="absolute right-4 bg-red-600 hover:bg-red-700 px-2 md:px-3 py-1 rounded text-xs">
+      <div className="bg-black w-full h-10 flex items-center text-white text-xs md:text-sm overflow-hidden">
+        {/* Marquee Area */}
+        <div className="flex-1 overflow-hidden">
+          <div className="flex w-max animate-marquee">
+            {/* First Group */}
+            <div className="flex shrink-0 items-center">
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+            </div>
+
+            {/* Exact Duplicate */}
+            <div className="flex shrink-0 items-center">
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+
+              <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Shop Button */}
+        <div className="shrink-0 bg-black px-3">
+          <Link to="/shop" className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs">
             Shop Now
-          </button>
+          </Link>
         </div>
       </div>
-
       {/* Main Navbar */}
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-20 flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-11 h-11 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xl">
-                K
-              </div>
+              <div className="w-11 h-11 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xl">K</div>
               <div>
                 <h2 className="font-bold text-2xl tracking-wide">
                   KHETHO<span className="text-red-600">MORR</span>
                 </h2>
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest">
-                  Lighting • Home • Beyond
-                </p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest">Lighting • Home • Beyond</p>
               </div>
             </Link>
 
@@ -79,17 +114,14 @@ const Navbar = () => {
             {/* Right Icons - Desktop */}
             <div className="hidden md:flex items-center gap-8">
               {/* User Section */}
-              {isAuthenticated && user ? (
+              {isAuthenticated && user ?
                 <div className="relative">
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 hover:text-red-600 transition"
-                  >
+                  <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2 hover:text-red-600 transition">
                     <div className="flex flex-col items-center">
                       <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {user.name?.charAt(0).toUpperCase() || "U"}
                       </div>
-                      <span className="text-xs">{user.name?.split(' ')[0] || "User"}</span>
+                      <span className="text-xs">{user.name?.split(" ")[0] || "User"}</span>
                     </div>
                   </button>
 
@@ -100,7 +132,7 @@ const Navbar = () => {
                         <p className="text-sm font-semibold text-gray-800">{user.name}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
-                      
+
                       <Link
                         to="/profile"
                         className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
@@ -109,7 +141,7 @@ const Navbar = () => {
                         <FiUserCheck size={18} />
                         My Profile
                       </Link>
-                      
+
                       <Link
                         to="/orders"
                         className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
@@ -118,7 +150,7 @@ const Navbar = () => {
                         <FiShoppingCart size={18} />
                         My Orders
                       </Link>
-                      
+
                       <Link
                         to="/wishlist"
                         className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition"
@@ -127,9 +159,9 @@ const Navbar = () => {
                         <FiHeart size={18} />
                         Wishlist
                       </Link>
-                      
+
                       <hr className="my-1" />
-                      
+
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
@@ -140,14 +172,13 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <Link to="/login">
+              : <Link to="/login">
                   <div className="flex flex-col items-center cursor-pointer hover:text-red-600">
                     <FiUser size={22} />
                     <span className="text-xs">Login</span>
                   </div>
                 </Link>
-              )}
+              }
 
               <Link to="/wishlist">
                 <div className="relative flex flex-col items-center cursor-pointer hover:text-red-600">
@@ -221,7 +252,7 @@ const Navbar = () => {
 
           {/* Mobile User Section */}
           <div className="p-5 border-b">
-            {isAuthenticated && user ? (
+            {isAuthenticated && user ?
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                   {user.name?.charAt(0).toUpperCase() || "U"}
@@ -231,15 +262,10 @@ const Navbar = () => {
                   <p className="text-sm text-gray-500">{user.email}</p>
                 </div>
               </div>
-            ) : (
-              <Link
-                to="/login"
-                onClick={() => setMenuOpen(false)}
-                className="block w-full bg-red-600 text-white text-center py-3 rounded-lg"
-              >
+            : <Link to="/login" onClick={() => setMenuOpen(false)} className="block w-full bg-red-600 text-white text-center py-3 rounded-lg">
                 Login / Sign Up
               </Link>
-            )}
+            }
           </div>
 
           <ul className="p-5 space-y-5 font-medium">
@@ -250,7 +276,7 @@ const Navbar = () => {
                 </Link>
               </li>
             ))}
-            
+
             {/* Mobile Logout */}
             {isAuthenticated && (
               <li className="border-b pb-3 cursor-pointer text-red-600 hover:text-red-700">
@@ -266,13 +292,8 @@ const Navbar = () => {
       </div>
 
       {/* Click outside to close dropdown */}
-      {dropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setDropdownOpen(false)}
-        />
-      )}
-    </>
+      {dropdownOpen && <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />}
+    </div>
   );
 };
 

@@ -70,7 +70,7 @@ export default function Services() {
         </section>
 
         {/* Why Choose Us */}
-        <section className="bg-gray-100 py-16 px-6">
+        <section className="bg-white py-16 px-6">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12">Why Choose Us</h2>
 

@@ -22,14 +22,14 @@ const ProductCard = ({ product: productFromApi }) => {
   };
 
   return (
-    <div className="max-w-7xl max-auto w-full group bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-xl transition duration-300">
+    <div className="max-w-7xl max-auto w-full group bg-white rounded-lg overflow-hidden shadow-xl hover:shadow-xl transition duration-300">
       {/* Image */}
       <Link to={`/product/${product._id}`}>
         <div className="relative overflow-hidden">
           <img
             src={product.images?.[0]}
             alt={product.name}
-            className="w-full h-40 md:h-46 lg:h-50 object-cover group-hover:scale-105 transition duration-500"
+            className="w-full h-40 md:h-46 lg:h-50 object-contain group-hover:scale-105 transition duration-500"
           />
 
           {discount > 0 && <span className="absolute top-3 left-3 bg-red-600 text-white text-xs px-3 py-1 rounded-full">-{discount}% OFF</span>}
@@ -69,7 +69,7 @@ const ProductCard = ({ product: productFromApi }) => {
           <div className="px-2 pb-1.5 md:pb-2 ">
           <button
             onClick={ () => addToCart(product) }
-            className="border w-full active:scale-95 transition-transform duration-150 bg-black text-sm md:text-base hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 "
+            className="border w-full active:scale-95 transition-transform duration-150 bg-black text-sm md:text-base hover:bg-red-600 text-white py-2 rounded-sm flex items-center justify-center gap-2 "
           >
             <FaShoppingCart />
             Add To Cart

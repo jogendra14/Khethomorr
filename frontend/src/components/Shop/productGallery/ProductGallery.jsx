@@ -58,11 +58,11 @@ export default function ProductGallery({ product }) {
   };
 
   return (
-    <div className="max-w-lg lg:max-w-full lg:h-190 mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="max-w-lg lg:max-w-full lg:h-190 mx-auto bg-white rounded-md shadow-lg overflow-hidden">
       {/* Main Image Container */}
       <div 
         ref={imageRef}
-        className="relative w-full bg-gray-50  flex aspect-square items-center justify-center "
+        className="relative w-full bg-white flex aspect-square items-center justify-center "
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
