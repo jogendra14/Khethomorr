@@ -113,6 +113,7 @@ const ProductForm = () => {
 // In ProductForm.js, update the handleSubmit function:
 
 // In ProductForm.js - Update the handleSubmit function
+// In ProductForm.js - Update the handleSubmit function
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -132,7 +133,7 @@ const handleSubmit = async (e) => {
       formDataToSend.append(field, formData[field]);
     }
 
-    // ✅ Add ALL optional fields including includeComponents
+    // Add optional fields
     const optionalFields = [
       'discount', 
       'description', 
@@ -148,11 +149,11 @@ const handleSubmit = async (e) => {
       }
     }
 
-    // ✅ CRITICAL FIX: Handle includeComponents properly
-    // If it's a string with commas, convert to array format
-    if (formData.includeComponents) {
-      // Send as a comma-separated string - backend will split it
+    // ✅ CRITICAL FIX: Handle includeComponents as comma-separated string
+    // The backend will split it into an array
+    if (formData.includeComponents && formData.includeComponents.trim()) {
       formDataToSend.append('includeComponents', formData.includeComponents);
+      console.log("Sending includeComponents:", formData.includeComponents);
     }
 
     // Get product type from template
@@ -165,7 +166,7 @@ const handleSubmit = async (e) => {
     console.log("Specifications being sent:", specifications);
     formDataToSend.append('specifications', JSON.stringify(specifications));
 
-    // ✅ Also send individual specification fields
+    // Also send individual specification fields
     Object.keys(specifications).forEach(key => {
       if (specifications[key] !== undefined && specifications[key] !== '') {
         formDataToSend.append(key, specifications[key]);
@@ -183,8 +184,8 @@ const handleSubmit = async (e) => {
       return;
     }
 
-    // Log for debugging
-    console.log("FormData entries:");
+    // Log all FormData for debugging
+    console.log("=== FormData being sent ===");
     for (let pair of formDataToSend.entries()) {
       console.log(pair[0], pair[1]);
     }
@@ -208,7 +209,7 @@ const handleSubmit = async (e) => {
         reviews: '',
         choose_W_G: '',
         warranty_guarantee: '',
-        includeComponents: '', // Reset this too
+        includeComponents: '',
         images: []
       });
       setSpecifications({});
@@ -226,7 +227,6 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
-
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);

@@ -109,14 +109,13 @@ const createProduct = async (req, res) => {
       choose_W_G,
       warranty_guarantee,
       stock,
-      includeComponents,  // ← Make sure this is captured
+      includeComponents,  // ← This will be a comma-separated string
       description,
       productType = 'fan',
       specifications = {}
     } = req.body;
 
-    // ✅ Log to see what's coming
-    console.log("includeComponents received:", includeComponents);
+    console.log("Raw includeComponents received:", includeComponents);
 
     // Validate required fields
     if (!category || !brand || !name || !MRP || !sellingPrice || !stock) {
@@ -126,26 +125,24 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // ✅ FIX: Handle includeComponents properly
-    let includeComponentsList = [];
+    // ✅ FIX: Convert comma-separated string to array
+    let includeComponentsArray = [];
     
-    // If it's a string, split by comma
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
-      includeComponentsList = includeComponents.split(',').map(item => item.trim());
+      // Split by comma and trim each item
+      includeComponentsArray = includeComponents.split(',').map(item => item.trim());
     } 
-    // If it's already an array, use it
     else if (Array.isArray(includeComponents)) {
-      includeComponentsList = includeComponents;
+      includeComponentsArray = includeComponents;
     }
-    // If it's an object with length property (like from MongoDB)
     else if (includeComponents && typeof includeComponents === 'object') {
-      // Convert object to array if needed
-      if (includeComponents.length !== undefined) {
-        includeComponentsList = Array.from(includeComponents);
+      // Handle if it's already an array-like object
+      if (Array.isArray(includeComponents)) {
+        includeComponentsArray = includeComponents;
       }
     }
 
-    console.log("Processed includeComponents:", includeComponentsList);
+    console.log("Processed includeComponents array:", includeComponentsArray);
 
     // Create product data
     const productData = {
@@ -161,7 +158,7 @@ const createProduct = async (req, res) => {
       choose_W_G: choose_W_G || '',
       warranty_guarantee: warranty_guarantee || '',
       stock: Number(stock),
-      includeComponents: includeComponentsList, // ← This will now have data
+      includeComponents: includeComponentsArray, // ← Now it will be an array
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()
@@ -229,7 +226,8 @@ const createProduct = async (req, res) => {
     const product = new Product(productData);
     const createdProduct = await product.save();
     
-    console.log("Product created with includeComponents:", createdProduct.includeComponents);
+    console.log("✅ Product created successfully!");
+    console.log("includeComponents saved:", createdProduct.includeComponents);
     
     res.status(201).json({
       success: true,
@@ -246,7 +244,6 @@ const createProduct = async (req, res) => {
     });
   }
 };
-
 
 
 // ============================
