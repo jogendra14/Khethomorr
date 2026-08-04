@@ -7,7 +7,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 import hero1 from "../../../assets/hero/hero1.jpg";
-import hero2 from "../../../assets/hero/hero2.jpg";
+import hero2 from "../../../assets/hero/hero2.webp";
 import hero3 from "../../../assets/hero/hero3.jpeg";
 import hero4 from "../../../assets/hero/hero4.jpeg";
 import hero5 from "../../../assets/hero/hero5.jpeg";
@@ -24,8 +24,8 @@ const defaultSlides = [
     image: hero2,
     imageKey: "hero2",
     title: "Modern",
-    highlight: "Lighting Collection",
-    desc: "Elegant chandeliers, ceiling lights & wall lights for every room.",
+    highlight: "Appliances Collection",
+    desc: "Elegant Chimney, auto clean & modern designs.",
   },
   {
     image: hero3,
