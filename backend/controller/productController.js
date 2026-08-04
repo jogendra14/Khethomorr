@@ -225,6 +225,9 @@ const createProduct = async (req, res) => {
 // ============================
 // ✅ UPDATE PRODUCT
 // ============================
+// ============================
+// ✅ UPDATE PRODUCT (CLEAN VERSION)
+// ============================
 const updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
@@ -247,6 +250,7 @@ const updateProduct = async (req, res) => {
       choose_W_G,
       warranty_guarantee,
       stock,
+      includeComponents,
       description,
       productType,
       existingImages,
@@ -266,21 +270,42 @@ const updateProduct = async (req, res) => {
     if (choose_W_G !== undefined) product.choose_W_G = choose_W_G;
     if (warranty_guarantee !== undefined) product.warranty_guarantee = warranty_guarantee;
     if (stock) product.stock = Number(stock);
+
+    // ✅ Fix: includeComponents ko array mein convert karo
+    let includeComponentsList = [];
+    if (typeof includeComponents === 'string' && includeComponents.trim()) {
+      includeComponentsList = includeComponents.split(',').map(item => item.trim());
+    } else if (Array.isArray(includeComponents)) {
+      includeComponentsList = includeComponents;
+    }
+    product.includeComponents = includeComponentsList; 
+
     if (description) product.description = description;
     if (productType) product.productType = productType;
 
-    // Update specifications
+    // ✅ Specifications ko parse aur update karein
+    let specObj = {};
+    if (typeof specifications === 'string') {
+      try {
+        specObj = JSON.parse(specifications);
+      } catch (e) {
+        console.error("Failed to parse specs JSON:", e);
+        specObj = {};
+      }
+    } else if (typeof specifications === 'object' && specifications !== null) {
+      specObj = specifications;
+    }
+
     const specMap = product.specifications || new Map();
 
-    if (specifications && typeof specifications === 'object') {
-      Object.entries(specifications).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          specMap.set(key, value);
-        } else if (value === null || value === '') {
-          specMap.delete(key);
-        }
-      });
-    }
+    // Parse ki hui specs ko map mein daalo
+    Object.entries(specObj).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        specMap.set(key, value);
+      } else if (value === null || value === '') {
+        specMap.delete(key);
+      }
+    });
 
     product.specifications = specMap;
 
