@@ -1,0 +1,33 @@
+{
+  "category": "KitchenAppliances",
+  "subCategory": "Chimney",
+  "brand": "Faber",
+  "name": "Faber Talika OC A80 Wall Mounted Chimney Hood",
+  "MRP": 100000,
+  "sellingPrice": 61200,
+  "discount": 38.8,
+  "rating": 4.5,
+  "reviews": 0,
+  "choose_W_G": "2 Years Manufacturer's Warranty [citation:6]",
+  "warranty_guarantee": "2 Years Comprehensive Warranty on Product [citation:6]",
+  "stock": 10,
+  "description": "The Faber Talika OC A80 is a premium, award-winning Red Dot Design Award wall-mounted chimney hood [citation:1][citation:9]. It features a unique, ultra-slim vertical design (15cm thickness) [citation:5] and is powered by innovative Nautilus technology for high performance with low consumption [citation:1][citation:7]. Ideal for modern kitchens, it is available in an elegant Old Copper finish [citation:1][citation:5].",
+  "includeComponents": [
+    "Chimney Hood Unit",
+    "Aluminium Grease Filter (Self-supporting, dishwasher safe) [citation:5]",
+    "Standard Chimney Flue [citation:5]",
+    "Mounting Kit",
+    "User Manual"
+  ],
+  "images": ["faber_talika_oc_a80_1.jpg", "faber_talika_oc_a80_2.jpg"],
+  "productType": "kitchenAppliances",
+  "specifications": {
+    "applianceType": "Chimney",
+    "power": "135W (Boost Speed) [citation:1][citation:5]",
+    "voltage": "220-240V",
+    "capacity": "600 m³/h (Boost Speed) [citation:1][citation:11]",
+    "material": "Metal (Stainless Steel) with Old Copper Finish [citation:1][citation:5][citation:6]",
+    "color": "Old Copper (Antique Copper) [citation:1][citation:5]",
+    "specialFeatures": "Nautilus Technology, Perimeter Aspiration, Intensive Speed (6-min boost), Touch Controls, LED Lighting (3000K), Remote Control Ready [citation:1][citation:5][citation:12]"
+  }
+}

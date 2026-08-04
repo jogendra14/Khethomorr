@@ -110,6 +110,8 @@ const ProductForm = () => {
   };
 
   // In ProductForm.js, update the handleSubmit function:
+// In ProductForm.js, update the handleSubmit function:
+
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
@@ -128,9 +130,22 @@ const handleSubmit = async (e) => {
       formDataToSend.append(field, formData[field]);
     }
 
-    // Add optional fields
-    if (formData.discount) formDataToSend.append('discount', formData.discount);
-    if (formData.description) formDataToSend.append('description', formData.description);
+    // ✅ Add ALL optional fields including the missing ones
+    const optionalFields = [
+      'discount', 
+      'description', 
+      'rating',           // ✅ Added
+      'reviews',          // ✅ Added
+      'choose_W_G',       // ✅ Added
+      'warranty_guarantee', // ✅ Added
+      'includeComponents'  // ✅ Added
+    ];
+    
+    for (const field of optionalFields) {
+      if (formData[field] !== undefined && formData[field] !== null && formData[field] !== '') {
+        formDataToSend.append(field, formData[field]);
+      }
+    }
 
     // Get product type from template
     const template = getTemplateByCategory(selectedCategory);
@@ -138,9 +153,16 @@ const handleSubmit = async (e) => {
       formDataToSend.append('productType', template.productType || 'fan');
     }
 
-    // Add specifications as JSON
+    // ✅ Send specifications as JSON
     console.log("Specifications being sent:", specifications);
     formDataToSend.append('specifications', JSON.stringify(specifications));
+
+    // ✅ Also send individual specification fields (for backend to pick up)
+    Object.keys(specifications).forEach(key => {
+      if (specifications[key] !== undefined && specifications[key] !== '') {
+        formDataToSend.append(key, specifications[key]);
+      }
+    });
 
     // Add images - ensure at least one image
     if (formData.images && formData.images.length > 0) {
@@ -174,29 +196,28 @@ const handleSubmit = async (e) => {
         discount: '',
         stock: '',
         description: '',
+        rating: '',          // ✅ Added
+        reviews: '',         // ✅ Added
+        choose_W_G: '',      // ✅ Added
+        warranty_guarantee: '', // ✅ Added
         includeComponents: '',
         images: []
       });
       setSpecifications({});
       setSelectedCategory('');
       setImagePreviews([]);
-
-      // ✅ Navigate back to products page
-      navigate('/admin/products'); // or wherever your products list is
-
+      navigate('/admin/products');
     } else {
       alert('❌ Failed to create product: ' + (response.message || 'Unknown error'));
     }
   } catch (error) {
     console.error('Error creating product:', error);
-    // Show more detailed error
     const errorMessage = error.response?.data?.message || error.message || 'Please try again.';
     alert(`❌ Error creating product: ${errorMessage}`);
   } finally {
     setLoading(false);
   }
 };
-
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData(prev => ({ ...prev, images: files }));

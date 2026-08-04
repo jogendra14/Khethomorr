@@ -246,8 +246,7 @@ console.log("PRODUCT DATA:", product);
       <p className="mt-2 text-gray-700">
         <span className="font-bold">Brand : {product.brand}</span>
       </p>
-      <span className="text-gray-500 mt-1 line-clamp-3">{product.description}</span>
-
+      
       {/* Color Section */}
       <h3 className="font-semibold mt-1">Color : {product.color}</h3>
       <div className="relative">

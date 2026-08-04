@@ -90,6 +90,8 @@ const getProductById = async (req, res) => {
 // ============================
 // ✅ CREATE PRODUCT
 // ============================
+// In your backend controller, update the createProduct function:
+
 const createProduct = async (req, res) => {
   try {
     console.log("Request body:", req.body);
@@ -103,6 +105,10 @@ const createProduct = async (req, res) => {
       MRP,
       sellingPrice, 
       discount,
+      rating,              // ✅ Added
+      reviews,             // ✅ Added
+      choose_W_G,          // ✅ Added
+      warranty_guarantee,  // ✅ Added
       stock,
       includeComponents,
       description,
@@ -118,7 +124,7 @@ const createProduct = async (req, res) => {
       });
     }
 
-    // ✅ Correct way: 'const' ki jagah 'let' use karo aur condition fix karo
+    // Handle includeComponents - convert to array
     let includeComponentsList = [];
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
       includeComponentsList = includeComponents.split(',').map(item => item.trim());
@@ -128,14 +134,18 @@ const createProduct = async (req, res) => {
 
     const productData = {
       category,
-      subCategory,
+      subCategory: subCategory || '',
       brand,
       name,
       MRP: Number(MRP),
       sellingPrice: Number(sellingPrice),
-      discount: Number(discount),
+      discount: discount ? Number(discount) : 0,
+      rating: rating ? Number(rating) : 0,           // ✅ Added
+      reviews: reviews ? Number(reviews) : 0,        // ✅ Added
+      choose_W_G: choose_W_G || '',                  // ✅ Added
+      warranty_guarantee: warranty_guarantee || '',  // ✅ Added
       stock: Number(stock),
-      includeComponents: includeComponentsList, // <--- Yahan change kiya
+      includeComponents: includeComponentsList,
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()
@@ -148,13 +158,11 @@ const createProduct = async (req, res) => {
         try {
           const result = await cloudinary.uploader.upload(file.path);
           images.push(result.secure_url);
-          // Delete temporary file
           if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
           }
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
-          // Continue with other images even if one fails
         }
       }
     }
@@ -181,7 +189,7 @@ const createProduct = async (req, res) => {
       }
     });
 
-    // Also check for individual field values from form data
+    // ✅ Also check for individual field values from form data
     const individualFields = [
       'fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 
       'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight',
@@ -213,7 +221,6 @@ const createProduct = async (req, res) => {
     
   } catch (error) {
     console.error("Create product error:", error);
-    // Send detailed error for debugging
     res.status(500).json({ 
       success: false,
       message: error.message,
@@ -221,10 +228,6 @@ const createProduct = async (req, res) => {
     });
   }
 };
-
-// ============================
-// ✅ UPDATE PRODUCT
-// ============================
 // ============================
 // ✅ UPDATE PRODUCT (CLEAN VERSION)
 // ============================
