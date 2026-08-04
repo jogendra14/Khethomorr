@@ -1,5 +1,5 @@
 import { FaCheckCircle } from "react-icons/fa";
-
+import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination} from "swiper/modules";
 
@@ -107,13 +107,15 @@ export default function Hero({ slides }) {
 
                   <div className="flex gap-4 mt-8 flex-wrap">
 
-                    <button className="bg-red-600 hover:bg-red-700 text-white px-7 py-3 rounded-xl transition">
+                    <Link to="/shop" 
+                      className="bg-red-600 hover:bg-red-700 text-white px-7 py-3 rounded-xl transition">
                       Shop Now
-                    </button>
+                    </Link>
 
-                    <button className="border-2 border-gray-300 hover:border-red-600 px-7 py-3 rounded-xl transition">
+                    <Link to="/services"
+                      className="border-2 border-gray-300 hover:border-red-600 px-7 py-3 rounded-xl transition">
                       Explore Services
-                    </button>
+                    </Link>
 
                   </div>
 
