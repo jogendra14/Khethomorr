@@ -12,7 +12,7 @@ import { WishlistContext } from "../../context/WishlistContext";
 import { Link } from "react-router-dom";
 
 export default function ProductInfo({ product }) {
-
+console.log("PRODUCT DATA:", product);
   const [allProducts, setAllProducts] = useState([]);
   const [colorVariants, setColorVariants] = useState([]);
   const { addToCart } = useContext(CartContext);
@@ -64,45 +64,83 @@ export default function ProductInfo({ product }) {
     setColorVariants(filteredProducts);
   }, [allProducts, product]);
 
+  const formatSpecificationLabel = (label) => {
+  if (!label) return "";
+
+  return label
+    // camelCase ko separate karo
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    // first letter capital
+    .replace(/^./, (char) => char.toUpperCase());
+};
 
   // ----- DYNAMIC SPECIFICATION RENDERER -----
-  const renderSpecifications = () => {
-    if (!product) return null;
+ const renderSpecifications = () => {
+  if (!product) return null;
 
-    // Case 1: Using specifications array
-    let specs = [];
-    if (product.specifications && Array.isArray(product.specifications)) {
-      specs = product.specifications;
-    }
-    // Case 2: Using specificationMap
-    else if (product.specificationMap && typeof product.specificationMap === 'object') {
-      specs = Object.entries(product.specificationMap).map(([label, value]) => ({
-        label,
-        value
-      }));
-    }
+  let specs = [];
 
+  // specifications is an OBJECT
+  if (
+    product.specifications &&
+    typeof product.specifications === "object" &&
+    !Array.isArray(product.specifications)
+  ) {
+    specs = Object.entries(product.specifications).map(([label, value]) => ({
+      label,
+      value,
+    }));
+  }
+
+  // specifications is an ARRAY
+  else if (Array.isArray(product.specifications)) {
+    specs = product.specifications;
+  }
+
+  // specificationMap fallback
+  else if (
+    product.specificationMap &&
+    typeof product.specificationMap === "object"
+  ) {
+    specs = Object.entries(product.specificationMap).map(([label, value]) => ({
+      label,
+      value,
+    }));
+  }
+
+  if (specs.length === 0) {
     return (
-      <div className="space-y-1 flex gap-4 text-sm text-gray-700">
-        <div className="flex flex-col gap-2 min-w-30">
-          {specs.map((spec, index) => (
-            <span key={`label-${index}`} className="font-medium">
-              {spec.label}:
-            </span>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {specs.map((spec, index) => (
-            <span key={`value-${index}`} className="text-gray-900">
-              {spec.value}
-            </span>
-          ))}
-        </div>
+      <div className="text-sm text-gray-500 py-4">
+        No specifications available for this product.
       </div>
     );
-  };
+  }
+  return (
+    <div className="overflow-x-auto mx-2 pb-1.5 bg-gray-50">
+      <table className="w-full text-sm  rounded-lg">
+        <tbody>
+          {specs.map((spec, index) => (
+            <tr key={index} className="">
+              
+              <td className="px-4 py-1 font-semibold text-gray-700 bg-gray-50 w-1/3">
+                {formatSpecificationLabel(spec.label)}
+              </td>
 
+              <td className="px-4 bg-gray-50 text-gray-900">
+                {Array.isArray(spec.value)
+                  ? spec.value.join(", ")
+                  : typeof spec.value === "object"
+                  ? JSON.stringify(spec.value)
+                  : spec.value}
+              </td>
+
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
   // ----- DYNAMIC DESCRIPTION RENDERER -----
   const renderDescription = () => {
     if (!product) return null;
@@ -124,53 +162,60 @@ export default function ProductInfo({ product }) {
   };
 
   // ----- DYNAMIC TABLE RENDERER -----
-  const renderDetailedSpecTable = () => {
-    if (!product) return null;
+ const renderDetailedSpecTable = () => {
+  if (!product) return null;
 
-    let specs = [];
-    if (product.specifications && Array.isArray(product.specifications)) {
-      specs = product.specifications;
-    } 
-    else if (product.specificationMap && typeof product.specificationMap === 'object') 
-    {
-      specs = Object.entries(product.specificationMap).map(([label, value]) => ({
-        label,
-        value
-      }));
-    }
+  let specs = [];
+  if (product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0) {
+    specs = product.specifications;
+  } 
+  else if (product.specificationMap && typeof product.specificationMap === 'object' && Object.keys(product.specificationMap).length > 0) {
+    specs = Object.entries(product.specificationMap).map(([label, value]) => ({
+      label,
+      value
+    }));
+  }
 
-    // Also include base product fields that aren't in specifications
-    const baseFields = [
-      { label: "Brand", value: product.brand },
-      { label: "Name", value: product.name },
-      { label: "Colour", value: product.color },
-      { label: "Include Components", value: product.includeComponents },
-    ].filter(field => field.value);
-
-    const allFields = [...baseFields, ...specs];
-    
+  // Only include base fields that have values
+  const baseFields = [
+    { label: "Brand", value: product.brand },
+    { label: "Name", value: product.name },
+    { label: "Colour", value: product.color },
+    { label: "Warranty", value: product.warranty_guarantee },
+    { label: "Warranty Type", value: product.choose_W_G },
+    { label: "Include Components", value: product.includeComponents },
+  ].filter(field => field.value && field.value !== '' && field.value !== null && field.value !== undefined);
+  
+  const allFields = [...baseFields, ...specs];
+  
+  // If no fields to display, show a message
+  if (allFields.length === 0) {
     return (
-      <div className="overflow-x-auto mt-2 border rounded-lg">
-        <table className="w-full text-sm">
-          <tbody>
-            {allFields.map((item, index) => (
-              <tr 
-                key={index} 
-                className={index % 2 === 0 ? "border-b hover:bg-blue-50 transition duration-150" : "hover:bg-blue-50 transition duration-150"}
-              >
-                <td className="px-6 py-3 border-r font-bold text-gray-700 w-1/3 bg-gray-50">
-                  {item.label}
-                </td>
-                <td className="px-6 py-3 text-gray-900">
-                  {typeof item.value === 'object' ? JSON.stringify(item.value) : item.value}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="text-center py-8 text-gray-500">
+        No detailed specifications available for this product.
       </div>
     );
-  };
+  }
+  
+  return (
+    <div className="overflow-x-auto pt-2 mx-2 bg-gray-50 ">
+      <table className="w-full text-sm">
+        <tbody>
+          {allFields.map((item) => (
+            <tr className="">
+              <td className="px-4 py-1 font-medium text-gray-900 w-1/3 bg-gray-50">
+                {item.label}
+              </td>
+              <td className="px-4 text-gray-900">
+                {typeof item.value === 'object' ? JSON.stringify(item.value) : item.value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
   if (!product) {
     return <div>Loading product...</div>;
@@ -286,7 +331,7 @@ export default function ProductInfo({ product }) {
           onClick={() => setActiveTab('spec')}
           className={`flex-1 py-4 px-6 text-center font-medium text-base transition-all duration-200 border-b-2 ${
             activeTab === 'spec'
-              ? 'border-blue-600 text-blue-700 bg-white/80'
+              ? 'border-red-600 text-red-700 bg-white/80'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
           }`}
         >
@@ -297,7 +342,7 @@ export default function ProductInfo({ product }) {
           onClick={() => setActiveTab('desc')}
           className={`flex-1 py-4 px-6 text-center font-medium text-base transition-all duration-200 border-b-2 ${
             activeTab === 'desc'
-              ? 'border-blue-600 text-blue-700 bg-white/80'
+              ? 'border-red-600 text-red-700 bg-white/80'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
           }`}
         >
@@ -306,20 +351,24 @@ export default function ProductInfo({ product }) {
       </div>
 
       {/* --- Dynamic Content Panel --- */}
-      <div className="p-2 bg-white">
-        <div className="bg-gray-50/70 rounded-xl p-5 border border-gray-100/80">
-          {activeTab === 'spec' ? renderSpecifications() : renderDescription()}
-        </div>
+      <div className=" p-1 bg-white">
+        
 
-        <div className="mt-4 text-xs text-gray-400 flex justify-end items-center gap-1">
-          <span className={`inline-block w-2 h-2 rounded-full ${activeTab === 'spec' ? 'bg-blue-500' : 'bg-emerald-400'}`}></span>
-          <span>showing: {activeTab === 'spec' ? 'specifications' : 'description'}</span>
-        </div>
+        
+          {activeTab === 'spec' ? ( 
+              <>
+                {renderDetailedSpecTable()}
+                {renderSpecifications()}
+              </>
+            ) : renderDescription()
+          }
+          
       </div>
 
-      {/* --- Detailed Specifications Table --- */}
-      <h2 className="mt-4 pl-2 font-bold text-xl">Detailed Product Specifications</h2>
-      {renderDetailedSpecTable()}
+     
+
+       
+      
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function SimilarProducts({ product }) {
       </div>
 
       {/* Cards */}
-      <div className="flex gap-2 py-3 overflow-x-auto  hide-scrollbar scroll-smooth">
+      <div className="flex gap-2 py-3 overflow-x-auto w-50 hide-scrollbar scroll-smooth">
         {/* FIX 2: Use product.id instead of index as the key */}
         {similarProducts.map((productItem) => (
           <div key={productItem._id} className="group rounded-sm bg-white shadow-md hove:shadow-lg transition-transform duration-300">
@@ -101,15 +101,15 @@ export default function SimilarProducts({ product }) {
 
             {/* Content */}
             <div className="p-2">
-              <h3 className="text-lg leading-5.5 font-semibold mt-0 line-clamp-2">{productItem.name}</h3>
+              <h3 className="text-sm lg:text-base leading-5.5 font-semibold mt-0 line-clamp-2">{productItem.name}</h3>
               
-              <div className="flex gap-2">
-                <span><FaStar className="self-center text-yellow-400" /></span>
-                <span className="self-center">{productItem.rating}</span>
+              <div className="flex items-center gap-2 mt-1">
+                <span><FaStar className="text-yellow-400" /></span>
+                <span className="">{productItem.rating}</span>
               </div>
 
               <div className="flex justify-between mt-3">
-                <span className="text-xl self-end font-bold text-green-700">{productItem.sellingPrice}</span>
+                <span className="text-xl self-end font-bold text-green-700">₹{productItem.sellingPrice}</span>
 
                 <Link to="/checkout"
                   className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>

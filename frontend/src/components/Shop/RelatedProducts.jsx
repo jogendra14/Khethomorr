@@ -70,7 +70,7 @@ export default function RelatedProducts() {
               </div>
 
               <div className="flex justify-between mt-3">
-                <span className="text-2xl self-end font-bold text-green-700">₹{product.newPrice}</span>
+                <span className="text-lg lg:text-xl self-end font-bold text-green-700">₹{product.sellingPrice}</span>
 
                 <Link to="/checkout"
                 className="bg-black text-white px-5 py-1.5 rounded-lg hover:bg-red-600 text-semibold transition">Buy</Link>
