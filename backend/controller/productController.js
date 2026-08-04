@@ -95,7 +95,7 @@ const createProduct = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Files received:", req.files?.length || 0);
 
-    const {
+    let {
       category,
       subCategory,
       brand,
@@ -120,9 +120,9 @@ const createProduct = async (req, res) => {
 
     // String ko array mein convert karo
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
-      includeComponents = includeComponents.split(',').map(item => item.trim());
-    } else {
-      includeComponents = [];
+      includeComponentsList = includeComponents.split(',').map(item => item.trim());
+    } else if (Array.isArray(includeComponents)) {
+      includeComponentsList = includeComponents;
     }
 
     const productData = {
@@ -134,7 +134,7 @@ const createProduct = async (req, res) => {
       sellingPrice: Number(sellingPrice),
       discount: Number(discount),
       stock: Number(stock),
-      includeComponents,
+      includeComponents: includeComponentsList, // <--- Yahan change kiya
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()

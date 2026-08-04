@@ -47,7 +47,7 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ category: 1, subCategory: 1 });
 productSchema.index({ name: 'text' });
 productSchema.index({ brand: 1 });
-productSchema.index({ newPrice: 1 });
+productSchema.index({ sellingPrice: 1 });
 
 // Instance method to get formatted specifications
 productSchema.methods.getSpecs = function() {

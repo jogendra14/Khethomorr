@@ -55,7 +55,6 @@ const ProductForm = () => {
   // Calculate discount or selling price automatically
   const calculatePrice = (field, value) => {
     const mrp = parseFloat(formData.MRP) || 0;
-    const sellingPrice = parseFloat(formData.sellingPrice) || 0;
     const discount = parseFloat(formData.discount) || 0;
 
     if (field === 'MRP') {
@@ -111,7 +110,6 @@ const ProductForm = () => {
   };
 
   // In ProductForm.js, update the handleSubmit function:
-
 const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
