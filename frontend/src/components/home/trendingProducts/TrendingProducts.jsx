@@ -3,6 +3,8 @@ import ProductCard from "./ProductCard";
 import { getProduct } from "../../../api/productApi.js";
 import { useNavigate } from "react-router-dom";
 import '../../../index.css';
+import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from "react-icons/bs";
+
 
 const TrendingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -69,7 +71,7 @@ const TrendingProducts = () => {
 
   return (
     <section className="max-w-7xl mx-auto w-full px-4">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-2">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold">Trending Products</h2>
           <p className="text-gray-500 mt-1">Explore our best-selling collection</p>
@@ -83,10 +85,11 @@ const TrendingProducts = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+      <div className="border relative py-6 px-4 flex overflow-x-auto hide-scrollbar gap-4 md:gap-5">
+        <BsArrowLeftCircleFill size={30} className="absolute top-1/2 left-4 "/>
         {products.length > 0 ? (
           products.map((item) => (
-            <div key={item._id} className="w-full">
+            <div key={item._id} className="shrink-0">
               <ProductCard product={item} />
             </div>
           ))
@@ -101,6 +104,8 @@ const TrendingProducts = () => {
             Products are unavailable right now. Please try again shortly.
           </p>
         )}
+        <BsArrowRightCircleFill size={30} className="absolute top-1/2 right-4 "/>
+
       </div>
     </section>
   );
