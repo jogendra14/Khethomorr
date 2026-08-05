@@ -26,42 +26,42 @@ const Brands = () => {
   }, [categoryName, subCategoryName]);
 
   const fetchBrands = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const productsData = await getProduct();
-      
-      // पहले category filter करें, फिर subCategory
-      const filteredProducts = productsData.filter(
-        product => product.category === categoryName && 
-                  product.subCategory === subCategoryName
-      );
-      
-      setProducts(filteredProducts);
-      
-      // Brands count करें
-      const brandCounts = filteredProducts.reduce((acc, product) => {
-        if (product.brand) {
-          acc[product.brand] = (acc[product.brand] || 0) + 1;
-        }
-        return acc;
-      }, {});
-      
-      const uniqueBrands = Object.keys(brandCounts).map(brandName => ({
-        id: brandName.toLowerCase().replace(/\s/g, '-'),
-        name: brandName,
-        productCount: brandCounts[brandName],
-      }));
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await getProduct();
+    const productsData = response?.products || [];
+    
+    const filteredProducts = productsData.filter(
+      product => product.category === categoryName && 
+                product.subCategory === subCategoryName
+    );
+    
+    setProducts(filteredProducts);
+    
+    const brandCounts = filteredProducts.reduce((acc, product) => {
+      if (product.brand) {
+        acc[product.brand] = (acc[product.brand] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    
+    const uniqueBrands = Object.keys(brandCounts).map(brandName => ({
+      id: brandName.toLowerCase().replace(/\s/g, '-'),
+      name: brandName,
+      productCount: brandCounts[brandName],
+    }));
 
-      setBrands(uniqueBrands);    
-    } catch (err) {
-      setError(err.message || 'Failed to fetch brands');
-      setBrands([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setBrands(uniqueBrands);    
+  } catch (err) {
+    setError(err.message || 'Failed to fetch brands');
+    setBrands([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Brand पर click करने पर products page पर जाएं
   const handleBrandClick = (brandName) => {

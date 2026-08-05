@@ -25,14 +25,16 @@ const SubCategories = () => {
     }
   }, [categoryName]);
 
-  const fetchSubCategories = async () => {
+  // frontend/src/Admin/components/subCategories/SubCategories.jsx
+
+const fetchSubCategories = async () => {
   try {
     setLoading(true);
     setError(null);
     
-    // ✅ BAS YAHI DO LINES CHANGE KAREN
+    // ✅ FIX: Get the products array from the response
     const response = await getProduct();
-    const productsData = response?.products || [];
+    const productsData = response?.products || []; // ← Extract products array
     
     // Filter products by category
     const filteredProducts = productsData.filter(
@@ -41,7 +43,7 @@ const SubCategories = () => {
     
     setProducts(filteredProducts);
     
-    // Sub-categories count
+    // Sub-category counts
     const subCategoryCounts = filteredProducts.reduce((acc, product) => {
       if (product.subCategory) {
         acc[product.subCategory] = (acc[product.subCategory] || 0) + 1;
@@ -63,7 +65,6 @@ const SubCategories = () => {
     setLoading(false);
   }
 };
-
 
    // Sub-Category पर click करने पर Brands page पर जाएं
   const handleSubCategoryClick = (subCategoryName) => {
