@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductCard from "./ProductCard";
 import { getProduct } from "../../../api/productApi.js";
 import { useNavigate } from "react-router-dom";
 import '../../../index.css';
 import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from "react-icons/bs";
 
-
 const TrendingProducts = () => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  // ✅ Scroll container ke liye ref
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -18,10 +20,8 @@ const TrendingProducts = () => {
         setLoading(true);
         setError(false);
         
-        // ✅ getProduct() ab products array return karega
         const productsData = await getProduct();
         
-        // ✅ Check if productsData is array
         if (!Array.isArray(productsData)) {
           console.error("Expected array but got:", productsData);
           setProducts([]);
@@ -29,14 +29,12 @@ const TrendingProducts = () => {
           return;
         }
 
-        // Sort by createdAt (latest first)
         const sortedProducts = [...productsData].sort((a, b) => {
           const dateA = a.createdAt || a.updatedAt || 0;
           const dateB = b.createdAt || b.updatedAt || 0;
           return new Date(dateB) - new Date(dateA);
         });
 
-        // Top 8 products
         setProducts(sortedProducts.slice(0, 8));
         
       } catch (error) {
@@ -49,6 +47,19 @@ const TrendingProducts = () => {
 
     fetchProducts();
   }, []);
+
+  // ✅ Scroll karne ke functions
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
 
   // Loading state
   if (loading) {
@@ -85,26 +96,48 @@ const TrendingProducts = () => {
         </button>
       </div>
 
-      <div className="border relative py-6 px-4 flex overflow-x-auto hide-scrollbar gap-4 md:gap-5">
-        <BsArrowLeftCircleFill size={30} className="absolute top-1/2 left-4 "/>
-        {products.length > 0 ? (
-          products.map((item) => (
-            <div key={item._id} className="shrink-0">
-              <ProductCard product={item} />
-            </div>
-          ))
-        ) : (
-          <p className="w-full text-center text-gray-500 col-span-full">
-            No products available right now.
-          </p>
-        )}
+      {/* ✅ Container relative rahega, arrows iske andar absolute honge */}
+      <div className="relative py-4 px-2">
+        
+        {/* ✅ Arrows - mobile par hidden, desktop par visible */}
+        <button 
+          onClick={scrollLeft} 
+          className="absolute top-1/2 left-0 -translate-y-1/2 z-10 hidden md:block hover:scale-110 transition"
+        >
+          <BsArrowLeftCircleFill size={30} className="text-gray-700 hover:text-black" />
+        </button>
 
-        {error && (
-          <p className="w-full text-center text-red-500 col-span-full">
-            Products are unavailable right now. Please try again shortly.
-          </p>
-        )}
-        <BsArrowRightCircleFill size={30} className="absolute top-1/2 right-4 "/>
+        {/* ✅ Scroll container ko ref assign kiya */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto hide-scrollbar gap-4 md:gap-5 scroll-smooth"
+        >
+          {products.length > 0 ? (
+            products.map((item) => (
+              <div key={item._id} className="shrink-0">
+                <ProductCard product={item} />
+              </div>
+            ))
+          ) : (
+            <p className="w-full text-center text-gray-500 col-span-full">
+              No products available right now.
+            </p>
+          )}
+
+          {error && (
+            <p className="w-full text-center text-red-500 col-span-full">
+              Products are unavailable right now. Please try again shortly.
+            </p>
+          )}
+        </div>
+
+        {/* ✅ Right Arrow - mobile par hidden, desktop par visible */}
+        <button 
+          onClick={scrollRight} 
+          className="absolute top-1/2 right-0 -translate-y-1/2 z-10 hidden md:block hover:scale-110 transition"
+        >
+          <BsArrowRightCircleFill size={30} className="text-gray-700 hover:text-black" />
+        </button>
 
       </div>
     </section>

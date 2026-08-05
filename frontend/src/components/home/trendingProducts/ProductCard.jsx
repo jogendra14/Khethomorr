@@ -22,6 +22,7 @@ const ProductCard = ({ product: productFromApi }) => {
   };
 
   return (
+    
     <div className="w-60 group bg-white rounded-lg overflow-hidden shadow-xl hover:shadow-xl transition duration-300">
       {/* Image */}
       <Link to={`/product/${product._id}`}>
