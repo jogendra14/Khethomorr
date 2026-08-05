@@ -1,9 +1,9 @@
 const ShowDeals = ({product}) => {
   return (
-    <div class>
-     <section className="bg-zink-100 py-4 max-w-7xl mx-auto">
+    <div>
+     <section className="bg-zinc-100 py-4 max-w-7xl mx-auto">
       <div className="">
-          <div key={product.id} className="group cursor-pointer">
+          <div key={product._id} className="group cursor-pointer">
               {/* Image */}
               <div className="relative  rounded-2xl">
                 <img

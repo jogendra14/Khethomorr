@@ -1,4 +1,4 @@
-import axios from "axios";
+import API from "../../../api/axios";
 import { FaEye, FaTrash } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
@@ -13,8 +13,8 @@ const OrdersTable = ({
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/orders/${id}/status`,
+      await API.put(
+        `/api/orders/${id}/status`,
         { status },
         {
           headers: {

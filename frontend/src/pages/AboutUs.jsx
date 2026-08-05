@@ -1,5 +1,6 @@
 import { Lightbulb, Award, Users, Truck, ShieldCheck, Target } from "lucide-react";
 import Navbar from "../components/home/navbar/Navbar";
+import Footer from "../components/home/footer/Footer";
 
 export default function AboutUs() {
   const features = [
@@ -145,6 +146,7 @@ export default function AboutUs() {
           </div>
         </section>
       </div>
+      <Footer/>
     </>
   );
 }

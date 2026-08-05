@@ -1,525 +1,458 @@
+// frontend/src/Admin/components/product/EditProduct.jsx
+
 import { useState, useEffect } from "react";
-import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
-import { categoryData } from "../../data/categoryData.js";
-import { useProduct, useUpdateProduct } from "../../../hooks"; // ✅ React Query hooks
-import { getTemplateByCategory } from "../../data/ProductTemplates.js";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getProductById, updateProduct } from "../../../api/productApi";
+import { getCategories } from "../../../api/categoryApi";
+import toast from "react-hot-toast";
+import { ArrowLeft, Plus, X } from "lucide-react";
 
-export default function EditProduct() {
-  const navigate = useNavigate();
+const productTypes = [
+  "fan",
+  "lighting",
+  "electricals",
+  "kitchenAppliances",
+  "bathroomAppliances",
+  "solar",
+  "smartHome",
+  "safety",
+  "others",
+];
+
+const warrantyOptions = ["", "warranty", "guarantee"];
+
+const EditProduct = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [images, setImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [specifications, setSpecifications] = useState([{ key: "", value: "" }]);
+  const [includeComponents, setIncludeComponents] = useState([""]);
 
-  const [product, setProduct] = useState({
+  // ✅ Fetch categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // ✅ Fetch product
+  const {
+    data: product,
+    isLoading: productLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // ✅ Form state
+  const [formData, setFormData] = useState({
+    name: "",
     category: "",
     subCategory: "",
     brand: "",
-    name: "",
     MRP: "",
     sellingPrice: "",
-    discount: "",
-    rating: "",
-    reviews: "",
-    choose_W_G: "",
-    warranty_guarantee: "",
+    discount: "0",
     stock: "",
     description: "",
-    includeComponents: '',
     productType: "fan",
-    specifications: {}
+    choose_W_G: "",
+    warranty_guarantee: "",
+    color: "",
   });
 
-  const [images, setImages] = useState([]);
-  const [preview, setPreview] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
-  const [specFields, setSpecFields] = useState([]);
-
-  // ✅ React Query - Fetch Product
-  const { 
-    data: productData, 
-    isLoading, 
-    isError, 
-    error, 
-    refetch 
-  } = useProduct(id);
-
-  // ✅ React Query - Update Product
-  const updateProduct = useUpdateProduct();
-
-  // ✅ Set product data when fetched
+  // ✅ Set form data when product loads
   useEffect(() => {
-    if (productData) {
-      const specs = productData.specifications || {};
-      
-      setProduct({
-        ...productData,
-        specifications: specs
+    if (product) {
+      setFormData({
+        name: product.name || "",
+        category: product.category || "",
+        subCategory: product.subCategory || "",
+        brand: product.brand || "",
+        MRP: product.MRP || "",
+        sellingPrice: product.sellingPrice || "",
+        discount: product.discount || "0",
+        stock: product.stock || "",
+        description: product.description || "",
+        productType: product.productType || "fan",
+        choose_W_G: product.choose_W_G || "",
+        warranty_guarantee: product.warranty_guarantee || "",
+        color: product.color || "",
       });
+
+      setExistingImages(product.images || []);
       
-      setExistingImages(productData.images || []);
-      
-      // Get template fields for this category
-      if (productData.category) {
-        const template = getTemplateByCategory(productData.category);
-        const fields = Object.keys(template.fields).map(key => ({
+      // ✅ Set specifications
+      if (product.specifications && typeof product.specifications === "object") {
+        const specs = Object.entries(product.specifications).map(([key, value]) => ({
           key,
-          ...template.fields[key]
+          value: typeof value === "string" ? value : JSON.stringify(value),
         }));
-        setSpecFields(fields);
+        setSpecifications(specs.length > 0 ? specs : [{ key: "", value: "" }]);
+      }
+
+      // ✅ Set include components
+      if (product.includeComponents && Array.isArray(product.includeComponents)) {
+        setIncludeComponents(product.includeComponents.length > 0 ? product.includeComponents : [""]);
       }
     }
-  }, [productData]);
+  }, [product]);
+
+  // ✅ Update product mutation
+  const updateProductMutation = useMutation({
+    mutationFn: ({ id, data }) => updateProduct(id, data),
+    onSuccess: () => {
+      toast.success("Product updated successfully! ✅");
+      navigate("/admin/products");
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Failed to update product ❌");
+      setLoading(false);
+    },
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    let updated = {
-      ...product,
-      [name]: value,
-    };
-
-    const MRP = Number(name === "MRP" ? value : updated.MRP);
-    const sellingPrice = Number(name === "sellingPrice" ? value : updated.sellingPrice);
-    const discount = Number(name === "discount" ? value : updated.discount);
-
-    // Auto-calculate discount
-    if ((name === "MRP" || name === "sellingPrice") && MRP > 0 && sellingPrice > 0) {
-      updated.discount = (((MRP - sellingPrice) / MRP) * 100).toFixed(0);
-    }
-
-    // Auto-calculate new price from discount
-    if (name === "discount" && MRP > 0) {
-      updated.sellingPrice = (MRP - (MRP * discount) / 100).toFixed(2);
-    }
-
-    setProduct(updated);
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle specification changes
-  const handleSpecChange = (key, value) => {
-    setProduct(prev => ({
-      ...prev,
-      specifications: {
-        ...prev.specifications,
-        [key]: value
-      }
-    }));
-  };
-
-  // Category change handler - update spec fields
-  const handleCategoryChange = (e) => {
-    const category = e.target.value;
-    setProduct(prev => ({ ...prev, category, subCategory: "", brand: "" }));
-    
-    // Update spec fields based on category
-    if (category) {
-      const template = getTemplateByCategory(category);
-      const fields = Object.keys(template.fields).map(key => ({
-        key,
-        ...template.fields[key]
-      }));
-      setSpecFields(fields);
-      
-      // Reset specifications
-      setProduct(prev => ({ ...prev, specifications: {} }));
-    }
-  };
-
-  // Image Upload
-  const handleImages = (e) => {
+  const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setImages(files);
-    const imagePreview = files.map((file) => URL.createObjectURL(file));
-    setPreview(imagePreview);
+    setImages((prev) => [...prev, ...files]);
   };
 
   const removeImage = (index) => {
-    const newImages = [...images];
-    const newPreview = [...preview];
-    newImages.splice(index, 1);
-    newPreview.splice(index, 1);
-    setImages(newImages);
-    setPreview(newPreview);
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = (index) => {
-    const newExistingImages = [...existingImages];
-    newExistingImages.splice(index, 1);
-    setExistingImages(newExistingImages);
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ✅ Update Product with React Query
+  const handleSpecificationChange = (index, field, value) => {
+    const updated = [...specifications];
+    updated[index][field] = value;
+    setSpecifications(updated);
+  };
+
+  const addSpecification = () => {
+    setSpecifications([...specifications, { key: "", value: "" }]);
+  };
+
+  const removeSpecification = (index) => {
+    setSpecifications((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleComponentChange = (index, value) => {
+    const updated = [...includeComponents];
+    updated[index] = value;
+    setIncludeComponents(updated);
+  };
+
+  const addComponent = () => {
+    setIncludeComponents([...includeComponents, ""]);
+  };
+
+  const removeComponent = (index) => {
+    setIncludeComponents((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    try {
-      const formData = new FormData();
+    setLoading(true);
 
-      // Basic fields
-      formData.append("category", product.category);
-      formData.append("subCategory", product.subCategory);
-      formData.append("brand", product.brand);
-      formData.append("name", product.name);
-      formData.append("MRP", product.MRP);
-      formData.append("sellingPrice", product.sellingPrice);
-      formData.append("discount", product.discount || 0);
-      formData.append("rating", product.rating || 4.4);
-      formData.append("reviews", product.reviews || 225);
-      formData.append("choose_W_G", product.choose_W_G || "");
-      formData.append("warranty_guarantee", product.warranty_guarantee || "");
-      formData.append("stock", product.stock);
-      formData.append("description", product.description || "");
-      
-      // Include Components
-      if (product.includeComponents) {
-        formData.append("includeComponents", product.includeComponents);
+    // ✅ Validate required fields
+    const requiredFields = ["name", "category", "brand", "MRP", "sellingPrice", "stock"];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        toast.error(`❌ ${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+        setLoading(false);
+        return;
       }
-      
-      // Product type
-      const template = getTemplateByCategory(product.category);
-      formData.append("productType", template?.productType || "fan");
-
-      // Specifications as JSON
-      formData.append("specifications", JSON.stringify(product.specifications));
-
-      // Existing Images
-      const imageUrls = existingImages.map((img) => 
-        typeof img === "object" ? img.url : img
-      );
-      formData.append("existingImages", JSON.stringify(imageUrls));
-
-      // New Images
-      images.forEach((img) => {
-        formData.append("images", img);
-      });
-
-      // ✅ Use React Query mutation
-      await updateProduct.mutateAsync({ id, data: formData });
-      
-      navigate("/admin/products");
-    } catch (error) {
-      console.error("Error updating product:", error);
     }
+
+    // ✅ Build form data
+    const productData = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== undefined && formData[key] !== "") {
+        productData.append(key, formData[key]);
+      }
+    });
+
+    // ✅ Append existing images
+    productData.append("existingImages", JSON.stringify(existingImages));
+
+    // ✅ Append new images
+    images.forEach((image) => {
+      productData.append("images", image);
+    });
+
+    // ✅ Append specifications
+    const specObj = {};
+    specifications.forEach((spec) => {
+      if (spec.key && spec.value) {
+        specObj[spec.key] = spec.value;
+      }
+    });
+    productData.append("specifications", JSON.stringify(specObj));
+
+    // ✅ Append include components
+    const components = includeComponents.filter((c) => c.trim() !== "");
+    if (components.length > 0) {
+      productData.append("includeComponents", components.join(","));
+    }
+
+    updateProductMutation.mutate({ id, data: productData });
   };
 
-  // Get current category data
-  const currentCategoryData = product.category ? categoryData[product.category] : null;
-  const subCategories = currentCategoryData?.subCategories || [];
-  const brands = currentCategoryData?.brands || [];
-
-  // ✅ Loading State
-  if (isLoading) {
+  // ✅ Loading state
+  if (productLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading product...</p>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
+          <div className="space-y-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow p-6">
+                <div className="h-6 w-32 bg-gray-200 rounded mb-5"></div>
+                <div className="grid md:grid-cols-2 gap-5">
+                  {[1, 2, 3, 4].map((j) => (
+                    <div key={j}>
+                      <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-12 bg-gray-200 rounded"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // ✅ Error State
+  // ✅ Error state
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
-        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center py-10">
-            <p className="text-red-600 text-xl mb-4">⚠️ Failed to load product</p>
-            <p className="text-gray-600 mb-4">{error?.message || "Product not found"}</p>
-            <button
-              onClick={() => refetch()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 text-lg mb-2">⚠️ Failed to load product</p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
+  const isPending = updateProductMutation.isPending || loading;
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold mb-8">Update Product</h2>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => navigate("/admin/products")}
+          className="p-2 hover:bg-gray-100 rounded-lg transition"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div>
+          <h1 className="text-3xl font-bold">Edit Product</h1>
+          <p className="text-gray-500 mt-1">Update product details</p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Category */}
-            <div>
-              <label className="font-semibold">Category *</label>
-              <select
-                name="category"
-                value={product.category}
-                onChange={handleCategoryChange}
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Category</option>
-                {Object.keys(categoryData).map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Basic Information</h2>
 
-            {/* Sub-Category */}
+          <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <label className="font-semibold">Sub-Category *</label>
-              <select
-                name="subCategory"
-                value={product.subCategory}
-                onChange={handleChange}
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
-                required
-              >
-                <option value="">
-                  {product.category ? "Select Sub-Category" : "Select Category First"}
-                </option>
-                {subCategories.map((sub) => (
-                  <option key={sub} value={sub}>{sub}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Brand */}
-            <div>
-              <label className="font-semibold">Brand *</label>
-              <select
-                name="brand"
-                value={product.brand}
-                onChange={handleChange}
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={!product.category}
-                required
-              >
-                <option value="">
-                  {product.category ? "Select Brand" : "Select Category First"}
-                </option>
-                {brands.map((brand) => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Product Name */}
-            <div>
-              <label className="font-semibold">Product Name *</label>
+              <label className="block font-medium mb-2">Product Name *</label>
               <input
                 type="text"
                 name="name"
-                value={product.name}
+                value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter Product Name"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                disabled={isPending}
               />
             </div>
 
-            {/* Old Price */}
             <div>
-              <label className="font-semibold">M.R.P *</label>
-              <input
-                type="number"
-                name="MRP"
-                value={product.MRP}
-                onChange={handleChange}
-                placeholder="₹ M.R.P"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* New Price */}
-            <div>
-              <label className="font-semibold">Selling Price *</label>
-              <input
-                type="number"
-                name="sellingPrice"
-                value={product.sellingPrice}
-                onChange={handleChange}
-                placeholder="₹ Selling Price"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Discount */}
-            <div>
-              <label className="font-semibold">Discount %</label>
-              <input
-                type="number"
-                name="discount"
-                value={product.discount}
-                onChange={handleChange}
-                placeholder="Discount %"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Rating */}
-            <div>
-              <label className="font-semibold">Rating</label>
-              <input
-                type="number"
-                name="rating"
-                value={product.rating}
-                onChange={handleChange}
-                placeholder="Rating (e.g., 4.5)"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                step="0.1"
-              />
-            </div>
-
-            {/* Reviews */}
-            <div>
-              <label className="font-semibold">Reviews</label>
-              <input
-                type="number"
-                name="reviews"
-                value={product.reviews}
-                onChange={handleChange}
-                placeholder="Number of Reviews"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Choose W/G */}
-            <div>
-              <label className="font-semibold">Choose Warranty/Guarantee</label>
+              <label className="block font-medium mb-2">Category *</label>
               <select
-                name="choose_W_G"
-                value={product.choose_W_G}
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
               >
-                <option value="">Select Warranty or Guarantee</option>
-                <option value="warranty">Warranty</option>
-                <option value="guarantee">Guarantee</option>
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat._id || cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Warranty Period */}
             <div>
-              <label className="font-semibold">Warranty/Guarantee Period</label>
+              <label className="block font-medium mb-2">Sub Category</label>
               <input
                 type="text"
-                name="warranty_guarantee"
-                value={product.warranty_guarantee}
+                name="subCategory"
+                value={formData.subCategory}
                 onChange={handleChange}
-                placeholder="e.g., 2 Years"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
               />
             </div>
 
-            {/* Include Components */}
             <div>
-              <label className="font-semibold">Include Components</label>
+              <label className="block font-medium mb-2">Brand *</label>
               <input
                 type="text"
-                name="includeComponents"
-                value={product.includeComponents || ''}
+                name="brand"
+                value={formData.brand}
                 onChange={handleChange}
-                placeholder="e.g., Remote, Batteries, Manual"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
               />
             </div>
 
-            {/* Stock */}
             <div>
-              <label className="font-semibold">Stock *</label>
+              <label className="block font-medium mb-2">Product Type *</label>
+              <select
+                name="productType"
+                value={formData.productType}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
+              >
+                {productTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2">Color</label>
+              <input
+                type="text"
+                name="color"
+                value={formData.color}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing & Stock */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Pricing & Stock</h2>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            <div>
+              <label className="block font-medium mb-2">MRP *</label>
+              <input
+                type="number"
+                name="MRP"
+                value={formData.MRP}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
+                min="0"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2">Selling Price *</label>
+              <input
+                type="number"
+                name="sellingPrice"
+                value={formData.sellingPrice}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
+                min="0"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2">Discount (%)</label>
+              <input
+                type="number"
+                name="discount"
+                value={formData.discount}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
+                min="0"
+                max="100"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-2">Stock *</label>
               <input
                 type="number"
                 name="stock"
-                value={product.stock}
+                value={formData.stock}
                 onChange={handleChange}
-                placeholder="Available Stock"
-                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                disabled={isPending}
+                min="0"
               />
             </div>
           </div>
+        </div>
 
-          {/* Dynamic Specifications */}
-          {product.category && specFields.length > 0 && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4 border-b pb-2">
-                Product Specifications
-              </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                {specFields.map((field) => (
-                  <div key={field.key}>
-                    <label className="font-semibold">
-                      {field.label}
-                      {field.required && <span className="text-red-500 ml-1">*</span>}
-                    </label>
-                    {field.type === 'select' ? (
-                      <select
-                        value={product.specifications[field.key] || ''}
-                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
-                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select {field.label}</option>
-                        {field.options?.map((option) => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    ) : field.type === 'textarea' ? (
-                      <textarea
-                        value={product.specifications[field.key] || ''}
-                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
-                        placeholder={field.placeholder}
-                        rows="3"
-                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={product.specifications[field.key] || ''}
-                        onChange={(e) => handleSpecChange(field.key, e.target.value)}
-                        placeholder={field.placeholder}
-                        className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Description */}
-          <div>
-            <label className="font-semibold">Description</label>
-            <textarea
-              rows="4"
-              name="description"
-              value={product.description || ''}
-              onChange={handleChange}
-              placeholder="Write Product Description..."
-              className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        {/* Images */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Product Images</h2>
 
           {/* Existing Images */}
           {existingImages.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-4">Existing Images</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
-                {existingImages.map((img, index) => (
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 mb-2">Current Images</p>
+              <div className="flex flex-wrap gap-4">
+                {existingImages.map((image, index) => (
                   <div key={index} className="relative">
-                    <img 
-                      src={typeof img === "object" ? img.url : img} 
+                    <img
+                      src={image}
                       alt={`Product ${index + 1}`}
-                      className="rounded-lg h-36 w-full object-cover border" 
+                      className="w-24 h-24 object-cover rounded-lg border"
                     />
-                    <button 
-                      type="button" 
-                      onClick={() => removeExistingImage(index)} 
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                     >
-                      <FaTrash />
+                      <X size={16} />
                     </button>
                   </div>
                 ))}
@@ -527,67 +460,192 @@ export default function EditProduct() {
             </div>
           )}
 
-          {/* Upload New Images */}
-          <div>
-            <label className="font-semibold">Upload New Images</label>
-            <label className="mt-3 flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-52 cursor-pointer hover:border-blue-500 transition">
-              <FaUpload className="text-5xl text-blue-600 mb-4" />
-              <p className="font-semibold">Click to Upload Images</p>
-              <p className="text-gray-500 text-sm">PNG, JPG, JPEG (Max 5MB each)</p>
-              <input type="file" multiple hidden onChange={handleImages} accept="image/*" />
+          {/* New Images */}
+          <div className="flex flex-wrap gap-4">
+            {images.map((image, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt={`New ${index + 1}`}
+                  className="w-24 h-24 object-cover rounded-lg border"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+            <label className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="hidden"
+                disabled={isPending}
+              />
+              <Plus size={32} className="text-gray-400" />
             </label>
           </div>
+          <p className="text-sm text-gray-500 mt-2">Upload up to 10 images (PNG, JPG, WEBP)</p>
+        </div>
 
-          {/* New Images Preview */}
-          {preview.length > 0 && (
+        {/* Description */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Description</h2>
+
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="5"
+            className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Detailed product description..."
+            disabled={isPending}
+          />
+        </div>
+
+        {/* Warranty */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Warranty Information</h2>
+
+          <div className="grid md:grid-cols-2 gap-5">
             <div>
-              <h3 className="font-semibold mb-4">New Images Preview</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
-                {preview.map((img, index) => (
-                  <div key={index} className="relative">
-                    <img src={img} alt={`Preview ${index + 1}`} className="rounded-lg h-36 w-full object-cover border" />
-                    <button 
-                      type="button" 
-                      onClick={() => removeImage(index)} 
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+              <label className="block font-medium mb-2">Warranty Type</label>
+              <select
+                name="choose_W_G"
+                value={formData.choose_W_G}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
+              >
+                {warrantyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option || "None"}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
-          )}
 
-          <div className="flex gap-4">
-            <button 
-              type="submit" 
-              disabled={updateProduct.isPending}
-              className={`px-10 py-3 rounded-lg transition flex items-center gap-2 ${
-                updateProduct.isPending 
-                  ? 'bg-gray-500 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              {updateProduct.isPending ? (
-                <>
-                  <span className="animate-spin">⏳</span>
-                  Updating...
-                </>
-              ) : (
-                'Update Product'
-              )}
-            </button>
-            <button 
-              type="button" 
-              onClick={() => navigate("/admin/products")} 
-              className="bg-gray-400 hover:bg-gray-500 text-white px-10 py-3 rounded-lg transition"
-            >
-              Cancel
-            </button>
+            <div>
+              <label className="block font-medium mb-2">Warranty Details</label>
+              <input
+                type="text"
+                name="warranty_guarantee"
+                value={formData.warranty_guarantee}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., 2 years"
+                disabled={isPending}
+              />
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+
+        {/* Specifications */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Specifications</h2>
+
+          {specifications.map((spec, index) => (
+            <div key={index} className="flex gap-4 mb-3">
+              <input
+                type="text"
+                placeholder="Key"
+                value={spec.key}
+                onChange={(e) => handleSpecificationChange(index, "key", e.target.value)}
+                className="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
+              />
+              <input
+                type="text"
+                placeholder="Value"
+                value={spec.value}
+                onChange={(e) => handleSpecificationChange(index, "value", e.target.value)}
+                className="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isPending}
+              />
+              <button
+                type="button"
+                onClick={() => removeSpecification(index)}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                disabled={specifications.length === 1}
+              >
+                <X size={20} />
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addSpecification}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            disabled={isPending}
+          >
+            <Plus size={18} /> Add Specification
+          </button>
+        </div>
+
+        {/* Include Components */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Include Components</h2>
+
+          {includeComponents.map((component, index) => (
+            <div key={index} className="flex gap-4 mb-3">
+              <input
+                type="text"
+                value={component}
+                onChange={(e) => handleComponentChange(index, e.target.value)}
+                className="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Remote Control, User Manual"
+                disabled={isPending}
+              />
+              <button
+                type="button"
+                onClick={() => removeComponent(index)}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                disabled={includeComponents.length === 1}
+              >
+                <X size={20} />
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addComponent}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            disabled={isPending}
+          >
+            <Plus size={18} /> Add Component
+          </button>
+        </div>
+
+        {/* Submit Buttons */}
+        <div className="flex gap-4 justify-end">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/products")}
+            className="px-6 py-3 border rounded-lg hover:bg-gray-50 transition"
+            disabled={isPending}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isPending}
+            className={`px-8 py-3 text-white rounded-lg transition ${
+              isPending ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {isPending ? "Updating..." : "Update Product"}
+          </button>
+        </div>
+      </form>
     </div>
   );
-}
+};
+
+export default EditProduct;

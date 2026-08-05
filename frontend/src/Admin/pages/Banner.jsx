@@ -1,174 +1,475 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit3, Eye, EyeOff, ImagePlus, Plus, Save, Trash2, X } from "lucide-react";
-import toast from "react-hot-toast";
-import { getHomeContent, updateHomeContent } from "../../api/homeApi.js";
+// frontend/src/Admin/pages/Banner.jsx
 
-const emptySlide = {
-  title: "",
-  highlight: "",
-  description: "",
-  imageKey: "hero1",
-  isActive: true,
-};
+import { useState, useMemo } from 'react';
+import { Search, Plus, Edit2, Trash2, Loader2, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getBanners, createBanner, updateBanner, deleteBanner } from '../../api/bannerApi.js';
+import toast from 'react-hot-toast';
 
-const imageOptions = [
-  { value: "hero1", label: "Bright living" },
-  { value: "hero2", label: "Appliance collection" },
-  { value: "hero3", label: "Home appliances" },
-  { value: "hero4", label: "Dream home décor" },
-  { value: "hero5", label: "Electrical products" },
-];
-
-export default function Banner() {
+const Banner = () => {
   const queryClient = useQueryClient();
-  const [slides, setSlides] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [form, setForm] = useState(emptySlide);
-
-  const { data: homeContent, isLoading, isError, refetch } = useQuery({
-    queryKey: ["homeContent"],
-    queryFn: getHomeContent,
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingBanner, setEditingBanner] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    subtitle: '',
+    image: '',
+    link: '',
+    position: 'home',
+    isActive: true,
+    order: 0,
   });
 
-  useEffect(() => {
-    if (homeContent?.heroSlides) setSlides(homeContent.heroSlides);
-  }, [homeContent]);
-
-  const saveMutation = useMutation({
-    mutationFn: (heroSlides) =>
-      updateHomeContent({
-        heroSlides,
-        features: homeContent?.features || [],
-        services: homeContent?.services || [],
-        trustFeatures: homeContent?.trustFeatures || [],
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["homeContent"] });
-      toast.success("Homepage banners saved");
+  // ✅ React Query - Fetch Banners
+  const {
+    data: banners = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['banners'],
+    queryFn: getBanners,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    onError: (error) => {
+      toast.error(error.message || "Failed to load banners");
     },
-    onError: (error) => toast.error(error?.response?.data?.message || "Could not save banners"),
   });
 
-  const saveSlides = (nextSlides) => {
-    setSlides(nextSlides);
-    saveMutation.mutate(nextSlides);
-  };
+  // ✅ React Query - Create Banner
+  const createMutation = useMutation({
+    mutationFn: createBanner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success("Banner created successfully! ✅");
+      resetForm();
+      setShowModal(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create banner ❌");
+    },
+  });
 
+  // ✅ React Query - Update Banner
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateBanner(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success("Banner updated successfully! ✅");
+      resetForm();
+      setShowModal(false);
+      setEditingBanner(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update banner ❌");
+    },
+  });
+
+  // ✅ React Query - Delete Banner
+  const deleteMutation = useMutation({
+    mutationFn: deleteBanner,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success("Banner deleted successfully! 🗑️");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete banner ❌");
+    },
+  });
+
+  // ✅ Filter banners
+  const filteredBanners = useMemo(() => {
+    if (!searchTerm.trim()) return banners;
+    const searchLower = searchTerm.toLowerCase();
+    return banners.filter(
+      (banner) =>
+        banner.title?.toLowerCase().includes(searchLower) ||
+        banner.position?.toLowerCase().includes(searchLower)
+    );
+  }, [searchTerm, banners]);
+
+  // ✅ Reset form
   const resetForm = () => {
-    setForm(emptySlide);
-    setEditingIndex(null);
+    setFormData({
+      title: '',
+      subtitle: '',
+      image: '',
+      link: '',
+      position: 'home',
+      isActive: true,
+      order: 0,
+    });
+    setPreviewImage(null);
+    setEditingBanner(null);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!form.title.trim() || !form.highlight.trim() || !form.description.trim()) {
-      toast.error("Heading and description are required");
+  // ✅ Handle edit
+  const handleEdit = (banner) => {
+    setEditingBanner(banner);
+    setFormData({
+      title: banner.title || '',
+      subtitle: banner.subtitle || '',
+      image: banner.image || '',
+      link: banner.link || '',
+      position: banner.position || 'home',
+      isActive: banner.isActive !== undefined ? banner.isActive : true,
+      order: banner.order || 0,
+    });
+    setPreviewImage(banner.image || null);
+    setShowModal(true);
+  };
+
+  // ✅ Handle delete
+  const handleDelete = (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete banner "${title}"?`)) return;
+    deleteMutation.mutate(id);
+  };
+
+  // ✅ Handle image change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+        setFormData({...formData, image: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // ✅ Handle submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate
+    if (!formData.title.trim()) {
+      toast.error("Banner title is required");
       return;
     }
-    const nextSlide = { ...form, title: form.title.trim(), highlight: form.highlight.trim(), description: form.description.trim() };
-    const nextSlides = editingIndex === null
-      ? [...slides, nextSlide]
-      : slides.map((slide, index) => (index === editingIndex ? nextSlide : slide));
-    saveSlides(nextSlides);
-    resetForm();
+    if (!formData.image) {
+      toast.error("Banner image is required");
+      return;
+    }
+
+    const data = {
+      ...formData,
+      order: Number(formData.order),
+    };
+
+    if (editingBanner) {
+      updateMutation.mutate({ id: editingBanner._id, data });
+    } else {
+      createMutation.mutate(data);
+    }
   };
 
-  const editSlide = (index) => {
-    const slide = slides[index];
-    setForm({
-      ...emptySlide,
-      ...slide,
-      description: slide.description || slide.desc || "",
-    });
-    setEditingIndex(index);
-  };
+  const { isPending: isSubmitting } = createMutation;
+  const { isPending: isUpdating } = updateMutation;
+  const { isPending: isDeleting } = deleteMutation;
 
-  const removeSlide = (index) => {
-    if (!window.confirm("Remove this homepage banner?")) return;
-    saveSlides(slides.filter((_, slideIndex) => slideIndex !== index));
-    if (editingIndex === index) resetForm();
-  };
+  // ✅ Loading State
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-64 bg-gray-200 rounded mt-1 animate-pulse"></div>
+          </div>
+          <div className="h-10 w-36 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          <div className="p-8 text-center text-gray-500">Loading banners...</div>
+        </div>
+      </div>
+    );
+  }
 
-  const toggleSlide = (index) => {
-    saveSlides(slides.map((slide, slideIndex) => (
-      slideIndex === index ? { ...slide, isActive: slide.isActive === false } : slide
-    )));
-  };
-
-  if (isLoading) return <div className="p-6 text-gray-500">Loading homepage content…</div>;
+  // ✅ Error State
   if (isError) {
-    return <div className="p-6"><button onClick={() => refetch()} className="rounded-lg bg-red-600 px-4 py-2 text-white">Retry loading banners</button></div>;
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 text-lg mb-2">⚠️ Failed to load banners</p>
+          <p className="text-red-500 text-sm mb-4">{error?.message || "Please try again"}</p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Homepage Banners</h1>
-          <p className="text-gray-500">Control the hero carousel visitors see on the home page.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Banners</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage all website banners</p>
+          {banners.length > 0 && (
+            <p className="text-xs text-gray-400 mt-1">Total: {banners.length} banners</p>
+          )}
         </div>
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">{slides.filter((slide) => slide.isActive !== false).length} active</span>
+        <button
+          onClick={() => {
+            resetForm();
+            setShowModal(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Add Banner
+        </button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        <section className="space-y-4">
-          {slides.length === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white p-12 text-center text-gray-500">
-              <ImagePlus className="mx-auto mb-3 text-gray-400" size={36} />
-              No custom banners yet. Add one below to replace the default carousel.
-            </div>
-          ) : slides.map((slide, index) => (
-            <article key={`${slide.title}-${index}`} className="flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 sm:flex-row sm:items-center">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-700">{index + 1}</div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="truncate text-lg font-semibold">{slide.title} <span className="text-red-600">{slide.highlight}</span></h2>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${slide.isActive === false ? "bg-gray-100 text-gray-600" : "bg-green-100 text-green-700"}`}>
-                    {slide.isActive === false ? "Hidden" : "Live"}
-                  </span>
-                </div>
-                <p className="mt-1 line-clamp-2 text-sm text-gray-500">{slide.description || slide.desc}</p>
-                <p className="mt-2 text-xs text-gray-400">Image: {imageOptions.find((image) => image.value === slide.imageKey)?.label || "Default image"}</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => toggleSlide(index)} title="Show or hide" className="rounded-lg border p-2 text-gray-600 hover:bg-gray-50">
-                  {slide.isActive === false ? <Eye size={18} /> : <EyeOff size={18} />}
-                </button>
-                <button onClick={() => editSlide(index)} title="Edit banner" className="rounded-lg border p-2 text-blue-600 hover:bg-blue-50"><Edit3 size={18} /></button>
-                <button onClick={() => removeSlide(index)} title="Remove banner" className="rounded-lg border p-2 text-red-600 hover:bg-red-50"><Trash2 size={18} /></button>
-              </div>
-            </article>
-          ))}
-        </section>
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input
+          type="text"
+          placeholder="Search banner..."
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-        <aside className="h-fit rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100 xl:sticky xl:top-24">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">{editingIndex === null ? "Add banner" : "Edit banner"}</h2>
-            {editingIndex !== null && <button onClick={resetForm} className="text-gray-500 hover:text-gray-900"><X size={20} /></button>}
+      {/* Banners Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredBanners.length === 0 && (
+          <div className="col-span-full text-center text-gray-500 py-10">
+            {searchTerm ? `No banners found matching "${searchTerm}"` : 'No banners available'}
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <label className="block text-sm font-medium">Heading
-              <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Brighter living," maxLength={60} />
-            </label>
-            <label className="block text-sm font-medium">Highlighted text
-              <input value={form.highlight} onChange={(event) => setForm({ ...form, highlight: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Better every day" maxLength={60} />
-            </label>
-            <label className="block text-sm font-medium">Description
-              <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="mt-1 min-h-24 w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Short banner description" maxLength={220} />
-            </label>
-            <label className="block text-sm font-medium">Banner image
-              <select value={form.imageKey} onChange={(event) => setForm({ ...form, imageKey: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500">
-                {imageOptions.map((image) => <option key={image.value} value={image.value}>{image.label}</option>)}
-              </select>
-            </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} /> Display this banner immediately</label>
-            <button disabled={saveMutation.isPending} type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400">
-              {editingIndex === null ? <Plus size={18} /> : <Save size={18} />}{saveMutation.isPending ? "Saving…" : editingIndex === null ? "Add banner" : "Save changes"}
-            </button>
-          </form>
-        </aside>
+        )}
+        
+        {filteredBanners.map((banner) => (
+          <div key={banner._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+            {/* Image */}
+            <div className="relative h-40 bg-gray-100">
+              <img
+                src={banner.image || 'https://via.placeholder.com/400x200?text=No+Image'}
+                alt={banner.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute top-2 right-2 flex gap-2">
+                <button
+                  onClick={() => handleEdit(banner)}
+                  className="p-1.5 bg-white/90 rounded-lg hover:bg-white transition shadow"
+                  disabled={isDeleting}
+                >
+                  <Edit2 className="w-4 h-4 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => handleDelete(banner._id, banner.title)}
+                  disabled={isDeleting}
+                  className="p-1.5 bg-white/90 rounded-lg hover:bg-white transition shadow disabled:opacity-50"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin text-red-600" /> : <Trash2 className="w-4 h-4 text-red-600" />}
+                </button>
+              </div>
+              {!banner.isActive && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg bg-red-600 px-4 py-1 rounded-full">Inactive</span>
+                </div>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="p-4">
+              <h3 className="font-semibold text-gray-900">{banner.title}</h3>
+              {banner.subtitle && (
+                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{banner.subtitle}</p>
+              )}
+              <div className="mt-2 flex justify-between items-center text-sm">
+                <span className="text-gray-500">Position: <span className="font-medium capitalize">{banner.position}</span></span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  banner.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {banner.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              {banner.link && (
+                <a href={banner.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-1 block truncate">
+                  {banner.link}
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => {
+            if (!isSubmitting && !isUpdating) {
+              setShowModal(false);
+              resetForm();
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+              {editingBanner ? 'Edit Banner' : 'Add Banner'}
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  placeholder="e.g. Summer Sale"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isSubmitting || isUpdating}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Subtitle
+                </label>
+                <input
+                  type="text"
+                  value={formData.subtitle}
+                  onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
+                  placeholder="e.g. Up to 50% off"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting || isUpdating}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Image *
+                </label>
+                {previewImage && (
+                  <div className="mb-2">
+                    <img src={previewImage} alt="Preview" className="w-full h-32 object-cover rounded-lg border" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  disabled={isSubmitting || isUpdating}
+                />
+                <p className="text-xs text-gray-400 mt-1">Upload image (JPG, PNG, WebP)</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Link (URL)
+                </label>
+                <input
+                  type="url"
+                  value={formData.link}
+                  onChange={(e) => setFormData({...formData, link: e.target.value})}
+                  placeholder="https://example.com/sale"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting || isUpdating}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Position
+                </label>
+                <select
+                  value={formData.position}
+                  onChange={(e) => setFormData({...formData, position: e.target.value})}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting || isUpdating}
+                >
+                  <option value="home">Home Page</option>
+                  <option value="shop">Shop Page</option>
+                  <option value="deals">Deals Page</option>
+                  <option value="sidebar">Sidebar</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Display Order
+                </label>
+                <input
+                  type="number"
+                  value={formData.order}
+                  onChange={(e) => setFormData({...formData, order: e.target.value})}
+                  placeholder="0"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  disabled={isSubmitting || isUpdating}
+                />
+                <p className="text-xs text-gray-400 mt-1">Lower number = Higher priority</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  disabled={isSubmitting || isUpdating}
+                />
+                <label className="text-sm font-medium text-gray-700">Active</label>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || isUpdating}
+                  className={`flex-1 text-white font-medium py-2.5 rounded-lg transition ${
+                    isSubmitting || isUpdating
+                      ? 'bg-blue-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isSubmitting || isUpdating ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {editingBanner ? 'Updating...' : 'Adding...'}
+                    </span>
+                  ) : (
+                    editingBanner ? 'Update Banner' : 'Add Banner'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                  disabled={isSubmitting || isUpdating}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2.5 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Banner;

@@ -1,5 +1,6 @@
 import Deal from "../models/Deal.js";
 import cloudinary from "../config/cloudinary.js";
+import fs from 'fs';
 
 const getDeals = async (req, res) => {
   try {
@@ -25,12 +26,15 @@ const getDealsById = async (req, res) => {
 
 const createDeals = async (req, res) => {
   try {
-    const { title, price, brand,  } = req.body;
+    const { title, price, brand  } = req.body;
     let image="";
 
   if (req.file) {
     const result = await cloudinary.uploader.upload(req.file.path);
     image = result.secure_url;
+    // Add this line to delete local file
+    fs.unlinkSync(req.file.path);
+
 }
     const deal = new Deal({
       title,
