@@ -1,215 +1,150 @@
-// backend/controller/authController.js
-
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import sendEmail from "../utils/sendEmail.js";
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-};
+const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+const publicUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone || "",
+  role: user.role,
+  verified: user.verified,
+});
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body; 
-    console.log("📥 Registration request received:", { name, email });
-   
-    
-    // ✅ 1. Check if user exists (fast query)
-    const existingUser = await User.findOne({ email }).select('email').lean();
-    if (existingUser) {
-      console.log("❌ User already exists:", email);
+    const { name, email, password } = req.body;
+    if (!name?.trim() || !email?.trim() || !password || password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "User already exists with this email"
+        message: "Name, a valid email, and a password of at least 6 characters are required",
       });
     }
 
-     // ✅ 2. Hash password (async with proper salt rounds)
-    console.log("🔐 Hashing password...");
-    const saltRounds = 10; // ✅ Less rounds = faster
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    console.log("✅ Password hashed");
+    const normalizedEmail = email.toLowerCase().trim();
+    const existingUser = await User.findOne({ email: normalizedEmail }).select("_id").lean();
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: "User already exists with this email" });
+    }
 
-    // ✅ 3. Create user (only necessary fields)
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
+    const user = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: await bcrypt.hash(password, 10),
     });
-    
-    console.log("💾 Saving user to database...");
-    await user.save();
-    console.log("✅ User saved successfully");
 
-   // ✅ 4. Generate JWT (fast)
-    const token = jwt.sign(
-      { 
-        userId: user._id, 
-        email: user.email, 
-        role: user.role 
-      },
-      process.env.JWT_SECRET || "your_secret_key",
-      { expiresIn: "7d" }
-    );
-
-    // ✅ 5. Send response immediately
-    console.log("📤 Sending response...");
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      token: token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        verified: user.verified
-      }
+      token: generateToken(user._id),
+      user: publicUser(user),
     });
-
   } catch (error) {
-    console.error("❌ Registration Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error during registration",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
-    });
+    if (error.code === 11000) {
+      return res.status(409).json({ success: false, message: "User already exists with this email" });
+    }
+    res.status(500).json({ success: false, message: "Server error during registration" });
   }
 };
 
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password"
-      });
+    if (!email?.trim() || !password) {
+      return res.status(400).json({ success: false, message: "Please provide email and password" });
     }
 
-    // ✅ Find user and include password field
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password"
-      });
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password");
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
+    }
+    if (user.status === "Blocked") {
+      return res.status(403).json({ success: false, message: "This account has been blocked. Please contact support." });
     }
 
-    // ✅ Compare password
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password"
-      });
-    }
-
-    // ✅ Generate token
-    const token = generateToken(user._id);
-
-    // ✅ Return user data (excluding password)
     res.json({
       success: true,
       message: "Login successful",
-      token: token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      token: generateToken(user._id),
+      user: publicUser(user),
     });
-
   } catch (error) {
-    console.error("❌ Login Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error during login",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
-    });
+    res.status(500).json({ success: false, message: "Server error during login" });
   }
 };
 
-// ✅ NEW: Check if email exists
 const checkEmail = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
+    if (!email) return res.status(400).json({ message: "Email is required" });
 
-    if (!email) {
-      return res.status(400).json({ 
-        message: "Email is required" 
-      });
-    }
-
-    const user = await User.findOne({ email });
-    
-    res.json({ 
-      exists: !!user,
-      message: user ? "Email already registered" : "Email is available"
-    });
+    const user = await User.exists({ email });
+    res.json({ exists: Boolean(user), message: user ? "Email already registered" : "Email is available" });
   } catch (error) {
-    res.status(500).json({ 
-      message: error.message 
-    });
+    res.status(500).json({ message: "Unable to check email" });
   }
 };
 
-// ✅ NEW: Get current user profile
 const getCurrentUser = async (req, res) => {
+  res.json({ success: true, user: publicUser(req.user) });
+};
+
+const logoutUser = async (_req, res) => {
+  res.json({ success: true, message: "Logged out successfully" });
+};
+
+const updateCurrentUser = async (req, res) => {
   try {
-    // req.user is set by the protect middleware
-    const user = await User.findById(req.user.id).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: "User not found" 
-      });
+    const { name, email, phone } = req.body;
+    if (!name?.trim() || !email?.trim()) {
+      return res.status(400).json({ message: "Name and email are required" });
     }
 
-    res.json({
-      success: true,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt
-      }
-    });
+    const normalizedEmail = email.toLowerCase().trim();
+    const emailOwner = await User.findOne({ email: normalizedEmail }).select("_id");
+    if (emailOwner && emailOwner._id.toString() !== req.user._id.toString()) {
+      return res.status(409).json({ message: "That email address is already in use" });
+    }
+
+    req.user.name = name.trim();
+    req.user.email = normalizedEmail;
+    req.user.phone = phone?.trim() || "";
+    await req.user.save();
+
+    res.json({ success: true, user: publicUser(req.user) });
   } catch (error) {
-    res.status(500).json({ 
-      message: error.message 
-    });
+    res.status(500).json({ message: error.message || "Unable to update profile" });
   }
 };
 
-// ✅ NEW: Logout user
-const logoutUser = async (req, res) => {
+const changeUserPassword = async (req, res) => {
   try {
-    // Since we're using JWT, logout is handled on client side
-    // by removing the token from localStorage
-    // But we can optionally implement a token blacklist here
-    
-    res.json({
-      success: true,
-      message: "Logged out successfully"
-    });
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Current password and a new password of at least 6 characters are required" });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ success: true, message: "Password changed successfully" });
   } catch (error) {
-    res.status(500).json({ 
-      message: error.message 
-    });
+    res.status(500).json({ message: error.message || "Unable to change password" });
   }
 };
 
-export { 
-  registerUser, 
-  loginUser, 
-  checkEmail,      // ✅ Export new function
-  getCurrentUser,  // ✅ Export new function
-  logoutUser       // ✅ Export new function
+export {
+  registerUser,
+  loginUser,
+  checkEmail,
+  getCurrentUser,
+  logoutUser,
+  updateCurrentUser,
+  changeUserPassword,
 };

@@ -16,6 +16,8 @@ export default function Settings() {
     facebook: "",
     instagram: "",
     twitter: "",
+    announcement: "",
+    businessHours: "",
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -53,6 +55,8 @@ export default function Settings() {
         facebook: fetchedSettings.facebook || "",
         instagram: fetchedSettings.instagram || "",
         twitter: fetchedSettings.twitter || "",
+        announcement: fetchedSettings.announcement || "",
+        businessHours: fetchedSettings.businessHours || "",
       });
     }
   }, [fetchedSettings]);
@@ -62,6 +66,7 @@ export default function Settings() {
     mutationFn: updateSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
       toast.success("Settings saved successfully! ✅");
     },
     onError: (error) => {
@@ -264,6 +269,36 @@ export default function Settings() {
                 type="text"
                 name="address"
                 value={settings.address}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSaving}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-5">Storefront messaging</h2>
+          <div className="grid md:grid-cols-2 gap-5">
+            <div>
+              <label className="block mb-2 font-medium">Announcement bar</label>
+              <input
+                type="text"
+                name="announcement"
+                placeholder="Free delivery across India"
+                value={settings.announcement}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSaving}
+              />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Business hours</label>
+              <input
+                type="text"
+                name="businessHours"
+                placeholder="Mon - Sat: 9:00 AM - 8:00 PM"
+                value={settings.businessHours}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSaving}

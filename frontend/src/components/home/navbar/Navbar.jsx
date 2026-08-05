@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { CartContext } from "../../../context/CartContext";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { useAuth } from "../../../context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicSettings } from "../../../api/settingsApi.js";
 
 const Navbar = () => {
   const { cart } = useContext(CartContext);
@@ -16,6 +18,14 @@ const Navbar = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { data: siteSettings } = useQuery({
+    queryKey: ["publicSettings"],
+    queryFn: getPublicSettings,
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+  const websiteName = siteSettings?.websiteName || "Khethomorr";
+  const announcement = siteSettings?.announcement || "Free delivery across India on selected orders";
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -57,6 +67,12 @@ const Navbar = () => {
         {/* Marquee Area */}
         <div className="flex-1 overflow-hidden">
           <div className="flex w-max animate-marquee">
+            {[0, 1].map((group) => (
+              <div key={group} className="flex shrink-0 items-center">
+                {[0, 1, 2].map((item) => <span key={item} className="px-8">✨ {announcement}</span>)}
+              </div>
+            ))}
+            {false && <>
             {/* First Group */}
             <div className="flex shrink-0 items-center">
               <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
@@ -74,6 +90,7 @@ const Navbar = () => {
 
               <span className="px-8">✨ Flat 20% OFF on Rallys Fan | Free Delivery Across India</span>
             </div>
+            </>}
           </div>
         </div>
 
@@ -93,7 +110,7 @@ const Navbar = () => {
               <div className="w-11 h-11 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xl">K</div>
               <div>
                 <h2 className="font-bold text-2xl tracking-wide">
-                  KHETHO<span className="text-red-600">MORR</span>
+                  {websiteName.toUpperCase()}
                 </h2>
                 <p className="text-[10px] text-gray-500 uppercase tracking-widest">Lighting • Home • Beyond</p>
               </div>
@@ -243,7 +260,7 @@ const Navbar = () => {
         >
           <div className="flex justify-between items-center p-5 border-b">
             <h2 className="font-bold text-xl">
-              KHETHO<span className="text-red-600">MORR</span>
+              {websiteName.toUpperCase()}
             </h2>
             <button onClick={() => setMenuOpen(false)}>
               <FiX size={28} />

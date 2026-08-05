@@ -13,9 +13,15 @@ const getHomeContent = async (req, res) => {
 const updateHomeContent = async (req, res) => {
   try {
     const { heroSlides, features, services, trustFeatures } = req.body;
+    const existingContent = await HomeContent.findOne();
     const updatedContent = await HomeContent.findOneAndUpdate(
       {},
-      { heroSlides, features, services, trustFeatures },
+      {
+        heroSlides: heroSlides ?? existingContent?.heroSlides ?? [],
+        features: features ?? existingContent?.features ?? [],
+        services: services ?? existingContent?.services ?? [],
+        trustFeatures: trustFeatures ?? existingContent?.trustFeatures ?? [],
+      },
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true },
     );
 

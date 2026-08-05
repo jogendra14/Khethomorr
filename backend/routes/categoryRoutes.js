@@ -1,6 +1,12 @@
 // backend/routes/categoryRoutes.js
 import express from "express";
-import { getCategories, createCategory } from "../controller/categoryController.js";
+import {
+  getCategories,
+  createCategory,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+} from "../controller/categoryController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { admin } from "../middleware/adminMiddleware.js";
 
@@ -12,9 +18,9 @@ router.route("/categories")
   .get(protect, admin, getCategories)
   .post(protect, admin, createCategory);
 
-// Optional: Add routes for single category operations
-// router.route("/categories/:id")
-//   .put(protect, admin, updateCategory)
-//   .delete(protect, admin, deleteCategory);
+router.route("/categories/:id")
+  .get(protect, admin, getCategoryById)
+  .put(protect, admin, updateCategory)
+  .delete(protect, admin, deleteCategory);
 
 export default router;

@@ -6,6 +6,7 @@ import { Search, Plus, Loader2, Edit2, Trash2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getProduct } from "../../../api/productApi"; 
 
+
 const SubCategories = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

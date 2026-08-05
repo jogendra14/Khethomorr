@@ -1,6 +1,11 @@
 // frontend/src/api/settingsApi.js
 import API from "./axios";
 
+export const getPublicSettings = async () => {
+  const response = await API.get("/site/settings");
+  return response.data;
+};
+
 // ============================================
 // ✅ GET SETTINGS
 // ============================================
@@ -51,11 +56,6 @@ export const changeAdminPassword = async (data) => {
     // Validate new password length
     if (data.newPassword.length < 6) {
       throw new Error("New password must be at least 6 characters");
-    }
-
-    // Check if passwords match (should be handled in component)
-    if (data.newPassword !== data.confirmPassword) {
-      throw new Error("Passwords do not match");
     }
 
     const response = await API.put("/admin/change-password", {
@@ -112,7 +112,7 @@ export const getAdminProfile = async () => {
 // ============================================
 export const getDashboardStats = async () => {
   try {
-    const response = await API.get("/admin/dashboard/stats");
+    const response = await API.get("/analytics");
     return response.data;
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -307,6 +307,7 @@ export const getCategoriesWithCounts = async () => {
 // ✅ EXPORT ALL FUNCTIONS
 // ============================================
 export default {
+  getPublicSettings,
   getSettings,
   updateSettings,
   changeAdminPassword,

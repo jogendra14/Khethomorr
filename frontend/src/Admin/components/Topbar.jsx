@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Topbar() {
   return (
-    <div className="bg-white h-16 fixed right-0 top-0 left-64  shadow flex items-center justify-between px-8 z-40">
+    <div className="bg-white  h-16 fixed right-0 top-0 left-64  shadow flex items-center justify-between px-8 z-40">
       <h2 className="text-2xl font-bold">Dashboard</h2>
 
       <div className="flex items-center gap-6">

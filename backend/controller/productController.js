@@ -2,6 +2,9 @@ import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
 import fs from 'fs';
 
+const hasValue = (value) => value !== undefined && value !== null && value !== "";
+const isNonNegativeNumber = (value) => Number.isFinite(Number(value)) && Number(value) >= 0;
+
 // ============================
 // ✅ GET ALL PRODUCTS (with pagination, filters, search)
 // ============================
@@ -94,6 +97,10 @@ const getProducts = async (req, res) => {
 // ============================
 const getProductById = async (req, res) => {
   try {
+    if (!/^[0-9a-fA-F]{24}$/.test(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
     const product = await Product.findById(req.params.id);
     
     if (!product) {
@@ -151,14 +158,27 @@ const createProduct = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    const requiredFields = ['category', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
+    const requiredFields = ['category', 'subCategory', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
     for (const field of requiredFields) {
-      if (!req.body[field]) {
+      if (!hasValue(req.body[field])) {
         return res.status(400).json({
           success: false,
           message: `Missing required field: ${field}`
         });
       }
+    }
+
+    if (![MRP, sellingPrice, stock].every(isNonNegativeNumber)) {
+      return res.status(400).json({ success: false, message: "Prices and stock must be valid non-negative numbers" });
+    }
+    if (Number(sellingPrice) > Number(MRP)) {
+      return res.status(400).json({ success: false, message: "Selling price cannot exceed MRP" });
+    }
+    if (hasValue(discount) && (!isNonNegativeNumber(discount) || Number(discount) > 100)) {
+      return res.status(400).json({ success: false, message: "Discount must be between 0 and 100" });
+    }
+    if (!req.files?.length) {
+      return res.status(400).json({ success: false, message: "At least one product image is required" });
     }
 
     // ✅ Convert includeComponents to array
@@ -205,6 +225,9 @@ const createProduct = async (req, res) => {
           console.error("Image upload error:", uploadError);
         }
       }
+    }
+    if (!images.length) {
+      return res.status(502).json({ success: false, message: "Product images could not be uploaded" });
     }
     productData.images = images;
 
@@ -304,30 +327,42 @@ const updateProduct = async (req, res) => {
     } = req.body;
 
     // Update basic fields
-    if (category) product.category = category;
-    if (subCategory) product.subCategory = subCategory;
-    if (brand) product.brand = brand;
-    if (name) product.name = name;
-    if (MRP) product.MRP = Number(MRP);
-    if (sellingPrice) product.sellingPrice = Number(sellingPrice);
-    if (discount) product.discount = Number(discount);
-    if (rating) product.rating = Number(rating);
-    if (reviews) product.reviews = Number(reviews);
+    if (hasValue(category)) product.category = category;
+    if (subCategory !== undefined) product.subCategory = subCategory;
+    if (hasValue(brand)) product.brand = brand;
+    if (hasValue(name)) product.name = name;
+    if (hasValue(MRP)) product.MRP = Number(MRP);
+    if (hasValue(sellingPrice)) product.sellingPrice = Number(sellingPrice);
+    if (hasValue(discount)) product.discount = Number(discount);
+    if (hasValue(rating)) product.rating = Number(rating);
+    if (hasValue(reviews)) product.reviews = Number(reviews);
     if (choose_W_G !== undefined) product.choose_W_G = choose_W_G;
     if (warranty_guarantee !== undefined) product.warranty_guarantee = warranty_guarantee;
-    if (stock) product.stock = Number(stock);
+    if (hasValue(stock)) product.stock = Number(stock);
+
+    if (![product.MRP, product.sellingPrice, product.stock].every(isNonNegativeNumber)) {
+      return res.status(400).json({ success: false, message: "Prices and stock must be valid non-negative numbers" });
+    }
+    if (product.sellingPrice > product.MRP) {
+      return res.status(400).json({ success: false, message: "Selling price cannot exceed MRP" });
+    }
+    if (!isNonNegativeNumber(product.discount) || product.discount > 100) {
+      return res.status(400).json({ success: false, message: "Discount must be between 0 and 100" });
+    }
 
     // Include Components
-    let includeComponentsList = [];
-    if (typeof includeComponents === 'string' && includeComponents.trim()) {
-      includeComponentsList = includeComponents.split(',').map(item => item.trim());
-    } else if (Array.isArray(includeComponents)) {
-      includeComponentsList = includeComponents;
+    if (includeComponents !== undefined) {
+      let includeComponentsList = [];
+      if (typeof includeComponents === 'string' && includeComponents.trim()) {
+        includeComponentsList = includeComponents.split(',').map(item => item.trim());
+      } else if (Array.isArray(includeComponents)) {
+        includeComponentsList = includeComponents;
+      }
+      product.includeComponents = includeComponentsList;
     }
-    product.includeComponents = includeComponentsList;
 
-    if (description) product.description = description;
-    if (productType) product.productType = productType;
+    if (description !== undefined) product.description = description;
+    if (productType !== undefined) product.productType = productType;
 
     // Specifications
     let specObj = {};
@@ -662,6 +697,13 @@ const updateProductStock = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Product not found",
+      });
+    }
+
+    if (!isNonNegativeNumber(stock)) {
+      return res.status(400).json({
+        success: false,
+        message: "Stock must be a valid non-negative number",
       });
     }
 

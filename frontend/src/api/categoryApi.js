@@ -8,7 +8,7 @@ export const getCategories = async () => {
   try {
     const response = await API.get("/admin/categories");
     // ✅ FIX: response.data.data use karein (Backend se 'data' key mein aa raha hai)
-    return response.data.data || response.data; 
+    return response.data.data || response.data.categories || []; 
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw error.response?.data || { message: "Failed to fetch categories" };
@@ -21,7 +21,7 @@ export const getCategories = async () => {
 export const getCategoriesWithCounts = async () => {
   try {
     const response = await API.get("/admin/categories");
-    return response.data.categories || response.data;
+    return response.data.data || response.data.categories || [];
   } catch (error) {
     console.error("Error fetching categories with counts:", error);
     throw error.response?.data || { message: "Failed to fetch categories" };
@@ -38,7 +38,7 @@ export const getCategoryById = async (id) => {
     }
 
     const response = await API.get(`/admin/categories/${id}`);
-    return response.data.category || response.data;
+    return response.data.data || response.data.category || response.data;
   } catch (error) {
     console.error("Error fetching category:", error);
     throw error.response?.data || { message: "Failed to fetch category" };

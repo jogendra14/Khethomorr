@@ -8,6 +8,7 @@ const contentItemSchema = new mongoose.Schema(
     highlight: String,
     description: String,
     subtitle: String,
+    isActive: { type: Boolean, default: true },
   },
   { _id: false },
 );

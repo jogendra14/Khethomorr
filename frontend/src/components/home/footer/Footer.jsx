@@ -7,8 +7,18 @@ import {
   FaMapMarkerAlt,
   FaClock,
 } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
+import { getPublicSettings } from "../../../api/settingsApi.js";
 
 const Footer = () => {
+  const { data: siteSettings } = useQuery({
+    queryKey: ["publicSettings"],
+    queryFn: getPublicSettings,
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+  const websiteName = siteSettings?.websiteName || "Kethomorr";
+  const contactEmail = siteSettings?.email || "support@kethomorr.com";
   return (
     <footer className="bg-[#111] max-w-7xl mx-auto text-gray-300 mt-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -19,8 +29,7 @@ const Footer = () => {
           {/* Logo */}
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold">
-              <span className="text-white">KETHO</span>
-              <span className="text-red-600">MORR</span>
+              <span className="text-white">{websiteName.toUpperCase()}</span>
             </h2>
 
             <p className="text-sm text-gray-400 mt-4 leading-6">
@@ -29,17 +38,17 @@ const Footer = () => {
             </p>
 
             <div className="flex gap-3 mt-5">
-              <div className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
+              <a href={siteSettings?.facebook || "#"} target="_blank" rel="noreferrer" aria-label="Facebook" className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
                 <FaFacebookF />
-              </div>
+              </a>
 
-              <div className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
+              <a href={siteSettings?.instagram || "#"} target="_blank" rel="noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
                 <FaInstagram />
-              </div>
+              </a>
 
-              <div className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
+              <a href={siteSettings?.twitter || "#"} target="_blank" rel="noreferrer" aria-label="Twitter" className="w-9 h-9 rounded-full border border-gray-500 flex items-center justify-center hover:bg-red-600 cursor-pointer duration-300">
                 <FaPinterestP />
-              </div>
+              </a>
             </div>
           </div>
 
@@ -120,26 +129,26 @@ const Footer = () => {
 
               <div className="flex items-start gap-3">
                 <FaPhoneAlt className="text-red-600 mt-1 shrink-0" />
-                <span>+91 9079659815</span>
+                <span>{siteSettings?.phone || "+91 9079659815"}</span>
               </div>
 
               <div className="flex items-start gap-3">
                 <FaEnvelope className="text-red-600 mt-1 shrink-0" />
                 <span className="break-all">
-                  support@kethomorr.com
+                  {contactEmail}
                 </span>
               </div>
 
               <div className="flex items-start gap-3">
                 <FaMapMarkerAlt className="text-red-600 mt-1 shrink-0" />
                 <span>
-                  Bangalore, Karnataka, India - 560001
+                  {siteSettings?.address || "Bangalore, Karnataka, India - 560001"}
                 </span>
               </div>
 
               <div className="flex items-start gap-3">
                 <FaClock className="text-red-600 mt-1 shrink-0" />
-                <span>Mon - Sat : 9:00 AM - 8:00 PM</span>
+                <span>{siteSettings?.businessHours || "Mon - Sat : 9:00 AM - 8:00 PM"}</span>
               </div>
 
             </div>

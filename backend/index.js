@@ -1,5 +1,4 @@
 // backend/index.js
-
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -16,6 +15,7 @@ import paymentsRoutes from "./routes/paymentsRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import siteRoutes from "./routes/siteRoutes.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -54,6 +54,7 @@ app.use(
 // ✅ Body Parser
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use("/uploads", express.static("uploads"));
 
 // ✅ Request Logger (Development only)
 if (process.env.NODE_ENV === "development") {
@@ -83,6 +84,7 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/home", homeRoutes);
+app.use("/api/site", siteRoutes);
 
 // ✅ 404 Handler
 app.use((req, res, next) => {

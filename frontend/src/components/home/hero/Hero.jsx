@@ -53,8 +53,9 @@ const defaultSlides = [
 const heroImages = { hero1, hero2, hero3, hero4, hero5 };
 
 export default function Hero({ slides }) {
-  const displaySlides = slides?.length
-    ? slides.map((slide, index) => ({
+  const activeSlides = slides?.filter((slide) => slide.isActive !== false);
+  const displaySlides = activeSlides?.length
+    ? activeSlides.map((slide, index) => ({
         ...defaultSlides[index % defaultSlides.length],
         ...slide,
         image: heroImages[slide.imageKey] || defaultSlides[index % defaultSlides.length].image,

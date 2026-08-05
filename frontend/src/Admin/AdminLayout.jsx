@@ -58,7 +58,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 ">
       {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -68,7 +68,7 @@ export default function AdminLayout() {
 
       {/* Main Content */}
       <div 
-        className={`transition-all duration-300 ${
+        className={`transition-all mt-12 duration-300 ${
           isSidebarOpen && !isMobile ? "ml-64" : "ml-0"
         }`}
       >

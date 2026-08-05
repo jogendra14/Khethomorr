@@ -42,6 +42,7 @@ import Login from "./pages/Login.jsx";
 import SignUp from "./pages/SignUp.jsx"
 import Cart from "./pages/Cart.jsx";
 import Wishlist from "./pages/Wishlist.jsx";
+import MyOrders from "./pages/MyOrders.jsx";
 import Coupons from "./Admin/pages/Coupons.jsx";
 import Banner from "./Admin/pages/Banner.jsx";
 import Settings from "./Admin/pages/Settings.jsx";
@@ -103,6 +104,7 @@ const App = () => {
           <Route path="/Cart" element={<Cart />} />
           {/* Wishlist Page */}
           <Route path="/Wishlist" element={<Wishlist />} />
+          <Route path="/orders" element={<MyOrders />} />
         </Routes>
       </AuthProvider>
       
