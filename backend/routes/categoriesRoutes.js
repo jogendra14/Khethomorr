@@ -215,7 +215,7 @@ const Categories = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
                 {/* Image */}
                 <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
                     {category.image || category.icon || '📦'}
                   </div>
                   <span className="lg:hidden text-sm font-medium text-gray-500">Image</span>

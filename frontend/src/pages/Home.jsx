@@ -35,7 +35,7 @@ const Home = () => {
         <Navbar />
         <div className="min-h-screen">
           {/* Hero Skeleton */}
-          <div className="w-full h-[400px] md:h-[500px] bg-gray-200 animate-pulse"></div>
+          <div className="w-full h-400 md:h-100 bg-gray-200 animate-pulse"></div>
           
           {/* Features Skeleton */}
           <div className="max-w-7xl mx-auto px-4 py-12">

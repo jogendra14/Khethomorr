@@ -42,7 +42,7 @@ export default function RelatedProducts({ product: currentProduct }) {
         </div>
         <div className="flex gap-2 py-3 overflow-x-auto">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="min-w-[200px] bg-gray-200 animate-pulse rounded-lg h-72"></div>
+            <div key={i} className="min-w-50 bg-gray-200 animate-pulse rounded-lg h-72"></div>
           ))}
         </div>
       </section>
@@ -92,7 +92,7 @@ export default function RelatedProducts({ product: currentProduct }) {
         {filteredProducts.slice(0, 8).map((product) => (
           <div 
             key={product._id} 
-            className="group rounded-sm bg-white shadow-md hover:shadow-lg transition-transform duration-300 min-w-[200px] max-w-[220px]"
+            className="group rounded-sm bg-white shadow-md hover:shadow-lg transition-transform duration-300 min-w-50 max-w-55"
           >
             {/* Image */}
             <Link to={`/product/${product._id}`}>

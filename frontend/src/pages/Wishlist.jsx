@@ -178,7 +178,7 @@ function Wishlist() {
                           >
                             <FiMinus size={16} />
                           </button>
-                          <span className="font-bold text-lg min-w-[30px] text-center">
+                          <span className="font-bold text-lg min-w-7.5 text-center">
                             {item.quantity}
                           </span>
                           <button
@@ -203,7 +203,7 @@ function Wishlist() {
                         >
                           <FiMinus size={16} />
                         </button>
-                        <span className="font-bold text-lg min-w-[30px] text-center">
+                        <span className="font-bold text-lg min-w-7.5 text-center">
                           {item.quantity}
                         </span>
                         <button
