@@ -7,7 +7,8 @@ import API from "./axios";
 export const getCategories = async () => {
   try {
     const response = await API.get("/admin/categories");
-    return response.data.categories || response.data;
+    // ✅ FIX: response.data.data use karein (Backend se 'data' key mein aa raha hai)
+    return response.data.data || response.data; 
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw error.response?.data || { message: "Failed to fetch categories" };

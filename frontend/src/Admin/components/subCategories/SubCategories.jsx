@@ -25,41 +25,44 @@ const SubCategories = () => {
   }, [categoryName]);
 
   const fetchSubCategories = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const productsData = await getProduct();
-      
-      // सिर्फ उस category के products filter करें
-      const filteredProducts = productsData.filter(
-        product => product.category === categoryName
-      );
-      
-      setProducts(filteredProducts);
-      
-      // Sub-categories count करें
-      const subCategoryCounts = filteredProducts.reduce((acc, product) => {
-        if (product.subCategory) {
-          acc[product.subCategory] = (acc[product.subCategory] || 0) + 1;
-        }
-        return acc;
-      }, {});
-      
-      const uniqueSubCategories = Object.keys(subCategoryCounts).map(subCategoryName => ({
-        id: subCategoryName.toLowerCase().replace(/\s/g, '-'),
-        name: subCategoryName,
-        productCount: subCategoryCounts[subCategoryName],
-      }));
+  try {
+    setLoading(true);
+    setError(null);
+    
+    // ✅ BAS YAHI DO LINES CHANGE KAREN
+    const response = await getProduct();
+    const productsData = response?.products || [];
+    
+    // Filter products by category
+    const filteredProducts = productsData.filter(
+      product => product.category === categoryName
+    );
+    
+    setProducts(filteredProducts);
+    
+    // Sub-categories count
+    const subCategoryCounts = filteredProducts.reduce((acc, product) => {
+      if (product.subCategory) {
+        acc[product.subCategory] = (acc[product.subCategory] || 0) + 1;
+      }
+      return acc;
+    }, {});
+    
+    const uniqueSubCategories = Object.keys(subCategoryCounts).map(subCategoryName => ({
+      id: subCategoryName.toLowerCase().replace(/\s/g, '-'),
+      name: subCategoryName,
+      productCount: subCategoryCounts[subCategoryName],
+    }));
 
-      setSubCategories(uniqueSubCategories);    
-    } catch (err) {
-      setError(err.message || 'Failed to fetch sub-categories');
-      setSubCategories([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setSubCategories(uniqueSubCategories);    
+  } catch (err) {
+    setError(err.message || 'Failed to fetch sub-categories');
+    setSubCategories([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
    // Sub-Category पर click करने पर Brands page पर जाएं
   const handleSubCategoryClick = (subCategoryName) => {
