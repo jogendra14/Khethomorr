@@ -32,8 +32,10 @@ const getProducts = async (req, res) => {
     const filter = {};
 
     if (category) filter.category = category;
-    if (subCategory) filter.subCategory = subCategory;
-    if (brand) filter.brand = brand;
+if (subCategory) {
+  // Case-insensitive search
+  filter.subCategory = { $regex: new RegExp(`^${subCategory}$`, 'i') };
+}    if (brand) filter.brand = brand;
 
     // Price filter
     if (minPrice || maxPrice) {
