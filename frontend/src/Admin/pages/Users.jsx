@@ -1,238 +1,117 @@
-// Users.jsx
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Search, Plus, Edit, Trash2, UserCheck, UserX } from "lucide-react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getUsers, updateUser, updateUserStatus, deleteUser, addUser } from "../../api/userApi.js";
+import toast from "react-hot-toast";
 
 export default function Users() {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [saving, setSaving] = useState(false); // Add loading state for save
+  const queryClient = useQueryClient();
 
-  // Get token from localStorage
-  const getAuthToken = () => {
-    return localStorage.getItem("token");
-  };
+  // ✅ React Query - Fetch Users
+  const {
+    data: users = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    onError: (error) => {
+      console.error("Error fetching users:", error);
+      toast.error(error.message || "Failed to fetch users");
+    },
+  });
 
-  // Fetch users from backend
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const token = getAuthToken();
-      
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  // ✅ React Query - Update User
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }) => updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setShowEditModal(false);
+      setEditingUser(null);
+      toast.success("User updated successfully! ✅");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update user ❌");
+    },
+  });
 
-      const transformedUsers = response.data.map((user) => ({
-        id: user._id || user.id,
-        name: user.name || "Unknown",
-        email: user.email || "",
-        phone: user.phone || "",
-        role: user.role || "User",
-        status: user.status || "Active",
-        verified: user.verified || false,
-      }));
+  // ✅ React Query - Update User Status
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => updateUserStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("User status updated! ✅");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update status ❌");
+      refetch();
+    },
+  });
 
-      setUsers(transformedUsers);
-      setError("");
-    } 
-    catch (err) {
-      console.error("Error fetching users:", err);
-      setError(err.response?.data?.message || "Failed to fetch users");
-      setUsers(dummyUsers);
-    } 
-    finally {
-      setLoading(false);
-    }
-  };
+  // ✅ React Query - Delete User
+  const deleteUserMutation = useMutation({
+    mutationFn: (id) => deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("User deleted successfully! 🗑️");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete user ❌");
+      refetch();
+    },
+  });
 
-  // Fetch users on component mount
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
+  // ✅ Filter users by search
   const filteredUsers = useMemo(() => {
+    if (!search.trim()) return users;
+    const searchLower = search.toLowerCase();
     return users.filter(
       (user) =>
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
+        user.name?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower)
     );
   }, [search, users]);
 
+  // ✅ Handle edit user
   const handleEditUser = (user) => {
     setEditingUser(user);
     setShowEditModal(true);
   };
 
-  // ✅ Updated handleSaveEdit with better error handling and loading state
-  const handleSaveEdit = async (updatedUserData) => {
-    try {
-      setSaving(true);
-      setError("");
-      
-      const token = getAuthToken();
-      
-      if (!token) {
-        setError("Authentication token not found. Please login again.");
-        return;
-      }
-
-      // Prepare data for backend - match your backend schema
-      const userData = {
-        name: updatedUserData.name,
-        email: updatedUserData.email,
-        phone: updatedUserData.phone || "",
-        role: updatedUserData.role.toLowerCase(), // role lowercase
-        status: updatedUserData.status,
-      };
-
-      console.log("Saving user data:", userData); // Debug log
-
-      // Make API call to update user
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/admin/users/${updatedUserData.id}`,
-        userData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log("Update response:", response.data); // Debug log
-
-      // Update local state with the response data
-      const updatedUser = response.data.user || response.data;
-      const updatedUsers = users.map((user) =>
-        user.id === updatedUserData.id
-          ? {
-              ...user,
-              name: updatedUser.name || updatedUserData.name,
-              email: updatedUser.email || updatedUserData.email,
-              phone: updatedUser.phone || updatedUserData.phone,
-              role: updatedUser.role || updatedUserData.role,
-              status: updatedUser.status || updatedUserData.status,
-            }
-          : user
-      );
-      
-      setUsers(updatedUsers);
-      setShowEditModal(false);
-      setEditingUser(null);
-      
-      // Show success message (optional)
-      alert("User updated successfully!");
-      
-    } catch (err) {
-      console.error("Error updating user:", err);
-      
-      // Show detailed error message
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          "Failed to update user. Please try again.";
-      
-      setError(errorMessage);
-      
-      // Revert optimistic update on error
-      await fetchUsers();
-    } finally {
-      setSaving(false);
-    }
+  // ✅ Handle save edit
+  const handleSaveEdit = (updatedUserData) => {
+    updateUserMutation.mutate({
+      id: updatedUserData.id,
+      data: updatedUserData,
+    });
   };
 
-  const toggleStatus = async (id) => {
-    try {
-      const updatedUsers = users.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "Active" ? "Blocked" : "Active",
-            }
-          : user
-      );
-      setUsers(updatedUsers);
-
-      const token = getAuthToken();
-      const userToUpdate = users.find((u) => u.id === id);
-      const newStatus = userToUpdate.status === "Active" ? "Blocked" : "Active";
-
-      await axios.patch(
-        `${import.meta.env.VITE_API_URL}/admin/users/${id}/status`,
-        { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (err) {
-      console.error("Error updating user status:", err);
-      fetchUsers();
-      setError(err.response?.data?.message || "Failed to update user status");
+  // ✅ Handle toggle status
+  const handleToggleStatus = (id, currentStatus) => {
+    const newStatus = currentStatus === "Active" ? "Blocked" : "Active";
+    if (!window.confirm(`Are you sure you want to ${newStatus === "Active" ? "unblock" : "block"} this user?`)) {
+      return;
     }
+    updateStatusMutation.mutate({ id, status: newStatus });
   };
 
-  const deleteUser = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
-
-    try {
-      setUsers(users.filter((u) => u.id !== id));
-
-      const token = getAuthToken();
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/admin/users/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } 
-    catch (err) {
-      console.error("Error deleting user:", err);
-      fetchUsers();
-      setError(err.response?.data?.message || "Failed to delete user");
-    }
+  // ✅ Handle delete user
+  const handleDeleteUser = (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+    deleteUserMutation.mutate(id);
   };
 
-  const dummyUsers = [
-    {
-      id: "1",
-      name: "Rahul Sharma",
-      email: "rahul@gmail.com",
-      phone: "9876543210",
-      role: "User",
-      status: "Active",
-    },
-    {
-      id: "2",
-      name: "Aman Singh",
-      email: "aman@gmail.com",
-      phone: "9123456780",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      id: "3",
-      name: "Priya Verma",
-      email: "priya@gmail.com",
-      phone: "9988776655",
-      role: "User",
-      status: "Blocked",
-    },
-  ];
+  const { isPending: isUpdating } = updateUserMutation;
+  const { isPending: isDeleting } = deleteUserMutation;
 
   return (
     <div className="p-6">
@@ -241,11 +120,17 @@ export default function Users() {
         <div>
           <h1 className="text-3xl font-bold">Users</h1>
           <p className="text-gray-500">Manage all registered users</p>
+          {users.length > 0 && (
+            <p className="text-sm text-gray-400 mt-1">
+              Total: {users.length} users
+            </p>
+          )}
         </div>
 
         <button 
           onClick={() => navigate("add")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center gap-2">
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center gap-2 transition"
+        >
           <Plus size={18} />
           Add User
         </button>
@@ -260,21 +145,27 @@ export default function Users() {
             placeholder="Search user..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border rounded-lg pl-10 pr-4 py-3 outline-none"
+            className="w-full border rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Error Message */}
-      {error && (
+      {isError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
-          {error}
+          ⚠️ {error?.message || "Failed to load users"}
+          <button
+            onClick={() => refetch()}
+            className="ml-4 text-red-700 font-semibold hover:underline"
+          >
+            Retry
+          </button>
         </div>
       )}
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow mt-6 overflow-x-auto">
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-500">Loading users...</p>
@@ -296,12 +187,12 @@ export default function Users() {
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="p-8 text-center text-gray-500">
-                    No users found
+                    {search ? "No users found matching your search" : "No users found"}
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-t hover:bg-gray-50">
+                  <tr key={user.id || user._id} className="border-t hover:bg-gray-50">
                     <td className="p-4 font-medium">{user.name}</td>
                     <td className="p-4">{user.email}</td>
                     <td className="p-4">{user.phone || "N/A"}</td>
@@ -313,7 +204,7 @@ export default function Users() {
                             : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {user.role}
+                        {user.role || "User"}
                       </span>
                     </td>
                     <td className="p-4">
@@ -324,7 +215,7 @@ export default function Users() {
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {user.status}
+                        {user.status || "Active"}
                       </span>
                     </td>
                     <td className="p-4">
@@ -333,20 +224,24 @@ export default function Users() {
                           onClick={() => handleEditUser(user)}
                           className="text-blue-600 hover:text-blue-800 transition-colors"
                           title="Edit user"
+                          disabled={isDeleting}
                         >
                           <Edit size={18} />
                         </button>
 
                         <button
-                          onClick={() => toggleStatus(user.id)}
+                          onClick={() => handleToggleStatus(user.id || user._id, user.status)}
                           className={
                             user.status === "Active"
                               ? "text-orange-600 hover:text-orange-800 transition-colors"
                               : "text-green-600 hover:text-green-800 transition-colors"
                           }
                           title={user.status === "Active" ? "Block user" : "Unblock user"}
+                          disabled={isDeleting || updateStatusMutation.isPending}
                         >
-                          {user.status === "Active" ? (
+                          {updateStatusMutation.isPending ? (
+                            <span className="animate-spin">⏳</span>
+                          ) : user.status === "Active" ? (
                             <UserX size={18} />
                           ) : (
                             <UserCheck size={18} />
@@ -354,11 +249,16 @@ export default function Users() {
                         </button>
 
                         <button
-                          onClick={() => deleteUser(user.id)}
+                          onClick={() => handleDeleteUser(user.id || user._id, user.name)}
                           className="text-red-600 hover:text-red-800 transition-colors"
                           title="Delete user"
+                          disabled={isDeleting}
                         >
-                          <Trash2 size={18} />
+                          {isDeleting ? (
+                            <span className="animate-spin">⏳</span>
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
                         </button>
                       </div>
                     </td>
@@ -376,7 +276,7 @@ export default function Users() {
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={() => {
-            if (!saving) {
+            if (!isUpdating) {
               setShowEditModal(false);
               setEditingUser(null);
             }
@@ -388,13 +288,13 @@ export default function Users() {
           >
             <button
               onClick={() => {
-                if (!saving) {
+                if (!isUpdating) {
                   setShowEditModal(false);
                   setEditingUser(null);
                 }
               }}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
-              disabled={saving}
+              disabled={isUpdating}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -408,7 +308,7 @@ export default function Users() {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const updatedUser = {
-                  id: editingUser.id,
+                  id: editingUser.id || editingUser._id,
                   name: formData.get('name'),
                   email: formData.get('email'),
                   phone: formData.get('phone'),
@@ -429,7 +329,7 @@ export default function Users() {
                     defaultValue={editingUser.name}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     required
-                    disabled={saving}
+                    disabled={isUpdating}
                   />
                 </div>
 
@@ -443,7 +343,7 @@ export default function Users() {
                     defaultValue={editingUser.email}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     required
-                    disabled={saving}
+                    disabled={isUpdating}
                   />
                 </div>
 
@@ -456,7 +356,7 @@ export default function Users() {
                     name="phone"
                     defaultValue={editingUser.phone || ''}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    disabled={saving}
+                    disabled={isUpdating}
                   />
                 </div>
 
@@ -468,10 +368,10 @@ export default function Users() {
                     name="role"
                     defaultValue={editingUser.role}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-                    disabled={saving}
+                    disabled={isUpdating}
                   >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
                   </select>
                 </div>
 
@@ -483,7 +383,7 @@ export default function Users() {
                     name="status"
                     defaultValue={editingUser.status}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-                    disabled={saving}
+                    disabled={isUpdating}
                   >
                     <option value="Active">Active</option>
                     <option value="Blocked">Blocked</option>
@@ -494,19 +394,16 @@ export default function Users() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={isUpdating}
                   className={`flex-1 text-white font-medium py-2.5 rounded-lg transition-colors ${
-                    saving 
+                    isUpdating 
                       ? 'bg-blue-400 cursor-not-allowed' 
                       : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {saving ? (
+                  {isUpdating ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
+                      <span className="animate-spin">⏳</span>
                       Saving...
                     </span>
                   ) : (
@@ -516,14 +413,14 @@ export default function Users() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!saving) {
+                    if (!isUpdating) {
                       setShowEditModal(false);
                       setEditingUser(null);
                     }
                   }}
-                  disabled={saving}
+                  disabled={isUpdating}
                   className={`flex-1 font-medium py-2.5 rounded-lg transition-colors ${
-                    saving 
+                    isUpdating 
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
                   }`}

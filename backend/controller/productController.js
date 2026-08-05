@@ -3,66 +3,89 @@ import cloudinary from "../config/cloudinary.js";
 import fs from 'fs';
 
 // ============================
-// ✅ GET ALL PRODUCTS
+// ✅ GET ALL PRODUCTS (with pagination, filters, search)
 // ============================
 const getProducts = async (req, res) => {
   try {
-    const { 
-      category, 
-      subCategory, 
-      brand, 
-      minPrice, 
+    const {
+      category,
+      subCategory,
+      brand,
+      minPrice,
       maxPrice,
-      sort = 'createdAt',
-      order = 'desc',
+      sort = "createdAt",
+      order = "desc",
       page = 1,
-      limit = 100,
-      search 
+      limit = 20,
+      search,
     } = req.query;
 
+    // Pagination values
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const productsPerPage = Math.min(Math.max(Number(limit) || 20, 1), 50);
+    const skip = (currentPage - 1) * productsPerPage;
+
+    // Build filter
     const filter = {};
+
     if (category) filter.category = category;
     if (subCategory) filter.subCategory = subCategory;
     if (brand) filter.brand = brand;
-    
+
+    // Price filter
     if (minPrice || maxPrice) {
-      filter.newPrice = {};
-      if (minPrice) filter.newPrice.$gte = Number(minPrice);
-      if (maxPrice) filter.newPrice.$lte = Number(maxPrice);
+      filter.sellingPrice = {};
+      if (minPrice) filter.sellingPrice.$gte = Number(minPrice);
+      if (maxPrice) filter.sellingPrice.$lte = Number(maxPrice);
     }
-    
-    if (search) {
+
+    // Search
+    if (search?.trim()) {
+      const searchValue = search.trim();
       filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-        { brand: { $regex: search, $options: 'i' } }
+        { name: { $regex: searchValue, $options: "i" } },
+        { description: { $regex: searchValue, $options: "i" } },
+        { category: { $regex: searchValue, $options: "i" } },
+        { brand: { $regex: searchValue, $options: "i" } },
       ];
     }
 
-    const sortOptions = {};
-    sortOptions[sort] = order === 'desc' ? -1 : 1;
-    const skip = (page - 1) * limit;
+    // Sorting
+    const allowedSortFields = ["createdAt", "sellingPrice", "rating", "name"];
+    const sortField = allowedSortFields.includes(sort) ? sort : "createdAt";
+    const sortOrder = order === "asc" ? 1 : -1;
+    const sortOptions = { [sortField]: sortOrder };
 
+    // Get products
     const products = await Product.find(filter)
       .sort(sortOptions)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(productsPerPage)
+      .lean();
 
+    // Total count
     const total = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(total / productsPerPage);
 
     res.json({
+      success: true,
       products,
       pagination: {
         total,
-        page: Number(page),
-        limit: Number(limit),
-        pages: Math.ceil(total / limit)
-      }
+        page: currentPage,
+        limit: productsPerPage,
+        pages: totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+      },
     });
+
   } catch (error) {
     console.error("Get products error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -72,29 +95,41 @@ const getProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (product) {
-      const formattedProduct = {
-        ...product.toObject(),
-        specifications: product.getSpecs()
-      };
-      res.json(formattedProduct);
-    } else {
-      res.status(404).json({ message: "Product not found" });
+    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Product not found" 
+      });
     }
+
+    const formattedProduct = {
+      ...product.toObject(),
+      specifications: product.getSpecs()
+    };
+
+    res.json({
+      success: true,
+      ...formattedProduct
+    });
+    
   } catch (error) {
     console.error("Get product by id error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      success: false,
+      message: "Server error" 
+    });
   }
 };
 
 // ============================
 // ✅ CREATE PRODUCT
 // ============================
-// In your backend controller, update the createProduct function:
 const createProduct = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Files received:", req.files?.length || 0);
+    console.log("📦 Creating product...");
+    console.log("Body:", req.body);
+    console.log("Files:", req.files?.length || 0);
 
     const {
       category,
@@ -109,40 +144,30 @@ const createProduct = async (req, res) => {
       choose_W_G,
       warranty_guarantee,
       stock,
-      includeComponents,  // ← This will be a comma-separated string
+      includeComponents,
       description,
       productType = 'fan',
       specifications = {}
     } = req.body;
 
-    console.log("Raw includeComponents received:", includeComponents);
-
     // Validate required fields
-    if (!category || !brand || !name || !MRP || !sellingPrice || !stock) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: category, brand, name, MRP, sellingPrice, stock are required"
-      });
-    }
-
-    // ✅ FIX: Convert comma-separated string to array
-    let includeComponentsArray = [];
-    
-    if (typeof includeComponents === 'string' && includeComponents.trim()) {
-      // Split by comma and trim each item
-      includeComponentsArray = includeComponents.split(',').map(item => item.trim());
-    } 
-    else if (Array.isArray(includeComponents)) {
-      includeComponentsArray = includeComponents;
-    }
-    else if (includeComponents && typeof includeComponents === 'object') {
-      // Handle if it's already an array-like object
-      if (Array.isArray(includeComponents)) {
-        includeComponentsArray = includeComponents;
+    const requiredFields = ['category', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required field: ${field}`
+        });
       }
     }
 
-    console.log("Processed includeComponents array:", includeComponentsArray);
+    // ✅ Convert includeComponents to array
+    let includeComponentsArray = [];
+    if (typeof includeComponents === 'string' && includeComponents.trim()) {
+      includeComponentsArray = includeComponents.split(',').map(item => item.trim());
+    } else if (Array.isArray(includeComponents)) {
+      includeComponentsArray = includeComponents;
+    }
 
     // Create product data
     const productData = {
@@ -158,7 +183,7 @@ const createProduct = async (req, res) => {
       choose_W_G: choose_W_G || '',
       warranty_guarantee: warranty_guarantee || '',
       stock: Number(stock),
-      includeComponents: includeComponentsArray, // ← Now it will be an array
+      includeComponents: includeComponentsArray,
       description: description || '',
       productType: productType || 'fan',
       specifications: new Map()
@@ -169,7 +194,9 @@ const createProduct = async (req, res) => {
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path);
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'products'
+          });
           images.push(result.secure_url);
           if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
@@ -188,13 +215,11 @@ const createProduct = async (req, res) => {
         specObj = JSON.parse(specifications);
       } catch (e) {
         console.error("Failed to parse specifications JSON:", e);
-        specObj = {};
       }
     } else if (typeof specifications === 'object') {
       specObj = specifications;
     }
 
-    // Convert specifications to Map
     const specMap = new Map();
     Object.entries(specObj).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
@@ -202,7 +227,7 @@ const createProduct = async (req, res) => {
       }
     });
 
-    // Check for individual field values
+    // Individual fields
     const individualFields = [
       'fanDesign', 'color', 'motor', 'sweepSize', 'bladeCount', 
       'material', 'fanWattage', 'airDelivery', 'fanRpm', 'weight',
@@ -227,7 +252,6 @@ const createProduct = async (req, res) => {
     const createdProduct = await product.save();
     
     console.log("✅ Product created successfully!");
-    console.log("includeComponents saved:", createdProduct.includeComponents);
     
     res.status(201).json({
       success: true,
@@ -239,15 +263,13 @@ const createProduct = async (req, res) => {
     console.error("Create product error:", error);
     res.status(500).json({ 
       success: false,
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: error.message || "Server error",
     });
   }
 };
 
-
 // ============================
-// ✅ UPDATE PRODUCT (CLEAN VERSION)
+// ✅ UPDATE PRODUCT
 // ============================
 const updateProduct = async (req, res) => {
   try {
@@ -255,7 +277,10 @@ const updateProduct = async (req, res) => {
     const product = await Product.findById(productId);
     
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Product not found" 
+      });
     }
 
     const {
@@ -292,34 +317,31 @@ const updateProduct = async (req, res) => {
     if (warranty_guarantee !== undefined) product.warranty_guarantee = warranty_guarantee;
     if (stock) product.stock = Number(stock);
 
-    // ✅ Fix: includeComponents ko array mein convert karo
+    // Include Components
     let includeComponentsList = [];
     if (typeof includeComponents === 'string' && includeComponents.trim()) {
       includeComponentsList = includeComponents.split(',').map(item => item.trim());
     } else if (Array.isArray(includeComponents)) {
       includeComponentsList = includeComponents;
     }
-    product.includeComponents = includeComponentsList; 
+    product.includeComponents = includeComponentsList;
 
     if (description) product.description = description;
     if (productType) product.productType = productType;
 
-    // ✅ Specifications ko parse aur update karein
+    // Specifications
     let specObj = {};
     if (typeof specifications === 'string') {
       try {
         specObj = JSON.parse(specifications);
       } catch (e) {
         console.error("Failed to parse specs JSON:", e);
-        specObj = {};
       }
     } else if (typeof specifications === 'object' && specifications !== null) {
       specObj = specifications;
     }
 
     const specMap = product.specifications || new Map();
-
-    // Parse ki hui specs ko map mein daalo
     Object.entries(specObj).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         specMap.set(key, value);
@@ -350,9 +372,13 @@ const updateProduct = async (req, res) => {
       const newImages = [];
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path);
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'products'
+          });
           newImages.push(result.secure_url);
-          fs.unlinkSync(file.path);
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
         }
@@ -363,6 +389,7 @@ const updateProduct = async (req, res) => {
     product.images = finalImages;
 
     const updatedProduct = await product.save();
+    
     res.json({
       success: true,
       message: "Product updated successfully",
@@ -371,7 +398,10 @@ const updateProduct = async (req, res) => {
 
   } catch (error) {
     console.error("Update product error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message || "Server error" 
+    });
   }
 };
 
@@ -424,7 +454,10 @@ const deleteProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Product not found" 
+      });
     }
 
     // Delete images from Cloudinary
@@ -432,7 +465,7 @@ const deleteProduct = async (req, res) => {
       for (const imageUrl of product.images) {
         try {
           const publicId = imageUrl.split('/').pop().split('.')[0];
-          await cloudinary.uploader.destroy(publicId);
+          await cloudinary.uploader.destroy(`products/${publicId}`);
         } catch (error) {
           console.error("Error deleting image from Cloudinary:", error);
         }
@@ -446,7 +479,206 @@ const deleteProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete product error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
+};
+
+// ============================
+// ✅ GET PRODUCTS BY CATEGORY
+// ============================
+const getProductsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const { page = 1, limit = 20, sort = "createdAt", order = "desc" } = req.query;
+
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const productsPerPage = Math.min(Math.max(Number(limit) || 20, 1), 50);
+    const skip = (currentPage - 1) * productsPerPage;
+
+    const filter = { category };
+    const sortOptions = { [sort]: order === "asc" ? 1 : -1 };
+
+    const products = await Product.find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(productsPerPage)
+      .lean();
+
+    const total = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(total / productsPerPage);
+
+    res.json({
+      success: true,
+      products,
+      pagination: {
+        total,
+        page: currentPage,
+        limit: productsPerPage,
+        pages: totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Get products by category error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ============================
+// ✅ SEARCH PRODUCTS
+// ============================
+const searchProducts = async (req, res) => {
+  try {
+    const { query } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+
+    if (!query || query.trim().length === 0) {
+      return res.json({
+        success: true,
+        products: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          limit: 20,
+          pages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
+
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const productsPerPage = Math.min(Math.max(Number(limit) || 20, 1), 50);
+    const skip = (currentPage - 1) * productsPerPage;
+
+    const searchValue = query.trim();
+    const filter = {
+      $or: [
+        { name: { $regex: searchValue, $options: "i" } },
+        { description: { $regex: searchValue, $options: "i" } },
+        { category: { $regex: searchValue, $options: "i" } },
+        { brand: { $regex: searchValue, $options: "i" } },
+      ]
+    };
+
+    const products = await Product.find(filter)
+      .skip(skip)
+      .limit(productsPerPage)
+      .lean();
+
+    const total = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(total / productsPerPage);
+
+    res.json({
+      success: true,
+      products,
+      pagination: {
+        total,
+        page: currentPage,
+        limit: productsPerPage,
+        pages: totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Search products error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ============================
+// ✅ BULK DELETE PRODUCTS
+// ============================
+const bulkDeleteProducts = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Product IDs are required",
+      });
+    }
+
+    const products = await Product.find({ _id: { $in: ids } });
+    
+    // Delete images from Cloudinary
+    for (const product of products) {
+      if (product.images && product.images.length > 0) {
+        for (const imageUrl of product.images) {
+          try {
+            const publicId = imageUrl.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`products/${publicId}`);
+          } catch (error) {
+            console.error("Error deleting image from Cloudinary:", error);
+          }
+        }
+      }
+    }
+
+    await Product.deleteMany({ _id: { $in: ids } });
+
+    res.json({
+      success: true,
+      message: `${ids.length} products deleted successfully`,
+    });
+  } catch (error) {
+    console.error("Bulk delete products error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// ============================
+// ✅ UPDATE PRODUCT STOCK
+// ============================
+const updateProductStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stock } = req.body;
+
+    if (stock === undefined || stock === null) {
+      return res.status(400).json({
+        success: false,
+        message: "Stock value is required",
+      });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    product.stock = Number(stock);
+    await product.save();
+
+    res.json({
+      success: true,
+      message: "Stock updated successfully",
+      product,
+    });
+  } catch (error) {
+    console.error("Update stock error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -459,5 +691,9 @@ export {
   createProduct,
   updateProduct,
   duplicateProduct,
-  deleteProduct
+  deleteProduct,
+  getProductsByCategory,
+  searchProducts,
+  bulkDeleteProducts,
+  updateProductStock,
 };

@@ -1,8 +1,10 @@
 import { FaGoogle, FaFacebookF, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Kethomorr from "../assets/Kethomorr.jpeg";
-import { registerUser, checkUserExists } from "../api/authApi";
 import { useState, useEffect, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { registerUser, checkUserExists } from "../api/authApi";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -15,12 +17,93 @@ const SignUp = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   
   const emailInputRef = useRef(null);
   const [isEmailChecked, setIsEmailChecked] = useState(false);
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
 
+  // ✅ React Query - Register Mutation
+  const registerMutation = useMutation({
+    mutationFn: (userData) => registerUser(userData),
+    
+    onSuccess: (response) => {
+      console.log("📥 Registration Response:", response);
+      
+      // Handle different response structures
+      const token = response.token || response.data?.token || response.accessToken;
+      const user = response.user || response.data?.user || response.data;
+
+      if (!token) {
+        toast.error("Registration successful but no token received. Please login.");
+        navigate("/login");
+        return;
+      }
+
+      // Save token and user data
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user || { 
+        email: formData.email, 
+        name: formData.name 
+      }));
+
+      toast.success("Registration Successful ✅");
+      
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
+    },
+    
+    onError: (err) => {
+      console.error("❌ Registration Error:", err);
+      
+      let errorMessage = "Registration Failed ❌";
+      
+      if (err.response) {
+        console.error("Server Error:", err.response.data);
+        errorMessage = err.response.data?.message || 
+                      err.response.data?.error || 
+                      "Server error occurred";
+                      
+        if (errorMessage.toLowerCase().includes("already") || 
+            errorMessage.toLowerCase().includes("exists")) {
+          setEmailError("This email is already registered. Please login instead.");
+          toast.error("Email already registered");
+          return;
+        }
+      } else if (err.request) {
+        errorMessage = "No response from server. Please check your connection.";
+      } else {
+        errorMessage = err.message || "An unexpected error occurred";
+      }
+      
+      toast.error(errorMessage);
+    },
+  });
+
+  // ✅ Handle email check
+  const handleEmailCheck = async (email) => {
+    if (!email) return false;
+    
+    setEmailCheckLoading(true);
+    try {
+      const response = await checkUserExists(email);
+      if (response.exists) {
+        setEmailError("This email is already registered. Please login instead.");
+        return true;
+      } else {
+        setEmailError("");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    } finally {
+      setEmailCheckLoading(false);
+    }
+  };
+
+  // ✅ Handle autofill
   useEffect(() => {
     if (emailInputRef.current && emailInputRef.current.value) {
       const autofilledEmail = emailInputRef.current.value;
@@ -34,24 +117,7 @@ const SignUp = () => {
     }
   }, []);
 
-  const handleEmailCheck = async (email) => {
-    if (!email) return;
-    
-    try {
-      const response = await checkUserExists(email);
-      if (response.exists) {
-        setEmailError("This email is already registered. Please login instead.");
-        return true;
-      } else {
-        setEmailError("");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error checking email:", error);
-      return false;
-    }
-  };
-
+  // ✅ Handle email change
   const handleEmailChange = async (e) => {
     const email = e.target.value;
     setFormData({...formData, email});
@@ -64,98 +130,34 @@ const SignUp = () => {
     }
   };
 
+  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // ✅ Reset loading state agar pehle se true hai
-    setLoading(true);
-
+    // Check if email exists
     const emailExists = await handleEmailCheck(formData.email);
-    if (emailExists) {
-      setLoading(false);
-      return;
-    }
+    if (emailExists) return;
 
+    // Validate passwords
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match ❌");
-      setLoading(false);
+      toast.error("Passwords do not match ❌");
       return;
     }
 
-    try {
-      console.log("📤 Sending registration data:", {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      });
-
-      const response = await registerUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      console.log("📥 Registration Response:", response);
-
-      // ✅ Better response handling
-      // Check different possible response structures
-      const token = response.token || response.data?.token || response.accessToken;
-      const user = response.user || response.data?.user || response.data;
-
-      if (!token) {
-        console.error("❌ No token in response:", response);
-        alert("Registration successful but no token received. Please login.");
-        navigate("/login");
-        return;
-      }
-
-      // Save token and user data
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user || { email: formData.email, name: formData.name }));
-
-      alert("Registration Successful ✅");
-      
-      // ✅ Navigate with slight delay for better UX
-      setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 100);
-      
-    } catch (err) {
-      console.error("❌ Registration Error Full:", err);
-      
-      // ✅ Better error handling
-      let errorMessage = "Registration Failed ❌";
-      
-      if (err.response) {
-        // Server responded with error
-        console.error("Server Error Response:", err.response);
-        console.error("Server Error Data:", err.response.data);
-        
-        errorMessage = err.response.data?.message || 
-                      err.response.data?.error || 
-                      "Server error occurred";
-                      
-        if (errorMessage.includes("already") || errorMessage.includes("exists")) {
-          setEmailError("This email is already registered. Please login instead.");
-          setLoading(false);
-          return;
-        }
-      } else if (err.request) {
-        // Request made but no response
-        console.error("No Response from Server:", err.request);
-        errorMessage = "No response from server. Please check your connection.";
-      } else {
-        // Something else happened
-        console.error("Error Message:", err.message);
-        errorMessage = err.message || "An unexpected error occurred";
-      }
-      
-      alert(errorMessage);
-    } finally {
-      // ✅ Ensure loading is always set to false
-      setLoading(false);
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters ❌");
+      return;
     }
+
+    // Submit registration
+    registerMutation.mutate({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
   };
+
+  const { isPending } = registerMutation;
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center px-4">
@@ -173,6 +175,7 @@ const SignUp = () => {
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             required
             autoComplete="name"
+            disabled={isPending}
           />
 
           <div className="relative mb-5">
@@ -188,7 +191,14 @@ const SignUp = () => {
               onChange={handleEmailChange}
               onBlur={() => handleEmailCheck(formData.email)}
               required
+              disabled={isPending}
             />
+            {emailCheckLoading && (
+              <div className="flex items-center mt-1 text-gray-500 text-sm">
+                <span className="animate-spin mr-2">⏳</span>
+                Checking email...
+              </div>
+            )}
             {emailError && (
               <div className="flex items-center mt-1 text-red-500 text-sm">
                 <span className="mr-1">⚠️</span>
@@ -207,6 +217,7 @@ const SignUp = () => {
               required
               minLength={6}
               autoComplete="new-password"
+              disabled={isPending}
             />
             <button
               type="button"
@@ -227,6 +238,7 @@ const SignUp = () => {
               required
               minLength={6}
               autoComplete="new-password"
+              disabled={isPending}
             />
             <button
               type="button"
@@ -240,13 +252,20 @@ const SignUp = () => {
           <button 
             type="submit" 
             className={`w-full text-white py-4 rounded-xl font-semibold text-lg transition ${
-              emailError || loading
+              emailError || isPending
                 ? "bg-gray-400 cursor-not-allowed" 
                 : "bg-orange-500 hover:bg-orange-600"
             }`}
-            disabled={loading || !!emailError}
+            disabled={isPending || !!emailError}
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin">⏳</span>
+                Creating Account...
+              </span>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </form>
 

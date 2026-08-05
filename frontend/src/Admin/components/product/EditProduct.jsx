@@ -1,11 +1,9 @@
-// frontend/src/pages/Admin/EditProduct.jsx
-
 import { useState, useEffect } from "react";
 import { FaUpload, FaTrash } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { categoryData } from "../../data/categoryData.js";
-import { getProductById, updateProduct } from "../../../api/productApi.js";
-import { getTemplateByCategory, PRODUCT_TEMPLATES } from "../../data/ProductTemplates.js";
+import { useProduct, useUpdateProduct } from "../../../hooks"; // ✅ React Query hooks
+import { getTemplateByCategory } from "../../data/ProductTemplates.js";
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -33,45 +31,43 @@ export default function EditProduct() {
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [specFields, setSpecFields] = useState([]);
 
-  // Fetch Product
+  // ✅ React Query - Fetch Product
+  const { 
+    data: productData, 
+    isLoading, 
+    isError, 
+    error, 
+    refetch 
+  } = useProduct(id);
+
+  // ✅ React Query - Update Product
+  const updateProduct = useUpdateProduct();
+
+  // ✅ Set product data when fetched
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const data = await getProductById(id);
-        
-        // Extract specifications from product
-        const specs = data.specifications || {};
-        
-        setProduct({
-          ...data,
-          specifications: specs
-        });
-        
-        setExistingImages(data.images || []);
-        
-        // Get template fields for this category
-        if (data.category) {
-          const template = getTemplateByCategory(data.category);
-          const fields = Object.keys(template.fields).map(key => ({
-            key,
-            ...template.fields[key]
-          }));
-          setSpecFields(fields);
-        }
-        
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        alert("Failed to load product data");
-      } finally {
-        setLoading(false);
+    if (productData) {
+      const specs = productData.specifications || {};
+      
+      setProduct({
+        ...productData,
+        specifications: specs
+      });
+      
+      setExistingImages(productData.images || []);
+      
+      // Get template fields for this category
+      if (productData.category) {
+        const template = getTemplateByCategory(productData.category);
+        const fields = Object.keys(template.fields).map(key => ({
+          key,
+          ...template.fields[key]
+        }));
+        setSpecFields(fields);
       }
-    };
-    fetchProduct();
-  }, [id]);
+    }
+  }, [productData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -151,9 +147,10 @@ export default function EditProduct() {
     setExistingImages(newExistingImages);
   };
 
-  // Update Product
+  // ✅ Update Product with React Query
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       const formData = new FormData();
 
@@ -172,11 +169,16 @@ export default function EditProduct() {
       formData.append("stock", product.stock);
       formData.append("description", product.description || "");
       
+      // Include Components
+      if (product.includeComponents) {
+        formData.append("includeComponents", product.includeComponents);
+      }
+      
       // Product type
       const template = getTemplateByCategory(product.category);
-      formData.append("productType", template.productType || "fan");
+      formData.append("productType", template?.productType || "fan");
 
-      // ✅ Specifications as JSON
+      // Specifications as JSON
       formData.append("specifications", JSON.stringify(product.specifications));
 
       // Existing Images
@@ -190,12 +192,12 @@ export default function EditProduct() {
         formData.append("images", img);
       });
 
-      await updateProduct(id, formData);
-      alert("✅ Product Updated Successfully");
+      // ✅ Use React Query mutation
+      await updateProduct.mutateAsync({ id, data: formData });
+      
       navigate("/admin/products");
     } catch (error) {
-      console.log(error);
-      alert(error.response?.data?.message || "❌ Product Update Failed");
+      console.error("Error updating product:", error);
     }
   };
 
@@ -204,13 +206,34 @@ export default function EditProduct() {
   const subCategories = currentCategoryData?.subCategories || [];
   const brands = currentCategoryData?.brands || [];
 
-  if (loading) {
+  // ✅ Loading State
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
           <div className="text-center py-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading product...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Error State
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div className="text-center py-10">
+            <p className="text-red-600 text-xl mb-4">⚠️ Failed to load product</p>
+            <p className="text-gray-600 mb-4">{error?.message || "Product not found"}</p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       </div>
@@ -303,7 +326,7 @@ export default function EditProduct() {
                 name="MRP"
                 value={product.MRP}
                 onChange={handleChange}
-                placeholder="₹ M.R.P "
+                placeholder="₹ M.R.P"
                 className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -392,19 +415,17 @@ export default function EditProduct() {
             </div>
 
             {/* Include Components */}
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Include Components <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              name="includeComponents"
-              value={product.includeComponents}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., 50"
-            />
-          </div>
+            <div>
+              <label className="font-semibold">Include Components</label>
+              <input
+                type="text"
+                name="includeComponents"
+                value={product.includeComponents || ''}
+                onChange={handleChange}
+                placeholder="e.g., Remote, Batteries, Manual"
+                className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
             {/* Stock */}
             <div>
@@ -421,7 +442,7 @@ export default function EditProduct() {
             </div>
           </div>
 
-          {/* ✅ Dynamic Specifications - Category ke hisaab se */}
+          {/* Dynamic Specifications */}
           {product.category && specFields.length > 0 && (
             <div>
               <h3 className="text-xl font-semibold mb-4 border-b pb-2">
@@ -474,7 +495,7 @@ export default function EditProduct() {
             <textarea
               rows="4"
               name="description"
-              value={product.description}
+              value={product.description || ''}
               onChange={handleChange}
               placeholder="Write Product Description..."
               className="w-full mt-2 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
@@ -490,13 +511,13 @@ export default function EditProduct() {
                   <div key={index} className="relative">
                     <img 
                       src={typeof img === "object" ? img.url : img} 
-                      alt="" 
+                      alt={`Product ${index + 1}`}
                       className="rounded-lg h-36 w-full object-cover border" 
                     />
                     <button 
                       type="button" 
                       onClick={() => removeExistingImage(index)} 
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
                     >
                       <FaTrash />
                     </button>
@@ -524,11 +545,11 @@ export default function EditProduct() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
                 {preview.map((img, index) => (
                   <div key={index} className="relative">
-                    <img src={img} alt="" className="rounded-lg h-36 w-full object-cover border" />
+                    <img src={img} alt={`Preview ${index + 1}`} className="rounded-lg h-36 w-full object-cover border" />
                     <button 
                       type="button" 
                       onClick={() => removeImage(index)} 
-                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                      className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
                     >
                       <FaTrash />
                     </button>
@@ -541,14 +562,26 @@ export default function EditProduct() {
           <div className="flex gap-4">
             <button 
               type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg"
+              disabled={updateProduct.isPending}
+              className={`px-10 py-3 rounded-lg transition flex items-center gap-2 ${
+                updateProduct.isPending 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
-              Update Product
+              {updateProduct.isPending ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  Updating...
+                </>
+              ) : (
+                'Update Product'
+              )}
             </button>
             <button 
               type="button" 
               onClick={() => navigate("/admin/products")} 
-              className="bg-gray-400 hover:bg-gray-500 text-white px-10 py-3 rounded-lg"
+              className="bg-gray-400 hover:bg-gray-500 text-white px-10 py-3 rounded-lg transition"
             >
               Cancel
             </button>

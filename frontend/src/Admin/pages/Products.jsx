@@ -1,101 +1,78 @@
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom"; // useSearchParams import करें
-import { useEffect, useState } from "react";
-import { deleteProduct, getProduct } from "../../api/productApi";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useProducts, useDeleteProduct } from "../../hooks"; // ✅ React Query hooks
 import DuplicateBtn from "../components/product/DuplicateBtn";
 
 export default function Products() {
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // URL params के लिए
+  const [searchParams] = useSearchParams();
   
-  // URL से params लें
+  // URL se params lo
   const categoryName = searchParams.get('category');
   const subCategoryName = searchParams.get('subCategory');
   const brandName = searchParams.get('brand');
 
-  const fetchProducts = async () => {
-    try {
-      const data = await getProduct();
-      setProducts(data);
-      setFilteredProducts(data); // Initially all products
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // ✅ React Query se products fetch karo
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useProducts({
+    category: categoryName || undefined,
+    subCategory: subCategoryName || undefined,
+    brand: brandName || undefined,
+  });
 
-  // Products filter करें
-  const filterProducts = (productsList, search = searchTerm) => {
-    let filtered = [...productsList];
-    
-    // Category filter
-    if (categoryName) {
-      filtered = filtered.filter(product => product.category === categoryName);
-    }
-    
-    // SubCategory filter
-    if (subCategoryName) {
-      filtered = filtered.filter(product => product.subCategory === subCategoryName);
-    }
-    
-    // Brand filter
-    if (brandName) {
-      filtered = filtered.filter(product => product.brand === brandName);
-    }
-    
-    // Search filter
-    if (search) {
-      filtered = filtered.filter(product =>
-        product.name?.toLowerCase().includes(search.toLowerCase()) ||
-        product.category?.toLowerCase().includes(search.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    
-    setFilteredProducts(filtered);
-  };
+  // ✅ Delete mutation
+  const deleteProduct = useDeleteProduct();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  // ✅ Sab products ko flat karo
+  const allProducts = useMemo(
+    () => data?.pages.flatMap((page) => page.products) || [],
+    [data]
+  );
 
-  // जब products या filters change हों तो filter apply करें
-  useEffect(() => {
-    filterProducts(products);
-  }, [products, categoryName, subCategoryName, brandName]);
+  // ✅ Search filter
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return allProducts;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return allProducts.filter((product) =>
+      product.name?.toLowerCase().includes(searchLower) ||
+      product.category?.toLowerCase().includes(searchLower) ||
+      product.brand?.toLowerCase().includes(searchLower) ||
+      product.subCategory?.toLowerCase().includes(searchLower)
+    );
+  }, [allProducts, searchTerm]);
 
+  // ✅ Delete handler
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this product?");
     if (!confirmDelete) return;
 
     try {
-      await deleteProduct(id);
-      alert("Product Deleted Successfully");
-      fetchProducts();
+      await deleteProduct.mutateAsync(id);
+      // ✅ Refetch after delete
+      refetch();
     } catch (error) {
-      console.log(error);
-      alert("Delete Failed");
+      console.error("Delete failed:", error);
     }
   };
 
-  // Search handler
+  // ✅ Search handler
   const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    filterProducts(products, value);
+    setSearchTerm(e.target.value);
   };
 
-  // Page title based on filters
+  // ✅ Page title based on filters
   const getPageTitle = () => {
-    if (brandName) {
-      return `Products: ${brandName}`;
-    } else if (subCategoryName) {
-      return `Products: ${subCategoryName}`;
-    } else if (categoryName) {
-      return `Products: ${categoryName}`;
-    }
+    if (brandName) return `Products: ${brandName}`;
+    if (subCategoryName) return `Products: ${subCategoryName}`;
+    if (categoryName) return `Products: ${categoryName}`;
     return 'Products';
   };
 
@@ -113,6 +90,42 @@ export default function Products() {
     return desc;
   };
 
+  // ✅ Loading State
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-64 bg-gray-200 rounded mt-2 animate-pulse"></div>
+          </div>
+          <div className="h-12 w-36 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="bg-white rounded-xl shadow overflow-x-auto">
+          <div className="p-8 text-center text-gray-500">Loading products...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Error State
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 text-lg mb-2">⚠️ Failed to load products</p>
+          <p className="text-red-500 text-sm mb-4">{error?.message || "Please try again"}</p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -129,7 +142,7 @@ export default function Products() {
 
         <button
           onClick={() => navigate("/admin/add-product")}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg transition"
         >
           <Plus size={18} />
           Add Product
@@ -206,21 +219,26 @@ export default function Products() {
                     <div className="flex justify-center gap-3">
                       <button 
                         onClick={() => navigate(`/admin/edit-product/${product._id}`)} 
-                        className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-lg"
+                        className="bg-yellow-400 hover:bg-yellow-500 p-2 rounded-lg transition"
                       >
                         <Pencil size={18} />
                       </button>
 
                       <DuplicateBtn
                         id={product._id}
-                        onDuplicateSuccess={fetchProducts}
+                        onDuplicateSuccess={refetch}
                       />
 
                       <button 
                         onClick={() => handleDelete(product._id)} 
-                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg"
+                        disabled={deleteProduct.isPending}
+                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition disabled:opacity-50"
                       >
-                        <Trash2 size={18} />
+                        {deleteProduct.isPending ? (
+                          <span className="animate-spin">⏳</span>
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
                       </button>
                     </div>
                   </td>

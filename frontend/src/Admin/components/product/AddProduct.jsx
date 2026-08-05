@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { categoryData, getTemplateForCategory } from '../../data/categoryData';
+import { useNavigate } from 'react-router-dom';
+import { useAddProduct } from '../../../hooks'; // ✅ React Query hook
+import { categoryData } from '../../data/categoryData';
 import { getTemplateByCategory } from '../../data/ProductTemplates';
-import { addProduct } from '../../../api/productApi';
-import { useNavigate } from 'react-router-dom'; // ← Import this
 
 const ProductForm = () => {
-  const navigate = useNavigate(); // ← Initialize navigate
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [formFields, setFormFields] = useState([]);
   const [specifications, setSpecifications] = useState({});
-  const [loading, setLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
+
+  // ✅ React Query mutation
+  const addProduct = useAddProduct();
 
   const [formData, setFormData] = useState({
     category: '',
@@ -101,7 +103,6 @@ const ProductForm = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Handle price calculations for specific fields
     if (name === 'MRP' || name === 'sellingPrice' || name === 'discount') {
       calculatePrice(name, value);
     } else {
@@ -109,51 +110,44 @@ const ProductForm = () => {
     }
   };
 
-  // In ProductForm.js, update the handleSubmit function:
-// In ProductForm.js, update the handleSubmit function:
+  // ✅ Updated handleSubmit with React Query
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-// In ProductForm.js - Update the handleSubmit function
-// In ProductForm.js - Update the handleSubmit function
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  try {
-    const formDataToSend = new FormData();
-    
-    // Add basic fields
+    // Validation
     const requiredFields = ['category', 'subCategory', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`❌ ${field} is required`);
-        setLoading(false);
         return;
       }
+    }
+
+    if (!formData.images || formData.images.length === 0) {
+      alert('❌ Please select at least one image');
+      return;
+    }
+
+    // Create FormData
+    const formDataToSend = new FormData();
+    
+    // Add basic fields
+    const fields = ['category', 'subCategory', 'brand', 'name', 'MRP', 'sellingPrice', 'stock'];
+    for (const field of fields) {
       formDataToSend.append(field, formData[field]);
     }
 
     // Add optional fields
-    const optionalFields = [
-      'discount', 
-      'description', 
-      'rating',
-      'reviews',
-      'choose_W_G',
-      'warranty_guarantee'
-    ];
-    
+    const optionalFields = ['discount', 'description', 'rating', 'reviews', 'choose_W_G', 'warranty_guarantee'];
     for (const field of optionalFields) {
       if (formData[field] !== undefined && formData[field] !== null && formData[field] !== '') {
         formDataToSend.append(field, formData[field]);
       }
     }
 
-    // ✅ CRITICAL FIX: Handle includeComponents as comma-separated string
-    // The backend will split it into an array
+    // Handle includeComponents
     if (formData.includeComponents && formData.includeComponents.trim()) {
       formDataToSend.append('includeComponents', formData.includeComponents);
-      console.log("Sending includeComponents:", formData.includeComponents);
     }
 
     // Get product type from template
@@ -163,10 +157,9 @@ const handleSubmit = async (e) => {
     }
 
     // Add specifications as JSON
-    console.log("Specifications being sent:", specifications);
     formDataToSend.append('specifications', JSON.stringify(specifications));
 
-    // Also send individual specification fields
+    // Add individual specification fields
     Object.keys(specifications).forEach(key => {
       if (specifications[key] !== undefined && specifications[key] !== '') {
         formDataToSend.append(key, specifications[key]);
@@ -174,27 +167,15 @@ const handleSubmit = async (e) => {
     });
 
     // Add images
-    if (formData.images && formData.images.length > 0) {
-      formData.images.forEach(file => {
-        formDataToSend.append('images', file);
-      });
-    } else {
-      alert('❌ Please select at least one image');
-      setLoading(false);
-      return;
-    }
+    formData.images.forEach(file => {
+      formDataToSend.append('images', file);
+    });
 
-    // Log all FormData for debugging
-    console.log("=== FormData being sent ===");
-    for (let pair of formDataToSend.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-
-    const response = await addProduct(formDataToSend);
-    
-    if (response.success) {
-      alert('✅ Product created successfully!');
-      // Reset form
+    // ✅ Use React Query mutation
+    try {
+      await addProduct.mutateAsync(formDataToSend);
+      
+      // Reset form on success
       setFormData({
         category: '',
         subCategory: '',
@@ -216,26 +197,22 @@ const handleSubmit = async (e) => {
       setSelectedCategory('');
       setImagePreviews([]);
       navigate('/admin/products');
-    } else {
-      alert('❌ Failed to create product: ' + (response.message || 'Unknown error'));
+    } catch (error) {
+      // Error is handled by the mutation's onError
+      console.error('Error creating product:', error);
     }
-  } catch (error) {
-    console.error('Error creating product:', error);
-    const errorMessage = error.response?.data?.message || error.message || 'Please try again.';
-    alert(`❌ Error creating product: ${errorMessage}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     setFormData(prev => ({ ...prev, images: files }));
     
-    // Create image previews
     const previews = files.map(file => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
+
+  // ✅ Loading state from mutation
+  const { isPending } = addProduct;
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50 rounded-lg shadow-md">
@@ -338,7 +315,6 @@ const handleSubmit = async (e) => {
             />
           </div>
 
-          {/*Selling Price */}
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
               Selling Price <span className="text-red-500 ml-1">*</span>
@@ -356,7 +332,6 @@ const handleSubmit = async (e) => {
           </div>
         </div>
 
-        {/* Discount % */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
@@ -375,85 +350,6 @@ const handleSubmit = async (e) => {
             />
           </div>
 
-           {/* Rating */}
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Rating <span className="text-red-500 ml-1">*</span>
-            </label>
-              <input
-                type="number"
-                name="rating"
-                value={formData.rating}
-                onChange={handleInputChange}
-                placeholder="Rating (e.g., 4.5)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none   focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Reviews */}
-          <div className="mb-4">
-             <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Reviews <span className="text-red-500 ml-1">*</span>
-            </label>
-              <input
-                type="number"
-                name="reviews"
-                value={formData.reviews}
-                onChange={handleInputChange}
-                placeholder="Number of Reviews"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm  
-                focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />  
-            </div>
-
-            {/* Choose W/G */}
-            <div className="mb-4">
-              <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Choose one <span className="text-red-500 ml-1">*</span>
-            </label>
-              <select
-                name="choose_W_G"
-                value={formData.choose_W_G}
-                onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Warranty or Guarantee</option>
-                <option value="warranty">Warranty</option>
-                <option value="guarantee">Guarantee</option>
-              </select>
-            </div>
-
-            {/* Warranty_Guarantee */}
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Warranty_Guarantee <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              name="warranty_guarantee"
-              value={formData.warranty_guarantee}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., 50"
-            />
-          </div>
-
-          {/* Include Components */}
-          <div className="mb-4">
-            <label className="block font-medium mb-1 text-gray-700 text-sm">
-              Include Components <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              name="includeComponents"
-              value={formData.includeComponents}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., 50"
-            />
-          </div>
-
-            {/* Stock */}
           <div className="mb-4">
             <label className="block font-medium mb-1 text-gray-700 text-sm">
               Stock <span className="text-red-500 ml-1">*</span>
@@ -469,7 +365,86 @@ const handleSubmit = async (e) => {
               min="0"
             />
           </div>
-     
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Rating
+            </label>
+            <input
+              type="number"
+              name="rating"
+              value={formData.rating}
+              onChange={handleInputChange}
+              placeholder="Rating (e.g., 4.5)"
+              step="0.1"
+              min="0"
+              max="5"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Reviews
+            </label>
+            <input
+              type="number"
+              name="reviews"
+              value={formData.reviews}
+              onChange={handleInputChange}
+              placeholder="Number of Reviews"
+              min="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />  
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Choose one
+            </label>
+            <select
+              name="choose_W_G"
+              value={formData.choose_W_G}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Warranty or Guarantee</option>
+              <option value="warranty">Warranty</option>
+              <option value="guarantee">Guarantee</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block font-medium mb-1 text-gray-700 text-sm">
+              Warranty/Guarantee Details
+            </label>
+            <input
+              type="text"
+              name="warranty_guarantee"
+              value={formData.warranty_guarantee}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 1 year warranty"
+            />
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-gray-700 text-sm">
+            Include Components
+          </label>
+          <input
+            type="text"
+            name="includeComponents"
+            value={formData.includeComponents}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g., Remote, Batteries, Manual"
+          />
         </div>
 
         <div className="mb-4">
@@ -551,9 +526,13 @@ const handleSubmit = async (e) => {
           {imagePreviews.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {imagePreviews.map((preview, index) => (
-                <span key={index} className="bg-gray-200 px-3 py-1 rounded text-xs text-gray-700">
-                  Image {index + 1}
-                </span>
+                <div key={index} className="relative">
+                  <img 
+                    src={preview} 
+                    alt={`Preview ${index + 1}`} 
+                    className="w-16 h-16 object-cover rounded border"
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -562,13 +541,20 @@ const handleSubmit = async (e) => {
         <button 
           type="submit" 
           className={`w-full py-3 px-4 rounded-md text-white font-bold text-base transition-colors ${
-            loading 
+            isPending 
               ? 'bg-gray-500 cursor-not-allowed' 
               : 'bg-blue-600 hover:bg-blue-700'
           }`}
-          disabled={loading}
+          disabled={isPending}
         >
-          {loading ? 'Creating Product...' : 'Create Product'}
+          {isPending ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="animate-spin">⏳</span>
+              Creating Product...
+            </span>
+          ) : (
+            'Create Product'
+          )}
         </button>
       </form>
     </div>

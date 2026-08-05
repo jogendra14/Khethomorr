@@ -3,7 +3,10 @@ import ScrollToTop from "./ScrollToTop.jsx";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 
-{/* ADMIN RELATED */}
+// ✅ React Query DevTools Import
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+// ADMIN RELATED
 import ProtectedRoute from "./Admin/components/ProtectedRoute";
 import AdminLogin from "./Admin/AdminLogin.jsx";
 import AdminLayout from "./Admin/AdminLayout.jsx";
@@ -16,8 +19,6 @@ import EditProduct from "./Admin/components/product/EditProduct.jsx";
 import Categories from "./Admin/pages/Categories.jsx";
 import SubCategories from "./Admin/components/subCategories/SubCategories.jsx";
 import Brands from "./Admin/components/subCategories/Brands.jsx";
-//import AddCategory from "./Admin/components/category/AddCategory.jsx"
-//import EditCategory from "./Admin/components/category/EditCategory.jsx"
 
 import Offers from "./Admin/pages/Deals.jsx";
 import AddDeal from "./Admin/components/deal/AddDeal.jsx";
@@ -27,7 +28,7 @@ import Orders from "./Admin/pages/Orders.jsx";
 import Users from './Admin/pages/Users.jsx';
 import AddUser from "./Admin/components/users/AddUser.jsx";
 
-{/* USER RELATED */}
+// USER RELATED
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Deals from "./pages/Deals.jsx"
@@ -45,15 +46,12 @@ import Coupons from "./Admin/pages/Coupons.jsx";
 import Banner from "./Admin/pages/Banner.jsx";
 import Settings from "./Admin/pages/Settings.jsx";
 import AdminProfile from "./Admin/pages/AdminProfile.jsx";
-//import Product from "./pages/Product.jsx";
-
-
 
 const App = () => {
   return (
     <BrowserRouter>
       <ScrollToTop/>
-           <AuthProvider>
+      <AuthProvider>
         <Routes>
           {/* USERS */}
           <Route path="/" element={<Home />} />
@@ -65,7 +63,7 @@ const App = () => {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/checkout" element={<Checkout/>}/>
           
-          {/*ADMIN */}
+          {/* ADMIN */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin"
@@ -84,10 +82,6 @@ const App = () => {
             <Route path="/admin/sub-categories" element={<SubCategories />} />
             <Route path="/admin/brands" element={<Brands />} />
 
-          {/*
-            <Route path="/admin/add-category" element={<AddCategory />} /> 
-            <Route path="/admin/edit-category/:id" element={<EditCategory/>} /> */}
-
             <Route path="deals" element={<Offers  />}/>
             <Route path="/admin/add-deal" element={<AddDeal />} /> 
             <Route path="/admin/edit-deal/:id" element={<EditDeal/>} /> 
@@ -101,18 +95,32 @@ const App = () => {
             <Route path="adminProfile" element={<AdminProfile />} />
           </Route>
 
-          {/*User Login Page */}
+          {/* User Login Page */}
           <Route path="/Login" element={<Login />} />
-          {/*User SignUp Page */}
+          {/* User SignUp Page */}
           <Route path="/SignUp" element={<SignUp />} />
           {/* Cart Page */}
           <Route path="/Cart" element={<Cart />} />
           {/* Wishlist Page */}
           <Route path="/Wishlist" element={<Wishlist />} />
         </Routes>
-        </AuthProvider>
-        <Toaster position="top-right" />
-      </BrowserRouter>
+      </AuthProvider>
+      
+      {/* ✅ Toaster - ek baar hi rakhna hai */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }}
+      />
+
+      {/* ✅ React Query DevTools */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </BrowserRouter>
   );
 };
 

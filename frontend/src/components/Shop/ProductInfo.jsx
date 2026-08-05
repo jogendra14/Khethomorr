@@ -1,7 +1,5 @@
-// frontend/src/components/Shop/ProductInfo.jsx
-
-import { useContext, useState, useEffect } from "react";
-import { getProduct } from "../../api/productApi";
+import { useContext, useState, useMemo, useCallback } from "react";
+import { useProducts } from "../../hooks"; // ✅ React Query hook
 import { FiHeart, FiTruck, FiRefreshCw } from "react-icons/fi";
 import { IoShieldCheckmarkOutline } from "react-icons/io5";
 import { MdOutlineEnergySavingsLeaf } from "react-icons/md";
@@ -10,49 +8,31 @@ import { FaStar } from "react-icons/fa";
 import { CartContext } from "../../context/CartContext";
 import { WishlistContext } from "../../context/WishlistContext";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function ProductInfo({ product }) {
-console.log("PRODUCT DATA:", product);
-  const [allProducts, setAllProducts] = useState([]);
-  const [colorVariants, setColorVariants] = useState([]);
+  const [activeTab, setActiveTab] = useState('spec');
   const { addToCart } = useContext(CartContext);
   const { addToWishlist } = useContext(WishlistContext);
-  const [activeTab, setActiveTab] = useState('spec');
 
-  // Fetch all products
-  const fetchProduct = async () => {
-    try {
-      const response = await getProduct();
-      if (Array.isArray(response)) {
-        setAllProducts(response);
-      } else if (response && typeof response === "object") {
-        setAllProducts([response]);
-      } else {
-        console.error("Unexpected API response format:", response);
-        setAllProducts([]);
-      }
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      setAllProducts([]);
-    }
-  };
+  // ✅ React Query - Fetch all products for color variants
+  const { data, isLoading } = useProducts({
+    limit: 100,
+    sort: "createdAt",
+    order: "desc",
+  });
 
-  useEffect(() => {
-    fetchProduct();
-  }, []);
+  // ✅ Memoized all products
+  const allProducts = useMemo(
+    () => data?.pages.flatMap((page) => page.products) || [],
+    [data]
+  );
 
-  const capitalizeWords = (str) => {
-    if (!str) return "";
-    return str
-      .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+  // ✅ Memoized color variants
+  const colorVariants = useMemo(() => {
+    if (!product || allProducts.length === 0) return [];
 
-  useEffect(() => {
-    if (!product || allProducts.length === 0) return;
-    const filteredProducts = allProducts.filter((p) => {
+    return allProducts.filter((p) => {
       const categoryMatch = p.category?.toLowerCase() === product.category?.toLowerCase();
       const subCategoryMatch = p.subCategory && product.subCategory 
         ? p.subCategory.toLowerCase() === product.subCategory.toLowerCase() 
@@ -61,88 +41,109 @@ console.log("PRODUCT DATA:", product);
       const nameMatch = p.name?.trim().toLowerCase() === product.name?.trim().toLowerCase();
       return categoryMatch && subCategoryMatch && brandMatch && nameMatch;
     });
-    setColorVariants(filteredProducts);
   }, [allProducts, product]);
 
-  const formatSpecificationLabel = (label) => {
-  if (!label) return "";
+  // ✅ Utility functions
+  const capitalizeWords = useCallback((str) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }, []);
 
-  return label
-    // camelCase ko separate karo
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    // first letter capital
-    .replace(/^./, (char) => char.toUpperCase());
-};
+  const formatSpecificationLabel = useCallback((label) => {
+    if (!label) return "";
+    return label
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/^./, (char) => char.toUpperCase());
+  }, []);
 
-  // ----- DYNAMIC SPECIFICATION RENDERER -----
- const renderSpecifications = () => {
-  if (!product) return null;
+  // ✅ Add to cart handler
+  const handleAddToCart = useCallback(() => {
+    try {
+      addToCart(product);
+      toast.success(`${product.name} added to cart! 🛒`);
+    } catch (error) {
+      toast.error("Failed to add to cart ❌");
+      console.error("Add to cart error:", error);
+    }
+  }, [product, addToCart]);
 
-  let specs = [];
+  // ✅ Add to wishlist handler
+  const handleAddToWishlist = useCallback(() => {
+    try {
+      addToWishlist(product);
+      toast.success(`${product.name} added to wishlist! ❤️`);
+    } catch (error) {
+      toast.error("Failed to add to wishlist ❌");
+      console.error("Add to wishlist error:", error);
+    }
+  }, [product, addToWishlist]);
 
-  // specifications is an OBJECT
-  if (
-    product.specifications &&
-    typeof product.specifications === "object" &&
-    !Array.isArray(product.specifications)
-  ) {
-    specs = Object.entries(product.specifications).map(([label, value]) => ({
-      label,
-      value,
-    }));
-  }
+  // ✅ Render Specifications
+  const renderSpecifications = useCallback(() => {
+    if (!product) return null;
 
-  // specifications is an ARRAY
-  else if (Array.isArray(product.specifications)) {
-    specs = product.specifications;
-  }
+    let specs = [];
 
-  // specificationMap fallback
-  else if (
-    product.specificationMap &&
-    typeof product.specificationMap === "object"
-  ) {
-    specs = Object.entries(product.specificationMap).map(([label, value]) => ({
-      label,
-      value,
-    }));
-  }
-  
-  return (
-    <div className="overflow-x-auto mx-2 pb-1.5 bg-gray-50">
-      <table className="w-full text-sm  rounded-lg">
-        <tbody>
-          {specs.map((spec, index) => (
-            <tr key={index} className="">
-              
-              <td className="px-4 py-1 font-semibold text-gray-700 bg-gray-50 w-1/3">
-                {formatSpecificationLabel(spec.label)}
-              </td>
+    if (
+      product.specifications &&
+      typeof product.specifications === "object" &&
+      !Array.isArray(product.specifications)
+    ) {
+      specs = Object.entries(product.specifications).map(([label, value]) => ({
+        label,
+        value,
+      }));
+    } else if (Array.isArray(product.specifications)) {
+      specs = product.specifications;
+    } else if (
+      product.specificationMap &&
+      typeof product.specificationMap === "object"
+    ) {
+      specs = Object.entries(product.specificationMap).map(([label, value]) => ({
+        label,
+        value,
+      }));
+    }
+    
+    if (specs.length === 0) return null;
 
-              <td className="px-4 bg-gray-50 text-gray-900">
-                {Array.isArray(spec.value)
-                  ? spec.value.join(", ")
-                  : typeof spec.value === "object"
-                  ? JSON.stringify(spec.value)
-                  : spec.value}
-              </td>
+    return (
+      <div className="overflow-x-auto mx-2 pb-1.5 bg-gray-50">
+        <table className="w-full text-sm rounded-lg">
+          <tbody>
+            {specs.map((spec, index) => (
+              <tr key={index}>
+                <td className="px-4 py-1 font-semibold text-gray-700 bg-gray-50 w-1/3">
+                  {formatSpecificationLabel(spec.label)}
+                </td>
+                <td className="px-4 bg-gray-50 text-gray-900">
+                  {Array.isArray(spec.value)
+                    ? spec.value.join(", ")
+                    : typeof spec.value === "object"
+                    ? JSON.stringify(spec.value)
+                    : spec.value}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }, [product, formatSpecificationLabel]);
 
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-  // ----- DYNAMIC DESCRIPTION RENDERER -----
-  const renderDescription = () => {
+  // ✅ Render Description
+  const renderDescription = useCallback(() => {
     if (!product) return null;
     
     const descriptionText = product.description || "No description available";
     const paragraphs = descriptionText.split('\n').filter(p => p.trim() !== '');
     
     return (
-      <div className="space-y-2 text-sm text-gray-700">
+      <div className="space-y-2 text-sm text-gray-700 p-4">
         {paragraphs.length > 0 ? (
           paragraphs.map((para, index) => (
             <p key={index}>{para}</p>
@@ -152,66 +153,63 @@ console.log("PRODUCT DATA:", product);
         )}
       </div>
     );
-  };
+  }, [product]);
 
-  // ----- DYNAMIC TABLE RENDERER -----
- const renderDetailedSpecTable = () => {
-  if (!product) return null;
+  // ✅ Render Detailed Spec Table
+  const renderDetailedSpecTable = useCallback(() => {
+    if (!product) return null;
 
-  let specs = [];
-  if (product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0) {
-    specs = product.specifications;
-  } 
-  else if (product.specificationMap && typeof product.specificationMap === 'object' && Object.keys(product.specificationMap).length > 0) {
-    specs = Object.entries(product.specificationMap).map(([label, value]) => ({
-      label,
-      value
-    }));
-  }
+    let specs = [];
+    if (product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0) {
+      specs = product.specifications;
+    } else if (product.specificationMap && typeof product.specificationMap === 'object' && Object.keys(product.specificationMap).length > 0) {
+      specs = Object.entries(product.specificationMap).map(([label, value]) => ({
+        label,
+        value
+      }));
+    }
 
-  // Only include base fields that have values
-  const baseFields = [
-    { label: "Brand", value: product.brand },
-    { label: "Name", value: product.name },
-    { label: "Colour", value: product.color },
-    { label: "Warranty", value: product.warranty_guarantee },
-    { label: "Warranty Type", value: product.choose_W_G },
-    { label: "Include Components", value: product.includeComponents },
-  ].filter(field => field.value && field.value !== '' && field.value !== null && field.value !== undefined);
-  
-  const allFields = [...baseFields, ...specs];
-  
-  // If no fields to display, show a message
-  if (allFields.length === 0) {
+    const baseFields = [
+      { label: "Brand", value: product.brand },
+      { label: "Name", value: product.name },
+      { label: "Colour", value: product.color },
+      { label: "Warranty", value: product.warranty_guarantee },
+      { label: "Warranty Type", value: product.choose_W_G },
+      { label: "Include Components", value: product.includeComponents },
+    ].filter(field => field.value && field.value !== '' && field.value !== null && field.value !== undefined);
+    
+    const allFields = [...baseFields, ...specs];
+    
+    if (allFields.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-500">
+          No detailed specifications available for this product.
+        </div>
+      );
+    }
+    
     return (
-      <div className="text-center py-8 text-gray-500">
-        No detailed specifications available for this product.
+      <div className="overflow-x-auto pt-2 mx-2 bg-gray-50">
+        <table className="w-full text-sm">
+          <tbody>
+            {allFields.map((item, index) => (
+              <tr key={index}>
+                <td className="px-4 py-1 font-medium text-gray-900 w-1/3 bg-gray-50">
+                  {item.label}
+                </td>
+                <td className="px-4 text-gray-900">
+                  {typeof item.value === 'object' ? JSON.stringify(item.value) : item.value}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
-  }
-  
-  return (
-    <div className="overflow-x-auto pt-2 mx-2 bg-gray-50 ">
-      <table className="w-full text-sm">
-        <tbody>
-          {allFields.map((item) => (
-            <tr className="">
-              <td className="px-4 py-1 font-medium text-gray-900 w-1/3 bg-gray-50">
-                {item.label}
-              </td>
-              <td className="px-4 text-gray-900">
-                {typeof item.value === 'object' ? JSON.stringify(item.value) : item.value}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+  }, [product]);
 
   if (!product) {
-    return <div>Loading product...</div>;
+    return <div className="text-center py-10">Loading product...</div>;
   }
 
   return (
@@ -231,16 +229,18 @@ console.log("PRODUCT DATA:", product);
             <FaStar key={item} />
           ))}
         </div>
-        <span className="font-semibold">{product.rating}</span>
-        <span className="text-gray-500">{product.reviews} Reviews</span>
+        <span className="font-semibold">{product.rating || 0}</span>
+        <span className="text-gray-500">{product.reviews || 0} Reviews</span>
       </div>
       
       {/* Price Section */}
       <div className="mt-1 md:mt-2">
-        <span className="text-red-700 text-3xl md:text-4xl">-{product.discount}% </span>
+        {product.discount > 0 && (
+          <span className="text-red-700 text-3xl md:text-4xl">-{product.discount}% </span>
+        )}
         <span className="text-2xl md:text-3xl font-semibold">₹{product.sellingPrice}</span>
         <span className="text-sm md:text-md ml-1.5 text-gray-700 font-semibold">M.R.P.</span>
-        <span className="line-through text-md md:text-lg text-gray-500">{product.MRP}</span>
+        <span className="line-through text-md md:text-lg text-gray-500">₹{product.MRP}</span>
       </div>
 
       <p className="mt-2 text-gray-700">
@@ -248,34 +248,56 @@ console.log("PRODUCT DATA:", product);
       </p>
       
       {/* Color Section */}
-      <h3 className="font-semibold mt-1">Color : {product.color}</h3>
-      <div className="relative">
-        <div className="flex gap-4 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory sm:hidden [&::-webkit-scrollbar]:hidden">
-          {colorVariants.map((variant, index) => (
-            <Link key={index} to={`/product/${variant._id}`} className="shrink-0 snap-start">
-              <img src={variant.images?.[0]} className="w-25 h-25 object-cover rounded-lg shadow-md hover:scale-105 transition" alt={variant.name} />
-            </Link>
-          ))}
-        </div>
-        <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 py-4">
-          {colorVariants.map((variant, index) => (
-            <Link key={index} to={`/product/${variant._id}`}>
-              <img src={variant.images?.[0]} className="w-full aspect-square object-cover rounded-lg shadow-md hover:scale-105 transition" alt={variant.name} />
-            </Link>
-          ))}
-        </div>
-      </div>
+      {colorVariants.length > 0 && (
+        <>
+          <h3 className="font-semibold mt-1">Color : {product.color}</h3>
+          <div className="relative">
+            <div className="flex gap-4 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory sm:hidden [&::-webkit-scrollbar]:hidden">
+              {colorVariants.map((variant, index) => (
+                <Link key={index} to={`/product/${variant._id}`} className="shrink-0 snap-start">
+                  <img 
+                    src={variant.images?.[0] || '/placeholder-image.jpg'} 
+                    className="w-25 h-25 object-cover rounded-lg shadow-md hover:scale-105 transition" 
+                    alt={variant.name} 
+                    loading="lazy"
+                  />
+                </Link>
+              ))}
+            </div>
+            <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 py-4">
+              {colorVariants.map((variant, index) => (
+                <Link key={index} to={`/product/${variant._id}`}>
+                  <img 
+                    src={variant.images?.[0] || '/placeholder-image.jpg'} 
+                    className="w-full aspect-square object-cover rounded-lg shadow-md hover:scale-105 transition" 
+                    alt={variant.name}
+                    loading="lazy"
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Action Buttons */}
       <Link to="/checkout">
-        <button className="bg-blue-600 hover:bg-blue-700 font-bold text-white w-full p-3 mt-3 rounded-xl">Buy Now</button>
+        <button className="bg-blue-600 hover:bg-blue-700 font-bold text-white w-full p-3 mt-3 rounded-xl transition">
+          Buy Now
+        </button>
       </Link>
 
       <div className="flex gap-4 mt-2">
-        <button onClick={() => addToCart(product)} className="flex-1 border active:scale-95 transition-transform duration-150 bg-white hover:bg-red-600 hover:text-white text-black py-3 rounded-xl font-semibold">
+        <button 
+          onClick={handleAddToCart} 
+          className="flex-1 border active:scale-95 transition-transform duration-150 bg-white hover:bg-red-600 hover:text-white text-black py-3 rounded-xl font-semibold"
+        >
           Add To Cart
         </button>
-        <button onClick={() => addToWishlist(product)} className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100">
+        <button 
+          onClick={handleAddToWishlist} 
+          className="w-16 rounded-xl border flex justify-center items-center hover:bg-gray-100 transition"
+        >
           <FiHeart size={22} />
         </button>
       </div>
@@ -343,24 +365,16 @@ console.log("PRODUCT DATA:", product);
       </div>
 
       {/* --- Dynamic Content Panel --- */}
-      <div className=" p-1 bg-white">
-        
-
-        
-          {activeTab === 'spec' ? ( 
-              <>
-                {renderDetailedSpecTable()}
-                {renderSpecifications()}
-              </>
-            ) : renderDescription()
-          }
-          
+      <div className="p-1 bg-white">
+        {activeTab === 'spec' ? (
+          <>
+            {renderDetailedSpecTable()}
+            {renderSpecifications()}
+          </>
+        ) : (
+          renderDescription()
+        )}
       </div>
-
-     
-
-       
-      
     </div>
   );
 }
