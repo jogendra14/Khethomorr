@@ -68,7 +68,7 @@ if (process.env.NODE_ENV === "development") {
 app.get("/", (req, res) => {
   res.json({
     status: "success",
-    message: "E-commerce backend is working properly!",
+    message: "E-commerce Khethomorr backend is working properly!",
     timestamp: new Date().toISOString(),
   });
 });

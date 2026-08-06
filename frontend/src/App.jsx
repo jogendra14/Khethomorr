@@ -47,6 +47,7 @@ import Coupons from "./Admin/pages/Coupons.jsx";
 import Banner from "./Admin/pages/Banner.jsx";
 import Settings from "./Admin/pages/Settings.jsx";
 import AdminProfile from "./Admin/pages/AdminProfile.jsx";
+import AddCategory from "./Admin/components/categories/AddCategory.jsx";
 
 const App = () => {
   return (
@@ -80,6 +81,7 @@ const App = () => {
             <Route path="/admin/edit-product/:id" element={<EditProduct/>} /> 
 
             <Route path="categories" element={<Categories />} />
+            <Route path="categories/add-category" element={<AddCategory />} />
             <Route path="/admin/sub-categories" element={<SubCategories />} />
             <Route path="/admin/brands" element={<Brands />} />
 

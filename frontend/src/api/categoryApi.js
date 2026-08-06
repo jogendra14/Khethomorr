@@ -1,9 +1,6 @@
 // frontend/src/api/categoryApi.js
 import API from "./axios";
 
-// ============================================
-// ✅ GET ALL CATEGORIES
-// ============================================
 export const getCategories = async () => {
   try {
     const response = await API.get("/admin/categories");

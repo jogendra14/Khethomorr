@@ -1,6 +1,6 @@
 // frontend/src/Admin/components/product/AddProduct.jsx
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { addProduct } from "../../../api/productApi";
@@ -205,17 +205,23 @@ const AddProduct = () => {
           <h2 className="text-xl font-semibold mb-5">Basic Information</h2>
 
           <div className="grid md:grid-cols-2 gap-5">
+
             <div>
-              <label className="block font-medium mb-2">Product Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
+              <label className="block font-medium mb-2">Product Type *</label>
+              <select
+                name="productType"
+                value={formData.productType}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 disabled={isPending}
-              />
+              >
+                {productTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -239,46 +245,56 @@ const AddProduct = () => {
 
             <div>
               <label className="block font-medium mb-2">Sub Category</label>
-              <input
-                type="text"
+              <select
                 name="subCategory"
                 value={formData.subCategory}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
                 disabled={isPending}
-              />
+              >
+                <option value="">Select Sub-Category</option>
+                {categories.map((sub) => (
+                  <option key={sub._id || sub.id} value={sub.name}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block font-medium mb-2">Brand *</label>
-              <input
-                type="text"
+              <select
                 name="brand"
                 value={formData.brand}
                 onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 disabled={isPending}
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-2">Product Type *</label>
-              <select
-                name="productType"
-                value={formData.productType}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                disabled={isPending}
               >
-                {productTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                <option value="">Select Brand</option>
+                {categories.map((brand) => (
+                  <option key={brand._id || brand.id} value={brand.name}>
+                    {brand.name}
                   </option>
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="block font-medium mb-2">Product Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={isPending}
+              />
+            </div>
+
+            
 
             <div>
               <label className="block font-medium mb-2">Color</label>
