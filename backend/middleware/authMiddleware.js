@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const protect = async (req, res, next) => {
+  console.log("protect reached")
   const authorization = req.headers.authorization;
 
   if (!authorization?.startsWith("Bearer ")) {
