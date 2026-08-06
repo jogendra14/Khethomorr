@@ -41,12 +41,12 @@ const categorySchema = mongoose.Schema(
 
 // ✅ Slug automatically generate karne ka pre-save hook (Optional)
 // Agar aap slug manually nahi bhej rahe ho to ye naam se slug bana dega
-categorySchema.pre("save", function (next) {
+{/*categorySchema.pre("save", function (next) {
   if (this.isModified("name") && !this.slug) {
     this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, "-");
   }
   next();
-});
+});*/}
 
 const Category = mongoose.model("Category", categorySchema);
 

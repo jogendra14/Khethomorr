@@ -56,6 +56,7 @@ export const createCategory = async (req, res) => {
     }
 
     const category = await Category.create({ name: normalizedName, description, image });
+    
     console.log("category create ho gai",category)
     res.status(201).json({
       success: true,
