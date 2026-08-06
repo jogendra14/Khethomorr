@@ -49,12 +49,14 @@ export const createCategory = async (req, res) => {
       name: { $regex: `^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
       parentCategory: null,
     });
+    console.log("already hai ya nhi")
+
     if (existingCategory) {
       return res.status(409).json({ success: false, message: "A category with this name already exists" });
     }
 
     const category = await Category.create({ name: normalizedName, description, image });
-    console.log("reques aa ri hai",category)
+    console.log("category create ho gai",category)
     res.status(201).json({
       success: true,
       data: await categoryWithProductCount(category),
