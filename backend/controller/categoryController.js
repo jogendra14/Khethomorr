@@ -35,7 +35,7 @@ export const getCategories = async (req, res) => {
 export const createCategory = async (req, res) => {
   console.log("controller reached");
   try {
-    console.log("reques aa ri hai",req)
+    console.log("reques aa ri hai try me ",req)
 
     const { name, description = "", image = "" } = req.body;
     console.log("reques aa ri hai name",name)
@@ -51,13 +51,14 @@ export const createCategory = async (req, res) => {
     });
     console.log("already hai ya nhi")
 
-    if (existingCategory) {
-      return res.status(409).json({ success: false, message: "A category with this name already exists" });
-    }
+    //if (existingCategory) {
+   //   return res.status(409).json({ success: false, message: "A category with this name already exists" });
+    //}
 
     const category = await Category.create({ name: normalizedName, description, image });
-    
+
     console.log("category create ho gai",category)
+
     res.status(201).json({
       success: true,
       data: await categoryWithProductCount(category),
