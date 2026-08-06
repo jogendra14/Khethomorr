@@ -35,9 +35,12 @@ export const getCategories = async (req, res) => {
 export const createCategory = async (req, res) => {
   console.log("controller reached");
   try {
+    console.log("reques aa ri hai",req)
+
     const { name, description = "", image = "" } = req.body;
+    console.log("reques aa ri hai name",name)
     const normalizedName = normalizeName(name);
-    
+    console.log("reques aa ri hai norms",normalizeName)
     if (!normalizedName || normalizedName.length < 2) {
       return res.status(400).json({ success: false, message: "Category name is required" });
     }
@@ -51,7 +54,7 @@ export const createCategory = async (req, res) => {
     }
 
     const category = await Category.create({ name: normalizedName, description, image });
-    
+    console.log("reques aa ri hai",category)
     res.status(201).json({
       success: true,
       data: await categoryWithProductCount(category),
