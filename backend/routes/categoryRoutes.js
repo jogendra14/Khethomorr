@@ -11,6 +11,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import { admin } from "../middleware/adminMiddleware.js";
 
 const router = express.Router();
+console.log("routes reached")
 
 // IMPORTANT: The base path for this router will be '/api/admin' in index.js
 // So this route will become: /api/admin/categories

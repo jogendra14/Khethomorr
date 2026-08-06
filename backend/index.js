@@ -75,6 +75,7 @@ app.get("/", (req, res) => {
 
 // ✅ Routes
 app.use("/api/admin", adminRoutes);
+console.log("index me reached")
 app.use("/api/admin", categoryRoutes); // 👈
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);

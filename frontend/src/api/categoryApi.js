@@ -46,6 +46,7 @@ export const getCategoryById = async (id) => {
 // ✅ CREATE CATEGORY
 // ============================================
 export const addCategory = async (data) => {
+  console.log("category api ",data)
   try {
     // Validate required fields
     if (!data.name) {
