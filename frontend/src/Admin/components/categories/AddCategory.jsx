@@ -22,7 +22,7 @@ const AddCategory = () => {
 
   // ✅ React Query - Add Category Mutation
   const addCategoryMutation = useMutation({
-    mutationFn: addCategory,
+    mutationFn: (data) => addCategory(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast.success("Category added successfully! ✅");

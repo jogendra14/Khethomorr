@@ -33,6 +33,7 @@ export const getCategories = async (req, res) => {
 // @route   POST /api/admin/categories
 // @access  Private/Admin
 export const createCategory = async (req, res) => {
+  console.log("controller reached");
   try {
     const { name, description = "", image = "" } = req.body;
     const normalizedName = normalizeName(name);
