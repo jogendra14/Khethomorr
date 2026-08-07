@@ -1,4 +1,4 @@
-// backend/controllers/productController.js
+// backend/controller/productController.js
 
 import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
