@@ -43,7 +43,7 @@ export default function Dashboard() {
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Welcome back</h1>
           <p className="mt-1 text-gray-500">Keep an eye on the activity that matters today.</p>
         </div>
-        <Link to="/admin/add-product" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700"><Package size={18} /> Add product</Link>
+        <Link to="/admin/products/add-product" className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700"><Package size={18} /> Add product</Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

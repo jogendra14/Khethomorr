@@ -1,18 +1,15 @@
 // frontend/src/hooks/index.js
 
-// ✅ Product Hooks
-export {
-  useProducts,
-  useProduct,
-  useAddProduct,
-  useUpdateProduct,
-  useDeleteProduct,
+export { 
+  useProducts, 
+  useProduct, 
+  useAddProduct, 
+  useUpdateProduct, 
+  useDeleteProduct 
 } from "./useProducts";
 
-// ✅ Cart Hooks (abhi nahi hai, baad mein banayenge)
-// export {
-//   useCart,
-//   useAddToCart,
-//   useRemoveFromCart,
-//   useUpdateCartItem,
-// } from "./useCart";
+export { useProductTypes } from "./useProductTypes";
+
+// Add any other custom hooks you have
+// export { useAuth } from "./useAuth";
+// export { useCategories } from "./useCategories";

@@ -1,23 +1,26 @@
 // frontend/src/hooks/useProducts.js
+
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
 } from "../api/productApi";
-import { toast } from "react-hot-toast"; // Optional: agar toast use karte ho
+import { toast } from "react-hot-toast";
 
 // ✅ INFINITE QUERY HOOK (For Shop/Listing)
-export const useProducts = (filters = {}) => {
+export const useProducts = (filters = {}, sortBy = "createdAt", sortOrder = "desc") => {
   return useInfiniteQuery({
-    queryKey: ["products", filters],
+    queryKey: ["products", filters, sortBy, sortOrder],
     
     queryFn: ({ pageParam = 1 }) => {
       return getAllProducts({
         page: pageParam,
-        limit: 20,
+        limit: 10,
+        sortBy,
+        sortOrder,
         ...filters,
       });
     },
@@ -31,7 +34,7 @@ export const useProducts = (filters = {}) => {
     },
     
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (cacheTime renamed in v5)
+    gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -42,16 +45,14 @@ export const useProduct = (id) => {
   return useQuery({
     queryKey: ["product", id],
     queryFn: () => getProductById(id),
-    enabled: !!id, // Only run if id exists
+    enabled: !!id,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 1,
   });
 };
 
-// ============================================
 // ✅ ADD PRODUCT MUTATION
-// ============================================
 export const useAddProduct = () => {
   const queryClient = useQueryClient();
 
@@ -59,8 +60,8 @@ export const useAddProduct = () => {
     mutationFn: (formData) => createProduct(formData),
     
     onSuccess: (data) => {
-      // Invalidate products cache to refetch
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["productTypes"] }); // Invalidate types if new type was added
       toast.success("Product added successfully! ✅");
       return data;
     },
@@ -72,9 +73,7 @@ export const useAddProduct = () => {
   });
 };
 
-// ============================================
 // ✅ UPDATE PRODUCT MUTATION
-// ============================================
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -82,9 +81,7 @@ export const useUpdateProduct = () => {
     mutationFn: ({ id, data }) => updateProduct(id, data),
     
     onSuccess: (data, variables) => {
-      // Update specific product cache
       queryClient.invalidateQueries({ queryKey: ["product", variables.id] });
-      // Update products list
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Product updated successfully! ✅");
       return data;
@@ -97,9 +94,7 @@ export const useUpdateProduct = () => {
   });
 };
 
-// ============================================
 // ✅ DELETE PRODUCT MUTATION
-// ============================================
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 
@@ -107,9 +102,7 @@ export const useDeleteProduct = () => {
     mutationFn: (id) => deleteProduct(id),
     
     onSuccess: (data, id) => {
-      // Remove from cache
       queryClient.removeQueries({ queryKey: ["product", id] });
-      // Update products list
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Product deleted successfully! 🗑️");
       return data;
