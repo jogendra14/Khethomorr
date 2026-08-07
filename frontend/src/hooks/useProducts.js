@@ -1,24 +1,21 @@
 // frontend/src/hooks/useProducts.js
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getProduct,
+  getAllProducts,
   getProductById,
-  addProduct,
+  createProduct,
   updateProduct,
-  deleteProduct,
-  duplicateProduct,
+  deleteProduct
 } from "../api/productApi";
 import { toast } from "react-hot-toast"; // Optional: agar toast use karte ho
 
-// ============================================
 // ✅ INFINITE QUERY HOOK (For Shop/Listing)
-// ============================================
 export const useProducts = (filters = {}) => {
   return useInfiniteQuery({
     queryKey: ["products", filters],
     
     queryFn: ({ pageParam = 1 }) => {
-      return getProduct({
+      return getAllProducts({
         page: pageParam,
         limit: 20,
         ...filters,
@@ -40,9 +37,7 @@ export const useProducts = (filters = {}) => {
   });
 };
 
-// ============================================
 // ✅ SINGLE PRODUCT QUERY HOOK
-// ============================================
 export const useProduct = (id) => {
   return useQuery({
     queryKey: ["product", id],
@@ -61,7 +56,7 @@ export const useAddProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (formData) => addProduct(formData),
+    mutationFn: (formData) => createProduct(formData),
     
     onSuccess: (data) => {
       // Invalidate products cache to refetch
@@ -123,28 +118,6 @@ export const useDeleteProduct = () => {
     onError: (error) => {
       console.error("Delete product error:", error);
       toast.error(error?.response?.data?.message || "Failed to delete product ❌");
-    },
-  });
-};
-
-// ============================================
-// ✅ DUPLICATE PRODUCT MUTATION
-// ============================================
-export const useDuplicateProduct = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id) => duplicateProduct(id),
-    
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("Product duplicated successfully! 📋");
-      return data;
-    },
-    
-    onError: (error) => {
-      console.error("Duplicate product error:", error);
-      toast.error(error?.response?.data?.message || "Failed to duplicate product ❌");
     },
   });
 };

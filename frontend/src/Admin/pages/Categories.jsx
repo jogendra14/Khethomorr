@@ -1,8 +1,8 @@
+{/*
 import { useState, useMemo } from 'react';
 import { Search, Plus, Loader2, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getCategories, deleteCategory, addCategory, updateCategory } from '../../api/categoryApi.js';
 import toast from 'react-hot-toast';
 
 const Categories = () => {
@@ -22,7 +22,7 @@ const Categories = () => {
     refetch,
   } = useQuery({
     queryKey: ['categories'],
-    queryFn: getCategories,
+    
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     onError: (error) => {
@@ -168,8 +168,8 @@ const Categories = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
           <p className="text-sm text-gray-500 mt-1">Manage all product categories</p>
@@ -186,7 +186,6 @@ const Categories = () => {
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
@@ -198,10 +197,9 @@ const Categories = () => {
         />
       </div>
 
-      {/* Categories List View */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Table Header */}
-        {!isLoading && !isError && categories.length > 0 && (
+
+      {!isLoading && !isError && categories.length > 0 && (
           <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
             <div className="col-span-2">Image</div>
             <div className="col-span-3">Category</div>
@@ -210,7 +208,7 @@ const Categories = () => {
           </div>
         )}
 
-        {/* Category Items */}
+
         <div className="divide-y divide-gray-200">
           {!isLoading && !isError && filteredCategories.length === 0 && (
             <div className="p-8 text-center text-gray-500">
@@ -225,22 +223,21 @@ const Categories = () => {
               onClick={() => handleCategoryClick(category.name)}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-center">
-                {/* Image */}
-                <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-3">
+
+              <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-3">
                   <div className="w-12 h-12 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center text-2xl">
                     {category.image || category.icon || '📦'}
                   </div>
                   <span className="lg:hidden text-sm font-medium text-gray-500">Image</span>
                 </div>
                 
-                {/* Category Name */}
+
                 <div className="sm:col-span-1 lg:col-span-3">
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-gray-900">{category.name}</span>
                   </div>
                 </div>
                 
-                {/* Products count */}
                 <div className="sm:col-span-1 lg:col-span-2 flex items-center gap-2">
                   <span className="lg:hidden text-sm font-medium text-gray-500">Products:</span>
                   <span className="text-sm text-gray-700">
@@ -248,7 +245,6 @@ const Categories = () => {
                   </span>
                 </div>
 
-                {/* Actions */}
                 <div className="sm:col-span-2 lg:col-span-5 flex items-center justify-end gap-2">
                   <button
                     onClick={(e) => {
@@ -293,7 +289,6 @@ const Categories = () => {
         </div>
       </div>
 
-      {/* Add Category Modal */}
       {showAddModal && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -353,7 +348,6 @@ const Categories = () => {
         </div>
       )}
 
-      {/* Edit Category Modal */}
       {editingCategory && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -417,3 +411,4 @@ const Categories = () => {
 };
 
 export default Categories;
+*/}

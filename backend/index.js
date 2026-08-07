@@ -7,8 +7,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import productsRoutes from "./routes/productsRoutes.js";
-import categoryRoutes from "./routes/categoryRoutes.js"; // 👈 ADD T
+import productRoutes from "./routes/productRoutes.js";
 import dealsRoutes from "./routes/dealsRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
 import paymentsRoutes from "./routes/paymentsRoutes.js";
@@ -24,7 +23,7 @@ const app = express();
 // ✅ Allowed Origins - Environment ke hisaab se
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://10.176.8.49:5173",
+  "http://10.75.232.49:5173",
   "https://khethomorr.vercel.app",
   "https://khethomorr-r45zbcs1t-jogndra.vercel.app",
   // ✅ Add production domain if any
@@ -75,10 +74,8 @@ app.get("/", (req, res) => {
 
 // ✅ Routes
 app.use("/api/admin", adminRoutes);
-console.log("index me reached")
-app.use("/api/admin", categoryRoutes); // 👈
 app.use("/api/auth", authRoutes);
-app.use("/api/products", productsRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/deals", dealsRoutes);
 app.use("/api/orders", ordersRoutes);

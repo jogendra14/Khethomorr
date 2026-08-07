@@ -1,4 +1,5 @@
-import { Copy } from "lucide-react";
+{/*
+  import { Copy } from "lucide-react";
 import { useDuplicateProduct } from "../../../hooks"; // ✅ React Query hook
 
 export default function DuplicateButton({ id, onDuplicateSuccess }) {
@@ -45,3 +46,4 @@ export default function DuplicateButton({ id, onDuplicateSuccess }) {
     </button>
   );
 }
+  */}

@@ -3,7 +3,7 @@ import API from "./axios";
 
 export const getCategories = async () => {
   try {
-    const response = await API.get("/admin/categories");
+    const response = await API.get("/categories");
     // ✅ FIX: response.data.data use karein (Backend se 'data' key mein aa raha hai)
     return response.data.data || response.data.categories || []; 
   } catch (error) {
@@ -17,7 +17,7 @@ export const getCategories = async () => {
 // ============================================
 export const getCategoriesWithCounts = async () => {
   try {
-    const response = await API.get("/admin/categories");
+    const response = await API.get("/categories");
     return response.data.data || response.data.categories || [];
   } catch (error) {
     console.error("Error fetching categories with counts:", error);

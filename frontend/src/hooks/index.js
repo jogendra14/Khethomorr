@@ -7,7 +7,6 @@ export {
   useAddProduct,
   useUpdateProduct,
   useDeleteProduct,
-  useDuplicateProduct,
 } from "./useProducts";
 
 // ✅ Cart Hooks (abhi nahi hai, baad mein banayenge)
