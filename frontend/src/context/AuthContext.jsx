@@ -1,146 +1,134 @@
-import { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+// frontend/src/context/AuthContext.jsx
+
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
+
+import authApi from "../api/authApi";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // ✅ React Query client for cache invalidation
-  const queryClient = useQueryClient();
 
-  // ✅ Check if user is logged in on mount
+  // ============================================
+  // LOAD USER FROM LOCAL STORAGE
+  // ============================================
   useEffect(() => {
-    const initializeAuth = () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          // Handle both formats: { user: {...} } or direct user object
-          const userObject = parsedUser.user || parsedUser;
-          setUser(userObject);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+    const loadUser = () => {
+      try {
+        const storedUser = authApi.getCurrentUser();
+        const token = localStorage.getItem("token");
+
+        if (storedUser && token) {
+          setUser(storedUser);
+        } else {
+          setUser(null);
         }
+      } catch (error) {
+        console.error("❌ Error loading auth:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    initializeAuth();
+    loadUser();
   }, []);
 
-  // ✅ Login function with cache clearing
-  const login = useCallback((userData, token) => {
-    try {
-      // Save to localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Set state
-      const userObject = userData.user || userData;
-      setUser(userObject);
-      setIsAuthenticated(true);
-      
-      // ✅ Clear React Query cache on login (optional)
-      // queryClient.invalidateQueries();
-      
-      toast.success('Welcome back! 🎉');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Failed to login');
+  // ============================================
+  // LOGIN
+  // ============================================
+  const login = useCallback((userData, token, refreshToken = null) => {
+    setUser(userData);
+
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
+
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
     }
   }, []);
 
-  // ✅ Logout function with cache clearing
-  const logout = useCallback(() => {
+  // ============================================
+  // LOGOUT
+  // ============================================
+  const logout = useCallback(async () => {
     try {
-      // Remove from localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Reset state
+      await authApi.logout();
+    } catch (error) {
+      console.error("❌ Logout error:", error);
+    } finally {
       setUser(null);
-      setIsAuthenticated(false);
-      
-      // ✅ Clear React Query cache on logout
-      queryClient.clear();
-      
-      toast.success('Logged out successfully 👋');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Failed to logout');
-    }
-  }, [queryClient]);
 
-  // ✅ Update user function
-  const updateUser = useCallback((updatedUserData) => {
-    try {
-      const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedData = {
-        ...currentUserData,
-        ...updatedUserData
-      };
-      
-      localStorage.setItem('user', JSON.stringify(updatedData));
-      setUser(updatedData.user || updatedData);
-      
-      toast.success('Profile updated successfully ✅');
-    } catch (error) {
-      console.error('Update user error:', error);
-      toast.error('Failed to update profile');
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("admin");
     }
   }, []);
 
-  // ✅ Memoized context value
-  const contextValue = useMemo(() => ({
+  // ============================================
+  // ADMIN CHECK
+  // ============================================
+  const isAdmin = useCallback(() => {
+    return user
+      ? ["admin", "superadmin"].includes(user.role)
+      : false;
+  }, [user]);
+
+  // ============================================
+  // VENDOR CHECK
+  // ============================================
+  const isVendor = useCallback(() => {
+    return user?.role === "vendor";
+  }, [user]);
+
+  // ============================================
+  // AUTHENTICATED CHECK
+  // ============================================
+  const isAuthenticated =
+    !!user && !!localStorage.getItem("token");
+
+  // ============================================
+  // CONTEXT VALUE
+  // ============================================
+  const value = {
     user,
+    setUser,
+    loading,
+
     login,
     logout,
-    updateUser,
+
+    isAdmin: isAdmin(),
+    isVendor: isVendor(),
     isAuthenticated,
-    loading,
-    // ✅ Helper to get auth token
-    getToken: () => localStorage.getItem('token'),
-    // ✅ Helper to check if user has specific role
-    hasRole: (role) => {
-      if (!user) return false;
-      return user.role === role || user.isAdmin === true;
-    },
-    // ✅ Helper to get user name
-    getUserName: () => {
-      if (!user) return '';
-      return user.name || user.fullName || user.username || 'User';
-    },
-    // ✅ Helper to get user email
-    getUserEmail: () => {
-      if (!user) return '';
-      return user.email || '';
-    }
-  }), [user, login, logout, updateUser, isAuthenticated, loading]);
+  };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// ✅ Custom hook with error handling
+// ============================================
+// USE AUTH HOOK
+// ============================================
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
+
   return context;
 };
 
-// ✅ Export AuthContext for advanced usage
-export { AuthContext };
+export default AuthContext;

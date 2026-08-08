@@ -1,15 +1,16 @@
+// frontend/src/pages/Login.jsx
 import { useState } from "react";
 import { FaGoogle, FaFacebookF, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { loginUser } from "../api/authApi";
+import { loginUser } from "../api/authApi"; // ✅ Import from authApi
 import { useAuth } from "../context/AuthContext";
 import Kethomorr from "../assets/Kethomorr.jpeg";
 import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth(); // Context se login function
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -19,27 +20,36 @@ const Login = () => {
 
   // ✅ React Query - Login Mutation
   const loginMutation = useMutation({
-    mutationFn: (credentials) => loginUser(credentials),
+    mutationFn: loginUser, // ✅ Imported from authApi
     
     onSuccess: (response) => {
-      console.log("📥 Login Response:", response);
-
-      if (response && response.token) {
-        // Use the login function from context
-        login(response, response.token);
+      console.log("✅ Login Response:", response);
+      
+      // Response structure from backend:
+      // { success: true, message: "...", data: { user, token, refreshToken } }
+      
+      if (response.success) {
+        // Auth context ko update karo
+        login(response.data.user, response.data.token);
         toast.success("Welcome back! 🎉");
         
-        setTimeout(() => {
-          navigate("/");
-        }, 100);
+        // Role-based redirection
+        const userRole = response.data.user?.role;
+        if (userRole === 'admin' || userRole === 'superadmin') {
+          setTimeout(() => navigate("/admin/dashboard"), 100);
+        } else if (userRole === 'vendor') {
+          setTimeout(() => navigate("/vendor/dashboard"), 100);
+        } else {
+          setTimeout(() => navigate("/"), 100);
+        }
       } else {
-        setError("Invalid credentials. Please try again.");
-        toast.error("Invalid credentials ❌");
+        setError(response.message || "Login failed");
+        toast.error(response.message || "Login failed");
       }
     },
     
     onError: (error) => {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       
       let errorMessage = "Login failed. Please try again.";
       

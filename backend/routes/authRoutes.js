@@ -1,24 +1,25 @@
-import express from "express";
+// backend/routes/authRoutes.js
+import express from 'express';
 import {
-  registerUser,
-  loginUser,
-  checkEmail,
-  getCurrentUser,
-  logoutUser,
-  updateCurrentUser,
-  changeUserPassword,
-} from "../controller/authController.js";
-import { protect } from "../middleware/authMiddleware.js";
+  login,
+  register,
+  getMe,
+  logout,
+  refreshToken,
+  updatePassword
+} from '../controller/authController.js';
+//import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.post("/check-email", checkEmail);
+// Public routes
+router.post('/register', register);
+router.post('/login', login);
+router.post('/refresh-token', refreshToken);
 
-router.get("/me", protect, getCurrentUser);
-router.post("/logout", protect, logoutUser);
-router.put("/profile", protect, updateCurrentUser);
-router.put("/change-password", protect, changeUserPassword);
+// Protected routes
+router.get('/me',  getMe);
+router.post('/logout',  logout);
+router.put('/update-password',  updatePassword);
 
 export default router;

@@ -2,7 +2,7 @@ import { FaHeart, FaStar } from "react-icons/fa";
 import "../../index.css";
 import { Link } from "react-router-dom";
 import { useMemo } from "react";
-import { useProducts } from "../../hooks"; // ✅ React Query hook
+import { useProducts } from "../../hooks/useProducts"; // ✅ React Query hook
 
 export default function SimilarProducts({ product }) {
   // ✅ React Query se products fetch karo

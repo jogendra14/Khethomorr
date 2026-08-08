@@ -24,12 +24,11 @@ import EditProduct from "./Admin/components/product/EditProduct.jsx";
 
 import Orders from "./Admin/pages/Orders.jsx";
 import Users from './Admin/pages/Users.jsx';
-import AddUser from "./Admin/components/users/AddUser.jsx";
 import AdminProfile from "./Admin/pages/AdminProfile.jsx";
 
 // USER RELATED
-import Login from "./pages/Login.jsx";
-import SignUp from "./pages/SignUp.jsx"
+//import Login from "./pages/Login.jsx";
+//import SignUp from "./pages/SignUp.jsx"
 import Cart from "./pages/Cart.jsx";
 import Wishlist from "./pages/Wishlist.jsx";
 
@@ -41,11 +40,8 @@ import AboutUs from "./pages/AboutUs.jsx";
 import ContactUs from "./pages/ContactUs.jsx";
 import ProductDetail from "./pages/ProductDetails.jsx";
 
-import Checkout from "./pages/Checkout.jsx";
-import MyOrders from "./pages/MyOrders.jsx";
-import Coupons from "./Admin/pages/Coupons.jsx";
-import Banner from "./Admin/pages/Banner.jsx";
-import Settings from "./Admin/pages/Settings.jsx";
+//import Checkout from "./pages/Checkout.jsx";
+//import MyOrders from "./pages/MyOrders.jsx";
 
 const App = () => {
   return (
@@ -61,12 +57,8 @@ const App = () => {
           <Route path="/aboutUs" element={<AboutUs />} />
           <Route path="/contactUs" element={<ContactUs />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/checkout" element={<Checkout/>}/>
-          <Route path="/Login" element={<Login />} />
-          <Route path="/SignUp" element={<SignUp />} />
           <Route path="/Cart" element={<Cart />} />
           <Route path="/Wishlist" element={<Wishlist />} />
-          <Route path="/orders" element={<MyOrders />} />
 
 
           {/* ADMIN */}
@@ -81,17 +73,12 @@ const App = () => {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<Products />} />
-            <Route path="products/add-product" element={<AddProduct />} /> 
-            <Route path="/admin/edit-product/:id" element={<EditProduct/>} /> 
+            <Route path="products/create" element={<AddProduct />} /> 
+            <Route path="products/:id/edit" element={<EditProduct />} />
 
-
+            <Route path="users" element={<Users/>}/>
             <Route path="orders" element={<Orders />} />
-            <Route path="users" element={<Users />} />
-            <Route path="users/add" element={<AddUser />} />
 
-            <Route path="coupons" element={<Coupons />} />
-            <Route path="banner" element={<Banner />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="adminProfile" element={<AdminProfile />} />
           </Route>
 

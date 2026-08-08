@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useProducts } from "../hooks"; // ✅ hooks/index.js se import
+import { useProducts } from "../hooks/useProducts.js"; // ✅ hooks/index.js se import
 import ShowProduct from "../components/Shop/ShowProduct.jsx";
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import Category from "../components/Shop/category/Category.jsx";

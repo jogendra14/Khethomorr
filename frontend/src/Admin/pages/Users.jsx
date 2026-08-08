@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { Search, Plus, Edit, Trash2, UserCheck, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, updateUser, updateUserStatus, deleteUser, addUser } from "../../api/userApi.js";
 import toast from "react-hot-toast";
+import adminApi from "../../api/adminApi";
 
 export default function Users() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function Users() {
     refetch,
   } = useQuery({
     queryKey: ['users'],
-    queryFn: getUsers,
+    queryFn: adminApi.getUsers(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     onError: (error) => {
@@ -32,7 +32,7 @@ export default function Users() {
 
   // ✅ React Query - Update User
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }) => updateUser(id, data),
+    mutationFn: ({ id, data }) => adminApi.updateUser(id, data), // Use adminApi.updateUser
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setShowEditModal(false);
@@ -46,7 +46,10 @@ export default function Users() {
 
   // ✅ React Query - Update User Status
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }) => updateUserStatus(id, status),
+    mutationFn: ({ id, status }) => {
+      const isActive = status === "Active";
+      return adminApi.toggleUserStatus(id, isActive); // Use adminApi.toggleUserStatus
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success("User status updated! ✅");
@@ -59,7 +62,7 @@ export default function Users() {
 
   // ✅ React Query - Delete User
   const deleteUserMutation = useMutation({
-    mutationFn: (id) => deleteUser(id),
+    mutationFn: (id) => adminApi.deleteUser(id), // Use adminApi.deleteUser
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success("User deleted successfully! 🗑️");
@@ -69,6 +72,7 @@ export default function Users() {
       refetch();
     },
   });
+
 
   // ✅ Filter users by search
   const filteredUsers = useMemo(() => {

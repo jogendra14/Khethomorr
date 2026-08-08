@@ -1,150 +1,324 @@
-import User from "../models/User.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+// backend/controller/authController.js
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+// Generate JWT Token
+const generateToken = (user) => {
+  return jwt.sign(
+    { 
+      id: user._id,
+      email: user.email,
+      role: user.role 
+    },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: process.env.JWT_EXPIRE || '30d' }
+  );
+};
 
-const publicUser = (user) => ({
-  id: user._id,
-  name: user.name,
-  email: user.email,
-  phone: user.phone || "",
-  role: user.role,
-  verified: user.verified,
-});
-
-const registerUser = async (req, res) => {
+// @desc    Login user (Admin & Regular)
+// @route   POST /api/auth/login
+export const login = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name?.trim() || !email?.trim() || !password || password.length < 6) {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Name, a valid email, and a password of at least 6 characters are required",
+        message: 'Please provide email and password'
       });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = await User.findOne({ email: normalizedEmail }).select("_id").lean();
-    if (existingUser) {
-      return res.status(409).json({ success: false, message: "User already exists with this email" });
+    console.log("auth controller me email+pass received", email,password);
+
+    // Find user with password (password field me select: false hai)
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
-    const user = await User.create({
-      name: name.trim(),
-      email: normalizedEmail,
-      password: await bcrypt.hash(password, 10),
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact admin.'
+      });
+    }
+
+    // Check password
+    const isPasswordMatch = await user.comparePassword(password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = user.generateRefreshToken();
+
+    // Save refresh token
+    user.refreshToken = refreshToken;
+    user.lastLogin = Date.now();
+    await user.save({ validateBeforeSave: false });
+
+    // Remove password from output
+    user.password = undefined;
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          phone: user.phone,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin
+        },
+        token,
+        refreshToken
+      }
     });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Register user
+// @route   POST /api/auth/register
+export const register = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+
+    // Create user
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || 'user'
+    });
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    user.password = undefined;
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      token: generateToken(user._id),
-      user: publicUser(user),
+      message: 'Registration successful',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        },
+        token,
+        refreshToken
+      }
     });
+
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({ success: false, message: "User already exists with this email" });
+    console.error('Register error:', error);
+    
+    // Mongoose validation error
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
     }
-    res.status(500).json({ success: false, message: "Server error during registration" });
+
+    res.status(500).json({
+      success: false,
+      message: 'Registration failed',
+      error: error.message
+    });
   }
 };
 
-const loginUser = async (req, res) => {
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+export const getMe = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email?.trim() || !password) {
-      return res.status(400).json({ success: false, message: "Please provide email and password" });
+    const user = await User.findById(req.user.id)
+      .select('-password -refreshToken -__v');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password");
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
-    }
-    if (user.status === "Blocked") {
-      return res.status(403).json({ success: false, message: "This account has been blocked. Please contact support." });
-    }
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Login successful",
-      token: generateToken(user._id),
-      user: publicUser(user),
+      data: user
     });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error during login" });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch profile',
+      error: error.message
+    });
   }
 };
 
-const checkEmail = async (req, res) => {
+// @desc    Logout user
+// @route   POST /api/auth/logout
+export const logout = async (req, res) => {
   try {
-    const email = req.body.email?.toLowerCase().trim();
-    if (!email) return res.status(400).json({ message: "Email is required" });
-
-    const user = await User.exists({ email });
-    res.json({ exists: Boolean(user), message: user ? "Email already registered" : "Email is available" });
-  } catch (error) {
-    res.status(500).json({ message: "Unable to check email" });
-  }
-};
-
-const getCurrentUser = async (req, res) => {
-  res.json({ success: true, user: publicUser(req.user) });
-};
-
-const logoutUser = async (_req, res) => {
-  res.json({ success: true, message: "Logged out successfully" });
-};
-
-const updateCurrentUser = async (req, res) => {
-  try {
-    const { name, email, phone } = req.body;
-    if (!name?.trim() || !email?.trim()) {
-      return res.status(400).json({ message: "Name and email are required" });
+    // Clear refresh token
+    const user = await User.findById(req.user.id);
+    
+    if (user) {
+      user.refreshToken = undefined;
+      user.refreshTokenExpire = undefined;
+      await user.save({ validateBeforeSave: false });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const emailOwner = await User.findOne({ email: normalizedEmail }).select("_id");
-    if (emailOwner && emailOwner._id.toString() !== req.user._id.toString()) {
-      return res.status(409).json({ message: "That email address is already in use" });
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully'
+    });
 
-    req.user.name = name.trim();
-    req.user.email = normalizedEmail;
-    req.user.phone = phone?.trim() || "";
-    await req.user.save();
-
-    res.json({ success: true, user: publicUser(req.user) });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Unable to update profile" });
+    res.status(500).json({
+      success: false,
+      message: 'Logout failed',
+      error: error.message
+    });
   }
 };
 
-const changeUserPassword = async (req, res) => {
+// @desc    Refresh token
+// @route   POST /api/auth/refresh-token
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+    }
+
+    // Find user with this refresh token
+    const user = await User.findOne({
+      refreshToken,
+      refreshTokenExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired refresh token'
+      });
+    }
+
+    // Generate new tokens
+    const newToken = generateToken(user);
+    const newRefreshToken = user.generateRefreshToken();
+
+    user.refreshToken = newRefreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        token: newToken,
+        refreshToken: newRefreshToken
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Token refresh failed',
+      error: error.message
+    });
+  }
+};
+
+
+
+// @desc    Update password
+// @route   PUT /api/auth/update-password
+export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!currentPassword || !newPassword || newPassword.length < 6) {
-      return res.status(400).json({ message: "Current password and a new password of at least 6 characters are required" });
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current and new password'
+      });
     }
 
-    const user = await User.findById(req.user._id).select("+password");
-    if (!(await bcrypt.compare(currentPassword, user.password))) {
-      return res.status(400).json({ message: "Current password is incorrect" });
+    // Get user with password
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check current password
+    const isMatch = await user.comparePassword(currentPassword);
+    
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    // Update password
+    user.password = newPassword;
     await user.save();
-    res.json({ success: true, message: "Password changed successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Unable to change password" });
-  }
-};
 
-export {
-  registerUser,
-  loginUser,
-  checkEmail,
-  getCurrentUser,
-  logoutUser,
-  updateCurrentUser,
-  changeUserPassword,
+    // Generate new token
+    const token = generateToken(user);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+      token
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Password update failed',
+      error: error.message
+    });
+  }
 };

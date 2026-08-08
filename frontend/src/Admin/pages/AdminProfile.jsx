@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Mail, Phone, Lock, Camera, Save } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminProfile, updateAdminProfile, changeAdminPassword } from "../../api/adminApi";
 import toast from "react-hot-toast";
 
 export default function AdminProfile() {

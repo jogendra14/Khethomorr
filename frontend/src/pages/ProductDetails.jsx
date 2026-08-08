@@ -1,19 +1,19 @@
 import Navbar from "../components/home/navbar/Navbar";
 import ProductGallery from "../components/Shop/productGallery/ProductGallery";
 import ProductInfo from "../components/Shop/ProductInfo";
-import ReviewSection from "../components/Shop/ReviewSection";
+//import ReviewSection from "../components/Shop/ReviewSection";
 import RelatedProducts from "../components/Shop/RelatedProducts";
 import SimilarProduct from "../components/Shop/SimilarProducts.jsx";
 import Footer from "../components/home/footer/Footer";
 
 import { useParams } from "react-router-dom";
-import { useProduct } from "../hooks"; // ✅ React Query hook import
+import { useProducts } from "../hooks/useProducts.js"; // ✅ React Query hook import
 
 export default function ProductDetails() {
   const { id } = useParams();
   
   // ✅ React Query se product fetch karo
-  const { data: product, isLoading, isError, error, refetch } = useProduct(id);
+  const { data: product, isLoading, isError, error, refetch } = useProducts(id);
 
   // ✅ Loading State
   if (isLoading) {

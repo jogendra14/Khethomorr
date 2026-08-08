@@ -7,7 +7,8 @@ const ProtectedRoute = ({ children }) => {
 
   console.log(admin);
 
-  if (!admin || admin.role !== "admin") {
+  // ✅ FIX: "admin" OR "superadmin" dono allow karo
+  if (!admin || (admin.role !== "admin" && admin.role !== "superadmin")) {
     console.log("Redirecting to Login");
     return <Navigate to="/admin/login" replace />;
   }

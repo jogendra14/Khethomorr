@@ -1,5 +1,5 @@
 import { useContext, useState, useMemo, useCallback } from "react";
-import { useProducts } from "../../hooks"; // ✅ React Query hook
+import { useProducts } from "../../hooks/useProducts"; // ✅ React Query hook
 import { FiHeart, FiTruck, FiRefreshCw } from "react-icons/fi";
 import { IoShieldCheckmarkOutline } from "react-icons/io5";
 import { MdOutlineEnergySavingsLeaf } from "react-icons/md";

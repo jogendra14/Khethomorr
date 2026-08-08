@@ -1,25 +1,17 @@
-import API from "../api/axios";
+// frontend/src/Admin/AdminLogin.jsx
+
 import { FaLock, FaEnvelope } from "react-icons/fa";
 import { ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
-// ✅ Admin login API function
-const adminLogin = async ({ email, password }) => {
-  const { data } = await API.post("/admin/login", { email, password });
-  
-  // Validate admin role
-  if (data.role !== "admin") {
-    throw new Error("Access Denied. Admin only.");
-  }
-  
-  return data;
-};
+import { adminLogin } from "../api/authApi"; // ✅ Import from authApi
+import { useAuth } from "../context/AuthContext";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,28 +19,29 @@ const AdminLogin = () => {
 
   // ✅ React Query - Admin Login Mutation
   const loginMutation = useMutation({
-    mutationFn: adminLogin,
+    mutationFn: adminLogin, // ✅ Using imported adminLogin
     
-    onSuccess: (data) => {
-      // Save admin data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("admin", JSON.stringify(data));
+    onSuccess: (response) => {
+      console.log("✅ Admin login success:", response);
+
+      const { user } = response.data;
+      // Update AuthContext immediately
+      setUser(user);
       
+      // Response structure from backend:
+      // { success: true, message: "...", data: { user, token, refreshToken } }
       toast.success("Welcome Admin! 🎉");
-      
       setTimeout(() => {
-        navigate("/admin/dashboard");
-      }, 100);
+        navigate("/admin/dashboard", { replace: true });
+      }, 500);
     },
     
     onError: (error) => {
-      console.error("Admin login error:", error);
+      console.error("❌ Admin login error:", error);
       
       let errorMessage = "Login Failed";
       
-      if (error.message === "Access Denied. Admin only.") {
-        errorMessage = "Access Denied. Admin only.";
-      } else if (error.response?.data?.message) {
+      if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
@@ -61,6 +54,10 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+      console.log("🔵 1. Form Submitted");
+      console.log("📧 Email:", email);
+      console.log("🔒 Password:", password);
+  
     
     // Validate fields
     if (!email || !password) {

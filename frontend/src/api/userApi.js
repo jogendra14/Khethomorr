@@ -1,292 +1,124 @@
 // frontend/src/api/userApi.js
-import API from "./axios";
+import API from "./axios.js";
 
-// ============================================
-// ✅ GET ALL USERS (Admin)
-// ============================================
-export const getUsers = async () => {
-  try {
-    const response = await API.get("/admin/users");
-    return response.data.users || response.data;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error.response?.data || { message: "Failed to fetch users" };
-  }
-};
-
-// ============================================
-// ✅ GET USER BY ID (Admin)
-// ============================================
-export const getUserById = async (id) => {
-  try {
-    if (!id) {
-      throw new Error("User ID is required");
-    }
-
-    const response = await API.get(`/admin/users/${id}`);
-    return response.data.user || response.data;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    throw error.response?.data || { message: "Failed to fetch user" };
-  }
-};
-
-// ============================================
-// ✅ CREATE USER (Admin)
-// ============================================
-export const addUser = async (data) => {
-  try {
-    // Validate required fields
-    if (!data.name || !data.email || !data.password) {
-      throw new Error("Name, email, and password are required");
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      throw new Error("Invalid email format");
-    }
-
-    // Validate password length
-    if (data.password.length < 6) {
-      throw new Error("Password must be at least 6 characters");
-    }
-
-    const response = await API.post("/admin/users", data);
+const userApi = {
+  /**
+   * Get user profile
+   */
+  getProfile: async () => {
+    const response = await API.get("/api/auth/me");
     return response.data;
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw error.response?.data || { message: "Failed to create user" };
-  }
-};
+  },
 
-// ============================================
-// ✅ UPDATE USER (Admin)
-// ============================================
-export const updateUser = async (id, data) => {
-  try {
-    if (!id) {
-      throw new Error("User ID is required");
+  /**
+   * Update user profile (non-password fields)
+   * @param {Object} data - { name, phone, address, avatar }
+   */
+  updateProfile: async (data) => {
+    const response = await API.put("/api/users/profile", data);
+    
+    // Update stored user data
+    if (response.data.success && response.data.data) {
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const updatedUser = { ...currentUser, ...response.data.data };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
-
-    // Validate required fields
-    if (!data.name || !data.email) {
-      throw new Error("Name and email are required");
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      throw new Error("Invalid email format");
-    }
-
-    const response = await API.put(`/admin/users/${id}`, data);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating user:", error);
-    throw error.response?.data || { message: "Failed to update user" };
-  }
-};
-
-// ============================================
-// ✅ UPDATE USER STATUS (Admin)
-// ============================================
-export const updateUserStatus = async (id, status) => {
-  try {
-    if (!id) {
-      throw new Error("User ID is required");
-    }
-
-    if (!status || !["Active", "Blocked"].includes(status)) {
-      throw new Error("Invalid status. Must be 'Active' or 'Blocked'");
-    }
-
-    const response = await API.patch(`/admin/users/${id}/status`, { status });
-    return response.data;
-  } catch (error) {
-    console.error("Error updating user status:", error);
-    throw error.response?.data || { message: "Failed to update user status" };
-  }
-};
-
-// ============================================
-// ✅ DELETE USER (Admin)
-// ============================================
-export const deleteUser = async (id) => {
-  try {
-    if (!id) {
-      throw new Error("User ID is required");
-    }
-
-    const response = await API.delete(`/admin/users/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    throw error.response?.data || { message: "Failed to delete user" };
-  }
-};
-
-// ============================================
-// ✅ BULK DELETE USERS (Admin)
-// ============================================
-export const bulkDeleteUsers = async (ids) => {
-  try {
-    if (!ids || ids.length === 0) {
-      throw new Error("User IDs are required");
-    }
-
-    const response = await API.delete("/admin/users/bulk", { data: { ids } });
-    return response.data;
-  } catch (error) {
-    console.error("Error bulk deleting users:", error);
-    throw error.response?.data || { message: "Failed to delete users" };
-  }
-};
-
-// ============================================
-// ✅ GET USER STATS (Admin)
-// ============================================
-export const getUserStats = async () => {
-  try {
-    const response = await API.get("/admin/users/stats");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user stats:", error);
-    throw error.response?.data || { message: "Failed to fetch user stats" };
-  }
-};
-
-// ============================================
-// ✅ GET CURRENT USER PROFILE
-// ============================================
-export const getCurrentUserProfile = async () => {
-  try {
-    const response = await API.get("/auth/me");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching current user:", error);
-    throw error.response?.data || { message: "Failed to fetch user profile" };
-  }
-};
-
-// ============================================
-// ✅ UPDATE CURRENT USER PROFILE
-// ============================================
-export const updateCurrentUserProfile = async (data) => {
-  try {
-    // Validate required fields
-    if (!data.name || !data.email) {
-      throw new Error("Name and email are required");
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      throw new Error("Invalid email format");
-    }
-
-    const response = await API.put("/auth/profile", data);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    throw error.response?.data || { message: "Failed to update profile" };
-  }
-};
-
-// ============================================
-// ✅ CHANGE USER PASSWORD
-// ============================================
-export const changeUserPassword = async (data) => {
-  try {
-    // Validate required fields
-    if (!data.currentPassword || !data.newPassword) {
-      throw new Error("Current password and new password are required");
-    }
-
-    // Validate new password length
-    if (data.newPassword.length < 6) {
-      throw new Error("New password must be at least 6 characters");
-    }
-
-    const response = await API.put("/auth/change-password", {
-      currentPassword: data.currentPassword,
-      newPassword: data.newPassword,
-    });
     
     return response.data;
-  } catch (error) {
-    console.error("Error changing password:", error);
-    throw error.response?.data || { message: "Failed to change password" };
-  }
-};
+  },
 
-// ============================================
-// ✅ GET USER ORDERS
-// ============================================
-export const getUserOrders = async (userId) => {
-  try {
-    if (!userId) {
-      throw new Error("User ID is required");
+  /**
+   * Upload avatar
+   * @param {File} file - Image file
+   */
+  uploadAvatar: async (file) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    
+    const response = await API.post("/api/users/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    
+    // Update stored user data
+    if (response.data.success && response.data.data?.avatar) {
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const updatedUser = { ...currentUser, avatar: response.data.data.avatar };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
-
-    const response = await API.get(`/users/${userId}/orders`);
+    
     return response.data;
-  } catch (error) {
-    console.error("Error fetching user orders:", error);
-    throw error.response?.data || { message: "Failed to fetch user orders" };
-  }
-};
+  },
 
-// ============================================
-// ✅ GET USER WISHLIST
-// ============================================
-export const getUserWishlist = async (userId) => {
-  try {
-    if (!userId) {
-      throw new Error("User ID is required");
-    }
-
-    const response = await API.get(`/users/${userId}/wishlist`);
+  /**
+   * Get user orders
+   * @param {Object} params - { page, limit, status }
+   */
+  getOrders: async (params = {}) => {
+    const response = await API.get("/api/orders/my-orders", { params });
     return response.data;
-  } catch (error) {
-    console.error("Error fetching user wishlist:", error);
-    throw error.response?.data || { message: "Failed to fetch user wishlist" };
-  }
-};
+  },
 
-// ============================================
-// ✅ SEARCH USERS
-// ============================================
-export const searchUsers = async (query) => {
-  try {
-    if (!query || query.trim().length === 0) {
-      return [];
+  /**
+   * Get user order details
+   * @param {string} orderId 
+   */
+  getOrderDetails: async (orderId) => {
+    const response = await API.get(`/api/orders/${orderId}`);
+    return response.data;
+  },
+
+  /**
+   * Add to wishlist
+   * @param {string} productId 
+   */
+  addToWishlist: async (productId) => {
+    const response = await API.post("/api/users/wishlist", { productId });
+    return response.data;
+  },
+
+  /**
+   * Remove from wishlist
+   * @param {string} productId 
+   */
+  removeFromWishlist: async (productId) => {
+    const response = await API.delete(`/api/users/wishlist/${productId}`);
+    return response.data;
+  },
+
+  /**
+   * Get wishlist
+   */
+  getWishlist: async () => {
+    const response = await API.get("/api/users/wishlist");
+    return response.data;
+  },
+
+  /**
+   * Get user reviews
+   */
+  getReviews: async () => {
+    const response = await API.get("/api/users/reviews");
+    return response.data;
+  },
+
+  /**
+   * Delete account
+   */
+  deleteAccount: async () => {
+    const response = await API.delete("/api/users/account");
+    
+    // Clear local storage on deletion
+    if (response.data.success) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
     }
-
-    const response = await API.get(`/admin/users/search?q=${encodeURIComponent(query)}`);
-    return response.data.users || response.data;
-  } catch (error) {
-    console.error("Error searching users:", error);
-    throw error.response?.data || { message: "Failed to search users" };
+    
+    return response.data;
   }
 };
 
-// ============================================
-// ✅ EXPORT ALL FUNCTIONS
-// ============================================
-export default {
-  getUsers,
-  getUserById,
-  addUser,
-  updateUser,
-  updateUserStatus,
-  deleteUser,
-  bulkDeleteUsers,
-  getUserStats,
-  getCurrentUserProfile,
-  updateCurrentUserProfile,
-  changeUserPassword,
-  getUserOrders,
-  getUserWishlist,
-  searchUsers,
-};
+
+export default userApi;
