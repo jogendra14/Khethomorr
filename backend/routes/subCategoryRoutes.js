@@ -8,8 +8,6 @@ import {
   deleteSubCategory,
   toggleSubCategoryStatus
 } from '../controller/subCategoryController.js';
-import { protect } from '../middleware/authMiddleware.js';
-import { admin } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 
@@ -19,9 +17,9 @@ router.get('/category/:categoryId', getSubCategoriesByCategory);
 router.get('/:id', getSubCategoryById);
 
 // Admin routes
-router.post('/', protect, admin, createSubCategory);
-router.put('/:id', protect, admin, updateSubCategory);
-router.delete('/:id', protect, admin, deleteSubCategory);
-router.patch('/:id/toggle', protect, admin, toggleSubCategoryStatus);
+router.post('/',  createSubCategory);
+router.put('/:id',  updateSubCategory);
+router.delete('/:id',  deleteSubCategory);
+router.patch('/:id/toggle',  toggleSubCategoryStatus);
 
 export default router;
