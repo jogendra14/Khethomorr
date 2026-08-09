@@ -1,35 +1,13 @@
-// frontend/src/api/index.js
-import ProductAPI from "./productApi";
-import AuthAPI from "./authApi";
-import OrderAPI from "./orderApi";
-import CartAPI from "./cartApi";
-import ReviewAPI from "./reviewApi";
-import UserAPI from "./userApi";
-import PaymentAPI from "./paymentApi";
-import CategoryAPI from "./categoryApi";
-import AnalyticsAPI from "./analyticsApi";
-
-export {
-  ProductAPI,
-  AuthAPI,
-  OrderAPI,
-  CartAPI,
-  ReviewAPI,
-  UserAPI,
-  PaymentAPI,
-  CategoryAPI,
-  AnalyticsAPI,
-};
-
-// Default export for convenience
-export default {
-  ProductAPI,
-  AuthAPI,
-  OrderAPI,
-  CartAPI,
-  ReviewAPI,
-  UserAPI,
-  PaymentAPI,
-  CategoryAPI,
-  AnalyticsAPI,
-};
+export { default as authApi } from './authApi';
+export { default as userApi } from './userApi';
+export { default as productApi } from './productApi';
+export { default as categoryApi } from './categoryApi';
+export { default as subCategoryApi } from './subCategoryApi';
+export { default as orderApi } from './orderApi';
+export { default as cartApi } from './cartApi';
+export { default as wishlistApi } from './wishlistApi';
+export { default as reviewApi } from './reviewApi';
+export { default as couponApi } from './couponApi';
+export { default as paymentApi } from './paymentApi';
+export { default as dealApi } from './dealApi';
+export { default as dashboardApi } from './dashboardApi';

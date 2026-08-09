@@ -1,38 +1,34 @@
-// frontend/src/api/paymentApi.js
-import API from "./axios";
+import API from './axios';
 
-const PaymentAPI = {
-  // Create payment intent
-  createPaymentIntent: async (orderId) => {
-    const response = await API.post("/payments/create-intent", { orderId });
-    return response.data;
-  },
+const paymentApi = {
+  // Initialize payment
+  initialize: (data) =>
+    API.post('/api/payments/initialize', data),
 
-  // Process payment
-  processPayment: async (paymentData) => {
-    const response = await API.post("/payments/process", paymentData);
-    return response.data;
-  },
+  // Verify payment
+  verify: (data) =>
+    API.post('/api/payments/verify', data),
 
-  // Get payment status
-  getPaymentStatus: async (paymentId) => {
-    const response = await API.get(`/payments/${paymentId}/status`);
-    return response.data;
-  },
+  // Get my payments
+  getMyPayments: (params) =>
+    API.get('/api/payments', { params }),
 
-  // Get payment history
-  getPaymentHistory: async (params = {}) => {
-    const response = await API.get("/payments/history", { params });
-    return response.data;
-  },
+  // Get payment by ID
+  getById: (id) =>
+    API.get(`/api/payments/${id}`),
 
-  // Refund payment (Admin)
-  refundPayment: async (paymentId, amount) => {
-    const response = await API.post(`/payments/${paymentId}/refund`, {
-      amount
-    });
-    return response.data;
-  },
+  // ========== ADMIN ==========
+  // Get all payments
+  getAll: (params) =>
+    API.get('/api/payments/admin/all', { params }),
+
+  // Get payment stats
+  getStats: () =>
+    API.get('/api/payments/admin/stats'),
+
+  // Process refund
+  processRefund: (id, data) =>
+    API.post(`/api/payments/${id}/refund`, data),
 };
 
-export default PaymentAPI;
+export default paymentApi;

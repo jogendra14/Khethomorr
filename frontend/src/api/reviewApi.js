@@ -1,52 +1,56 @@
-// frontend/src/api/reviewApi.js
-import API from "./axios";
+import API from './axios';
 
-const ReviewAPI = {
-  // Get reviews for a product
-  getProductReviews: async (productId, params = {}) => {
-    const response = await API.get(`/reviews/product/${productId}`, {
-      params
-    });
-    return response.data;
-  },
+const reviewApi = {
+  // ========== PUBLIC ==========
+  // Get product reviews
+  getProductReviews: (productId, params) =>
+    API.get(`/api/reviews/product/${productId}`, { params }),
 
+  // Get review stats
+  getReviewStats: (productId) =>
+    API.get(`/api/reviews/stats/${productId}`),
+
+  // Get single review
+  getReviewById: (id) =>
+    API.get(`/api/reviews/${id}`),
+
+  // ========== USER ==========
   // Create review
-  createReview: async (productId, reviewData) => {
-    const response = await API.post(`/reviews/product/${productId}`, reviewData);
-    return response.data;
-  },
+  createReview: (data) =>
+    API.post('/api/reviews', data),
+
+  // Get my reviews
+  getMyReviews: (params) =>
+    API.get('/api/reviews/user/my-reviews', { params }),
 
   // Update review
-  updateReview: async (reviewId, reviewData) => {
-    const response = await API.put(`/reviews/${reviewId}`, reviewData);
-    return response.data;
-  },
+  updateReview: (id, data) =>
+    API.put(`/api/reviews/${id}`, data),
 
   // Delete review
-  deleteReview: async (reviewId) => {
-    const response = await API.delete(`/reviews/${reviewId}`);
-    return response.data;
-  },
+  deleteReview: (id) =>
+    API.delete(`/api/reviews/${id}`),
 
-  // Like/Unlike review
-  likeReview: async (reviewId) => {
-    const response = await API.post(`/reviews/${reviewId}/like`);
-    return response.data;
-  },
-
-  // Get user's reviews
-  getMyReviews: async (params = {}) => {
-    const response = await API.get("/reviews/my-reviews", { params });
-    return response.data;
-  },
+  // Mark helpful
+  markHelpful: (id) =>
+    API.patch(`/api/reviews/${id}/helpful`),
 
   // Report review
-  reportReview: async (reviewId, reason) => {
-    const response = await API.post(`/reviews/${reviewId}/report`, {
-      reason
-    });
-    return response.data;
-  },
+  reportReview: (id, reason) =>
+    API.patch(`/api/reviews/${id}/report`, { reason }),
+
+  // ========== ADMIN ==========
+  // Get all reviews
+  getAllReviews: (params) =>
+    API.get('/api/reviews/admin/all', { params }),
+
+  // Add admin reply
+  addReply: (id, comment) =>
+    API.post(`/api/reviews/${id}/reply`, { comment }),
+
+  // Update review status
+  updateStatus: (id, status) =>
+    API.patch(`/api/reviews/${id}/status`, { status }),
 };
 
-export default ReviewAPI;
+export default reviewApi;

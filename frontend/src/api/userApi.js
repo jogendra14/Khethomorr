@@ -1,124 +1,85 @@
-// frontend/src/api/userApi.js
-import API from "./axios.js";
+import API from './axios';
 
 const userApi = {
-  /**
-   * Get user profile
-   */
-  getProfile: async () => {
-    const response = await API.get("/api/auth/me");
-    return response.data;
-  },
+  // ========== PROFILE ==========
+  // Get current user profile
+  getProfile: () =>
+    API.get('/api/users/profile'),
 
-  /**
-   * Update user profile (non-password fields)
-   * @param {Object} data - { name, phone, address, avatar }
-   */
-  updateProfile: async (data) => {
-    const response = await API.put("/api/users/profile", data);
-    
-    // Update stored user data
-    if (response.data.success && response.data.data) {
-      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const updatedUser = { ...currentUser, ...response.data.data };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-    
-    return response.data;
-  },
+  // Update profile
+  updateProfile: (data) =>
+    API.put('/api/users/profile', data),
 
-  /**
-   * Upload avatar
-   * @param {File} file - Image file
-   */
-  uploadAvatar: async (file) => {
-    const formData = new FormData();
-    formData.append("avatar", file);
-    
-    const response = await API.post("/api/users/avatar", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    
-    // Update stored user data
-    if (response.data.success && response.data.data?.avatar) {
-      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-      const updatedUser = { ...currentUser, avatar: response.data.data.avatar };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-    
-    return response.data;
-  },
+  // Change password
+  changePassword: (data) =>
+    API.put('/api/users/change-password', data),
 
-  /**
-   * Get user orders
-   * @param {Object} params - { page, limit, status }
-   */
-  getOrders: async (params = {}) => {
-    const response = await API.get("/api/orders/my-orders", { params });
-    return response.data;
-  },
+  // Change email
+  changeEmail: (data) =>
+    API.put('/api/users/change-email', data),
 
-  /**
-   * Get user order details
-   * @param {string} orderId 
-   */
-  getOrderDetails: async (orderId) => {
-    const response = await API.get(`/api/orders/${orderId}`);
-    return response.data;
-  },
+  // Upload avatar
+  uploadAvatar: (formData) =>
+    API.post('/api/users/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 
-  /**
-   * Add to wishlist
-   * @param {string} productId 
-   */
-  addToWishlist: async (productId) => {
-    const response = await API.post("/api/users/wishlist", { productId });
-    return response.data;
-  },
+  // Delete own account
+  deleteAccount: (password) =>
+    API.delete('/api/users/account', { data: { password } }),
 
-  /**
-   * Remove from wishlist
-   * @param {string} productId 
-   */
-  removeFromWishlist: async (productId) => {
-    const response = await API.delete(`/api/users/wishlist/${productId}`);
-    return response.data;
-  },
+  // Get addresses
+  getAddresses: () =>
+    API.get('/api/users/addresses'),
 
-  /**
-   * Get wishlist
-   */
-  getWishlist: async () => {
-    const response = await API.get("/api/users/wishlist");
-    return response.data;
-  },
+  // Update address
+  updateAddress: (data) =>
+    API.put('/api/users/address', data),
 
-  /**
-   * Get user reviews
-   */
-  getReviews: async () => {
-    const response = await API.get("/api/users/reviews");
-    return response.data;
-  },
+  // ========== ADMIN ==========
+  // Get all users (admin)
+  getUsers: (params) =>
+    API.get('/api/users', { params }),
 
-  /**
-   * Delete account
-   */
-  deleteAccount: async () => {
-    const response = await API.delete("/api/users/account");
-    
-    // Clear local storage on deletion
-    if (response.data.success) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-    }
-    
-    return response.data;
-  }
+  // Get user by ID (admin)
+  getUserById: (id) =>
+    API.get(`/api/users/${id}`),
+
+  // Update user (admin)
+  updateUser: (id, data) =>
+    API.put(`/api/users/${id}`, data),
+
+  // Delete user (admin)
+  deleteUser: (id) =>
+    API.delete(`/api/users/${id}`),
+
+  // Toggle user status (admin)
+  toggleUserStatus: (id) =>
+    API.patch(`/api/users/${id}/toggle-status`),
+
+  // Update user role (admin)
+  updateUserRole: (id, role) =>
+    API.patch(`/api/users/${id}/role`, { role }),
+
+  // Get vendors (admin)
+  getVendors: (params) =>
+    API.get('/api/users/vendors', { params }),
+
+  // Get admins (superadmin)
+  getAdmins: () =>
+    API.get('/api/users/admins'),
+
+  // Get user stats (admin)
+  getUserStats: () =>
+    API.get('/api/users/stats'),
+
+  // Bulk delete users (admin)
+  bulkDeleteUsers: (userIds) =>
+    API.delete('/api/users/bulk', { data: { userIds } }),
+
+  // Bulk update users (admin)
+  bulkUpdateUsers: (data) =>
+    API.patch('/api/users/bulk', data),
 };
-
 
 export default userApi;

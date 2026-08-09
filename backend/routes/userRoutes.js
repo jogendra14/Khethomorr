@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 import express from 'express';
 import {
   getAllUsers,
@@ -10,49 +9,48 @@ import {
   getAllVendors,
   getAllAdmins,
   getUserStatistics,
+  bulkDeleteUsers,
+  bulkUpdateUsers,
   getProfile,
   updateProfile,
+  changePassword,
+  changeEmail,
   uploadAvatar,
   deleteOwnAccount,
-  bulkDeleteUsers,
-  exportUsers
-} from '../controller/userController.js';
+  getAddresses,
+  updateAddress
+} from '../controllers/userController.js';
 import { protect, authorize } from '../middleware/auth.js';
-import upload from '../middleware/upload.js';
+import { uploadAvatar as uploadAvatarMiddleware } from '../middleware/upload.js';
 
 const router = express.Router();
 
-// ============================================
-// ✅ PROTECTED ROUTES (All authenticated users)
-// ============================================
-router.use(protect); // All routes below require authentication
+// All routes require authentication
+router.use(protect);
 
-// Profile routes (All authenticated users)
+// Current user profile routes
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
-router.post('/avatar', upload.single('avatar'), uploadAvatar);
+router.put('/change-password', changePassword);
+router.put('/change-email', changeEmail);
+router.post('/avatar', uploadAvatarMiddleware, uploadAvatar);
 router.delete('/account', deleteOwnAccount);
+router.get('/addresses', getAddresses);
+router.put('/address', updateAddress);
 
-// ============================================
-// ✅ ADMIN & SUPERADMIN ONLY ROUTES
-// ============================================
-router.use(authorize('admin', 'superadmin'));
+// Admin only routes
+router.get('/stats', authorize('admin', 'superadmin'), getUserStatistics);
+router.get('/vendors', authorize('admin', 'superadmin'), getAllVendors);
+router.get('/admins', authorize('superadmin'), getAllAdmins);
+router.delete('/bulk', authorize('admin', 'superadmin'), bulkDeleteUsers);
+router.patch('/bulk', authorize('admin', 'superadmin'), bulkUpdateUsers);
+router.get('/', authorize('admin', 'superadmin'), getAllUsers);
 
-// User management
-router.get('/all', getAllUsers);
-router.get('/stats', getUserStatistics);
-router.get('/export', exportUsers);
-router.get('/vendors', getAllVendors);
-router.get('/admins', getAllAdmins);
-
-router.get('/:id', getUserById);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
-
-router.patch('/:id/status', toggleUserStatus);
-router.patch('/:id/role', updateUserRole);
-
-// Bulk operations
-router.post('/bulk-delete', bulkDeleteUsers);
+// Admin routes with ID (keep at bottom to avoid conflict with above routes)
+router.get('/:id', authorize('admin', 'superadmin'), getUserById);
+router.put('/:id', authorize('admin', 'superadmin'), updateUser);
+router.delete('/:id', authorize('admin', 'superadmin'), deleteUser);
+router.patch('/:id/toggle-status', authorize('admin', 'superadmin'), toggleUserStatus);
+router.patch('/:id/role', authorize('admin', 'superadmin'), updateUserRole);
 
 export default router;

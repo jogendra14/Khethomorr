@@ -1,447 +1,447 @@
-import { Save } from "lucide-react";
-import { useState, useEffect } from "react";
+// frontend/src/Admin/pages/Settings.jsx
+import { useState } from "react";
+import { 
+  Save, Loader2, RefreshCw, AlertTriangle, 
+  User, Globe, Phone, MapPin, Link2, MessageSquare,
+  Clock, Lock, Eye, EyeOff, Shield
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSettings, updateSettings, changeAdminPassword } from "../../api/settingsApi.js";
+import { userApi } from "../../api";
 import toast from "react-hot-toast";
 
+// ============================================
+// SKELETON
+// ============================================
+const Skeleton = ({ className }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
+
+const PageSkeleton = () => (
+  <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <Skeleton className="h-8 w-48" />
+    <div className="space-y-6">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="bg-white rounded-xl shadow-sm p-6">
+          <Skeleton className="h-6 w-32 mb-5" />
+          <div className="grid md:grid-cols-2 gap-5">
+            {[1, 2, 3, 4].map((j) => (
+              <div key={j}>
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ============================================
+// SECTION HEADER
+// ============================================
+const SectionHeader = ({ icon: Icon, title, description }) => (
+  <div className="flex items-center gap-3 mb-5">
+    <div className="p-2 bg-blue-100 rounded-lg">
+      <Icon className="text-blue-600" size={20} />
+    </div>
+    <div>
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      {description && <p className="text-sm text-gray-500">{description}</p>}
+    </div>
+  </div>
+);
+
+// ============================================
+// INPUT FIELD
+// ============================================
+const InputField = ({ label, name, value, onChange, type = "text", placeholder = "", disabled = false, required = false, icon: Icon }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <Icon size={16} />
+        </div>
+      )}
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full border border-gray-300 rounded-lg py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm ${
+          Icon ? "pl-10 pr-4" : "px-4"
+        } disabled:bg-gray-50 disabled:cursor-not-allowed`}
+        disabled={disabled}
+        required={required}
+      />
+    </div>
+  </div>
+);
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 export default function Settings() {
   const queryClient = useQueryClient();
-  const [settings, setSettings] = useState({
-    adminName: "",
+
+  // Form States
+  const [profileForm, setProfileForm] = useState({
+    name: "",
     email: "",
-    websiteName: "",
-    websiteUrl: "",
     phone: "",
-    address: "",
-    facebook: "",
-    instagram: "",
-    twitter: "",
-    announcement: "",
-    businessHours: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      country: "India",
+      zipCode: "",
+    },
   });
-  const [passwordData, setPasswordData] = useState({
+
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  // ✅ React Query - Fetch Settings
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
+  // ============================================
+  // QUERY: Fetch Current User Profile
+  // ============================================
   const {
-    data: fetchedSettings,
+    data: profileData,
     isLoading,
     isError,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['settings'],
-    queryFn: getSettings,
+    queryKey: ["admin-profile"],
+    queryFn: () => userApi.getProfile().then(res => res.data.data || res.data),
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    onError: (error) => {
-      toast.error(error.message || "Failed to load settings");
+    onSuccess: (data) => {
+      if (data) {
+        setProfileForm({
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          address: {
+            street: data.address?.street || "",
+            city: data.address?.city || "",
+            state: data.address?.state || "",
+            country: data.address?.country || "India",
+            zipCode: data.address?.zipCode || "",
+          },
+        });
+      }
+    },
+    onError: () => {
+      toast.error("Failed to load profile");
     },
   });
 
-  // ✅ Set settings when fetched
-  useEffect(() => {
-    if (fetchedSettings) {
-      setSettings({
-        adminName: fetchedSettings.adminName || "Admin",
-        email: fetchedSettings.email || "admin@shopnest.com",
-        websiteName: fetchedSettings.websiteName || "ShopNest",
-        websiteUrl: fetchedSettings.websiteUrl || "https://shopnest.com",
-        phone: fetchedSettings.phone || "+91 9876543210",
-        address: fetchedSettings.address || "New Delhi, India",
-        facebook: fetchedSettings.facebook || "",
-        instagram: fetchedSettings.instagram || "",
-        twitter: fetchedSettings.twitter || "",
-        announcement: fetchedSettings.announcement || "",
-        businessHours: fetchedSettings.businessHours || "",
-      });
-    }
-  }, [fetchedSettings]);
+  // ============================================
+  // MUTATIONS
+  // ============================================
 
-  // ✅ React Query - Update Settings
-  const updateSettingsMutation = useMutation({
-    mutationFn: updateSettings,
+  // Update Profile
+  const updateProfileMutation = useMutation({
+    mutationFn: (data) => userApi.updateProfile(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
-      toast.success("Settings saved successfully! ✅");
+      queryClient.invalidateQueries(["admin-profile"]);
+      queryClient.invalidateQueries(["auth", "me"]);
+      toast.success("Profile updated successfully!");
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to save settings ❌");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update profile");
     },
   });
 
-  // ✅ React Query - Change Password
+  // Update Address
+  const updateAddressMutation = useMutation({
+    mutationFn: (data) => userApi.updateAddress(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["admin-profile"]);
+      toast.success("Address updated successfully!");
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update address");
+    },
+  });
+
+  // Change Password
   const changePasswordMutation = useMutation({
-    mutationFn: changeAdminPassword,
+    mutationFn: (data) => userApi.changePassword(data),
     onSuccess: () => {
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       toast.success("Password changed successfully! 🔒");
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to change password ❌");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to change password");
     },
   });
 
-  const handleChange = (e) => {
-    setSettings({
-      ...settings,
-      [e.target.name]: e.target.value,
-    });
+  // ============================================
+  // HANDLERS
+  // ============================================
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({
+      ...prev,
+      address: { ...prev.address, [name]: value },
+    }));
   };
 
   const handlePasswordChange = (e) => {
-    setPasswordData({
-      ...passwordData,
-      [e.target.name]: e.target.value,
+    const { name, value } = e.target;
+    setPasswordForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  // Save Profile
+  const handleProfileSubmit = (e) => {
+    e.preventDefault();
+    if (!profileForm.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    updateProfileMutation.mutate({
+      name: profileForm.name,
+      phone: profileForm.phone,
     });
   };
 
-  const handleSubmit = (e) => {
+  // Save Address
+  const handleAddressSubmit = (e) => {
     e.preventDefault();
-    updateSettingsMutation.mutate(settings);
+    updateAddressMutation.mutate(profileForm.address);
   };
 
+  // Change Password
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
 
-    // Validate passwords
-    if (!passwordData.currentPassword) {
+    if (!passwordForm.currentPassword) {
       toast.error("Current password is required");
       return;
     }
-
-    if (passwordData.newPassword.length < 6) {
+    if (passwordForm.newPassword.length < 6) {
       toast.error("New password must be at least 6 characters");
       return;
     }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("Passwords do not match");
+      return;
+    }
+    if (passwordForm.currentPassword === passwordForm.newPassword) {
+      toast.error("New password must be different from current password");
       return;
     }
 
     changePasswordMutation.mutate({
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword,
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
     });
   };
 
-  const { isPending: isSaving } = updateSettingsMutation;
-  const { isPending: isChangingPassword } = changePasswordMutation;
+  const isSaving = updateProfileMutation.isPending || updateAddressMutation.isPending;
+  const isChangingPassword = changePasswordMutation.isPending;
 
-  // ✅ Loading State
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="mb-6">
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-4 w-64 bg-gray-200 rounded mt-2 animate-pulse"></div>
-        </div>
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow p-6">
-              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-5"></div>
-              <div className="grid md:grid-cols-2 gap-5">
-                {[1, 2, 3, 4].map((j) => (
-                  <div key={j}>
-                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
-                    <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // ============================================
+  // LOADING
+  // ============================================
+  if (isLoading) return <PageSkeleton />;
 
-  // ✅ Error State
+  // ============================================
+  // ERROR
+  // ============================================
   if (isError) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600 text-lg mb-2">⚠️ Failed to load settings</p>
-          <p className="text-red-500 text-sm mb-4">{error?.message || "Please try again"}</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Retry
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <AlertTriangle className="mx-auto text-red-400 mb-3" size={48} />
+          <h2 className="text-xl font-bold text-red-800 mb-2">Failed to Load Settings</h2>
+          <p className="text-red-600 mb-4">{error?.message}</p>
+          <button onClick={() => refetch()} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+            <RefreshCw className="inline mr-2" size={16} /> Try Again
           </button>
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // RENDER
+  // ============================================
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-gray-500">Manage website and admin settings</p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-500 text-sm mt-1">Manage your profile, address, and security</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Admin Info */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-5">Admin Information</h2>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block mb-2 font-medium">Admin Name</label>
-              <input
-                type="text"
-                name="adminName"
-                value={settings.adminName}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
+      <div className="space-y-6">
+        {/* ========== PROFILE ========== */}
+        <form onSubmit={handleProfileSubmit}>
+          <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 p-6">
+            <SectionHeader icon={User} title="Profile Information" description="Update your personal details" />
+            <div className="grid md:grid-cols-2 gap-5">
+              <InputField label="Full Name" name="name" value={profileForm.name} onChange={handleProfileChange} required icon={User} disabled={isSaving} placeholder="Your name" />
+              <InputField label="Email Address" name="email" value={profileForm.email} onChange={handleProfileChange} disabled={true} icon={Globe} placeholder="your@email.com" />
+              <InputField label="Phone Number" name="phone" value={profileForm.phone} onChange={handleProfileChange} icon={Phone} disabled={isSaving} placeholder="+91 9876543210" />
             </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={settings.email}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
+            <div className="flex justify-end mt-6">
+              <button type="submit" disabled={isSaving}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2">
+                {updateProfileMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
+              </button>
             </div>
+          </div>
+        </form>
+
+        {/* ========== ADDRESS ========== */}
+        <form onSubmit={handleAddressSubmit}>
+          <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 p-6">
+            <SectionHeader icon={MapPin} title="Address" description="Your business or shipping address" />
+            <div className="grid md:grid-cols-2 gap-5">
+              <div className="md:col-span-2">
+                <InputField label="Street Address" name="street" value={profileForm.address.street} onChange={handleAddressChange} icon={MapPin} disabled={isSaving} placeholder="123 Main Street" />
+              </div>
+              <InputField label="City" name="city" value={profileForm.address.city} onChange={handleAddressChange} disabled={isSaving} placeholder="New Delhi" />
+              <InputField label="State" name="state" value={profileForm.address.state} onChange={handleAddressChange} disabled={isSaving} placeholder="Delhi" />
+              <InputField label="Country" name="country" value={profileForm.address.country} onChange={handleAddressChange} disabled={isSaving} placeholder="India" />
+              <InputField label="ZIP Code" name="zipCode" value={profileForm.address.zipCode} onChange={handleAddressChange} disabled={isSaving} placeholder="110001" />
+            </div>
+            <div className="flex justify-end mt-6">
+              <button type="submit" disabled={isSaving}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2">
+                {updateAddressMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                {updateAddressMutation.isPending ? "Saving..." : "Save Address"}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {/* ========== SOCIAL LINKS (Optional) ========== */}
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 p-6">
+          <SectionHeader icon={Link2} title="Social Links" description="Your social media profiles (coming soon)" />
+          <div className="grid md:grid-cols-3 gap-4">
+            <InputField label="Facebook" name="facebook" value="" onChange={() => {}} placeholder="https://facebook.com/..." disabled />
+            <InputField label="Instagram" name="instagram" value="" onChange={() => {}} placeholder="https://instagram.com/..." disabled />
+            <InputField label="Twitter" name="twitter" value="" onChange={() => {}} placeholder="https://twitter.com/..." disabled />
           </div>
         </div>
 
-        {/* Website */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-5">Website Settings</h2>
+        {/* ========== CHANGE PASSWORD ========== */}
+        <form onSubmit={handlePasswordSubmit}>
+          <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 p-6">
+            <SectionHeader icon={Lock} title="Change Password" description="Update your account password for security" />
+            <div className="grid md:grid-cols-3 gap-5">
+              {/* Current Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password *</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type={showPasswords.current ? "text" : "password"}
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
+                    placeholder="Enter current password"
+                    required
+                    disabled={isChangingPassword}
+                  />
+                  <button type="button" onClick={() => togglePasswordVisibility("current")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
 
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block mb-2 font-medium">Website Name</label>
-              <input
-                type="text"
-                name="websiteName"
-                value={settings.websiteName}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
+              {/* New Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password *</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type={showPasswords.new ? "text" : "password"}
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
+                    placeholder="Min 6 characters"
+                    required
+                    minLength={6}
+                    disabled={isChangingPassword}
+                  />
+                  <button type="button" onClick={() => togglePasswordVisibility("new")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password *</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type={showPasswords.confirm ? "text" : "password"}
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
+                    placeholder="Re-enter new password"
+                    required
+                    disabled={isChangingPassword}
+                  />
+                  <button type="button" onClick={() => togglePasswordVisibility("confirm")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-2 font-medium">Website URL</label>
-              <input
-                type="text"
-                name="websiteUrl"
-                value={settings.websiteUrl}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
+            {/* Password Requirements */}
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-2">
+                <Shield size={16} /> Password Requirements:
+              </p>
+              <ul className="text-xs text-blue-700 space-y-1 ml-6 list-disc">
+                <li>At least 6 characters long</li>
+                <li>Must be different from current password</li>
+                <li>Use a mix of letters, numbers, and symbols for strength</li>
+              </ul>
             </div>
 
-            <div>
-              <label className="block mb-2 font-medium">Contact Number</label>
-              <input
-                type="text"
-                name="phone"
-                value={settings.phone}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
+            <div className="flex justify-end mt-6">
+              <button type="submit" disabled={isChangingPassword}
+                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium flex items-center gap-2">
+                {isChangingPassword ? <Loader2 className="animate-spin" size={16} /> : <Lock size={16} />}
+                {isChangingPassword ? "Changing..." : "Change Password"}
+              </button>
             </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Address</label>
-              <input
-                type="text"
-                name="address"
-                value={settings.address}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-5">Storefront messaging</h2>
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block mb-2 font-medium">Announcement bar</label>
-              <input
-                type="text"
-                name="announcement"
-                placeholder="Free delivery across India"
-                value={settings.announcement}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
-            </div>
-            <div>
-              <label className="block mb-2 font-medium">Business hours</label>
-              <input
-                type="text"
-                name="businessHours"
-                placeholder="Mon - Sat: 9:00 AM - 8:00 PM"
-                value={settings.businessHours}
-                onChange={handleChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isSaving}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Social Links */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-xl font-semibold mb-5">Social Media</h2>
-
-          <div className="grid md:grid-cols-3 gap-5">
-            <input
-              type="text"
-              name="facebook"
-              placeholder="Facebook URL"
-              value={settings.facebook}
-              onChange={handleChange}
-              className="border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSaving}
-            />
-
-            <input
-              type="text"
-              name="instagram"
-              placeholder="Instagram URL"
-              value={settings.instagram}
-              onChange={handleChange}
-              className="border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSaving}
-            />
-
-            <input
-              type="text"
-              name="twitter"
-              placeholder="Twitter URL"
-              value={settings.twitter}
-              onChange={handleChange}
-              className="border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isSaving}
-            />
-          </div>
-        </div>
-
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
-              isSaving
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white transition`}
-          >
-            {isSaving ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save size={18} />
-                Save Changes
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-
-      {/* Change Password - Separate Section */}
-      <div className="mt-6 bg-white rounded-xl shadow p-6">
-        <h2 className="text-xl font-semibold mb-5">Change Password</h2>
-
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-5">
-            <div>
-              <label className="block mb-2 font-medium">Current Password</label>
-              <input
-                type="password"
-                name="currentPassword"
-                placeholder="Current Password"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isChangingPassword}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">New Password</label>
-              <input
-                type="password"
-                name="newPassword"
-                placeholder="New Password"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isChangingPassword}
-                required
-                minLength={6}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 font-medium">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-                className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isChangingPassword}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isChangingPassword}
-              className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
-                isChangingPassword
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              } text-white transition`}
-            >
-              {isChangingPassword ? (
-                <>
-                  <span className="animate-spin">⏳</span>
-                  Changing Password...
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  Change Password
-                </>
-              )}
-            </button>
           </div>
         </form>
       </div>

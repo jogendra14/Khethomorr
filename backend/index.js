@@ -1,130 +1,222 @@
-// backend/index.js
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
 
-import express from "express";
-import cors from "cors";
-import mongoose from 'mongoose';  // Add this
-import connectDB from "./config/db.js";
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import connectDB from './config/db.js';
 
-// IMPORTANT: Pehle models import karo
+// ============================================
+// IMPORT ALL MODELS (Ensure they're registered)
+// ============================================
+import './models/User.js';
+import './models/Product.js';
 import './models/Category.js';
 import './models/SubCategory.js';
-import './models/Product.js';
-import './models/User.js';
+import './models/Order.js';
+import './models/Review.js';
+import './models/Cart.js';
+import './models/Wishlist.js';
+import './models/Coupon.js';
+import './models/Payment.js';
+import './models/Deal.js';
 
-// Ya models index se import karo
+// Alternative: Import from models index
 // import './models/index.js';
 
-// Middleware imports
+// ============================================
+// IMPORT MIDDLEWARE
+// ============================================
 import { protect, authorize } from './middleware/auth.js';
-import { errorHandler } from "./middleware/errorMiddleware.js";
-import upload from './middleware/upload.js';
+import errorHandler from './middleware/errorMiddleware.js';
 
-// Route imports
-import authRoutes from './routes/authRoutes.js';
-//import adminRoutes from "./routes/adminRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import productRoutes from './routes/productRoutes.js';
-import categoryRoutes from './routes/categoryRoutes.js';
-import subCategoryRoutes from "./routes/subCategoryRoutes.js"
-import dealsRoutes from "./routes/dealsRoutes.js";
-import ordersRoutes from "./routes/ordersRoutes.js";
-import paymentsRoutes from "./routes/paymentsRoutes.js";
-import analyticsRoutes from "./routes/analyticsRoutes.js";
-import homeRoutes from "./routes/homeRoutes.js";
-import reviewRoutes from "./routes/reviewRoutes.js";
-//import siteRoutes from "./routes/siteRoutes.js";
+// ============================================
+// IMPORT ALL ROUTES
+// ============================================
+import routes from './routes/index.js'; // Main routes index
+// OR import individually:
+// import authRoutes from './routes/authRoutes.js';
+// import userRoutes from './routes/userRoutes.js';
+// import productRoutes from './routes/productRoutes.js';
+// import categoryRoutes from './routes/categoryRoutes.js';
+// import subCategoryRoutes from './routes/subCategoryRoutes.js';
+// import orderRoutes from './routes/orderRoutes.js';
+// import reviewRoutes from './routes/reviewRoutes.js';
+// import cartRoutes from './routes/cartRoutes.js';
+// import wishlistRoutes from './routes/wishlistRoutes.js';
+// import couponRoutes from './routes/couponRoutes.js';
+// import paymentRoutes from './routes/paymentRoutes.js';
+// import dealRoutes from './routes/dealRoutes.js';
+// import dashboardRoutes from './routes/dashboardRoutes.js';
 
-// Controller imports (for direct routes in index.js)
-import { createProduct } from './controller/productController.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ✅ Allowed Origins - Environment ke hisaab se
+// ============================================
+// CORS CONFIGURATION
+// ============================================
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://10.75.232.49:5173",
-  "https://khethomorr.vercel.app",
-  "https://khethomorr-r45zbcs1t-jogndra.vercel.app",
-  // ✅ Add production domain if any
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://10.75.232.49:5173',
+  'https://khethomorr.vercel.app',
   process.env.FRONTEND_URL,
-].filter(Boolean); // Remove undefined values
+].filter(Boolean);
 
-// ✅ CORS Configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.warn(`CORS blocked: ${origin}`);
-        callback(new Error("CORS not allowed"));
+        console.warn(`⚠️ CORS blocked origin: ${origin}`);
+        callback(new Error('CORS not allowed'), false);
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+    ],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400, // 24 hours
   })
 );
 
-// ✅ Body Parser
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// ============================================
+// BODY PARSER & SECURITY
+// ============================================
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ✅ Static Files
-app.use("/uploads", express.static("uploads"));
+// ============================================
+// STATIC FILES
+// ============================================
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// ✅ Request Logger (Development only)
-if (process.env.NODE_ENV === "development") {
+// ============================================
+// REQUEST LOGGER (Development)
+// ============================================
+if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      console.log(
+        `📝 ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`
+      );
+    });
     next();
   });
 }
 
-// ✅ Health Check
-app.get("/", (req, res) => {
-  res.json({
-    status: "success",
-    message: "E-commerce Khethomorr backend is working properly!",
+// ============================================
+// RATE LIMITING (Basic - Production me express-rate-limit use karo)
+// ============================================
+const requestCounts = new Map();
+app.use((req, res, next) => {
+  // Skip static files
+  if (req.url.startsWith('/uploads') || req.url.startsWith('/public')) {
+    return next();
+  }
+
+  const key = req.ip + req.url;
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute
+  const maxRequests = 100; // 100 requests per minute
+
+  if (!requestCounts.has(key)) {
+    requestCounts.set(key, { count: 1, resetTime: now + windowMs });
+  } else {
+    const record = requestCounts.get(key);
+    if (now > record.resetTime) {
+      record.count = 1;
+      record.resetTime = now + windowMs;
+    } else if (record.count >= maxRequests) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many requests. Please try again later.',
+      });
+    } else {
+      record.count++;
+    }
+  }
+  next();
+});
+
+// Clean up old entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of requestCounts) {
+    if (now > value.resetTime) {
+      requestCounts.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
+
+// ============================================
+// HEALTH CHECK
+// ============================================
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: '🛒 E-Commerce API is running!',
+    version: '1.0.0',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
+});
+
+// API Health Check
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
   });
 });
 
 // ============================================
-// ✅ API Routes
+// API ROUTES - Using Main Routes Index
 // ============================================
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api', routes);
 
-// Public Routes (No authentication required)
-app.use("/api/home", homeRoutes);
-//app.use("/api/site", siteRoutes);
-
-// Mixed Routes (Some public, some protected - handled inside route files)
-app.use("/api/products", productRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/subCategories", subCategoryRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/deals", dealsRoutes);
-
-// Protected Routes (All routes require authentication)
-app.use("/api/orders", protect, ordersRoutes);
-app.use("/api/payments", protect, paymentsRoutes);
-
-// Admin Only Routes (Require admin role)
-app.use("/api/analytics", protect, authorize('admin', 'superadmin'), analyticsRoutes);
+// OR mount individually (if not using routes/index.js):
+// app.use('/api/auth', authRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api/products', productRoutes);
+// app.use('/api/categories', categoryRoutes);
+// app.use('/api/subcategories', subCategoryRoutes);
+// app.use('/api/orders', orderRoutes);
+// app.use('/api/reviews', reviewRoutes);
+// app.use('/api/cart', cartRoutes);
+// app.use('/api/wishlist', wishlistRoutes);
+// app.use('/api/coupons', couponRoutes);
+// app.use('/api/payments', paymentRoutes);
+// app.use('/api/deals', dealRoutes);
+// app.use('/api/dashboard', dashboardRoutes);
 
 // ============================================
-// ✅ Additional Direct Routes (if needed)
+// QUICK ACCESS ROUTES
 // ============================================
 
-// Dashboard Route (Protected)
-app.get('/api/dashboard', protect, (req, res) => {
+// Dashboard quick route
+app.get('/api/dashboard', protect, authorize('admin', 'superadmin'), (req, res) => {
   res.json({
     success: true,
     message: `Welcome to dashboard, ${req.user.name}!`,
@@ -132,152 +224,188 @@ app.get('/api/dashboard', protect, (req, res) => {
       id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-      role: req.user.role
-    }
+      role: req.user.role,
+    },
   });
 });
 
-// Admin Users Route (Admin only)
-app.get('/api/admin/users', protect, authorize('admin', 'superadmin'), (req, res) => {
-  res.json({
-    success: true,
-    message: 'Admin users list route',
-    users: []
-  });
+// Admin quick stats
+app.get('/api/admin/stats', protect, authorize('admin', 'superadmin'), async (req, res) => {
+  try {
+    const [userCount, productCount, orderCount, reviewCount] = await Promise.all([
+      mongoose.model('User').countDocuments(),
+      mongoose.model('Product').countDocuments(),
+      mongoose.model('Order').countDocuments(),
+      mongoose.model('Review').countDocuments(),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        users: userCount,
+        products: productCount,
+        orders: orderCount,
+        reviews: reviewCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch stats',
+    });
+  }
 });
 
-// Protected Product Creation Example
-app.post('/api/products/create-with-auth',
-  protect,
-  authorize('admin', 'vendor'),
-  upload.array('images', 10),
-  createProduct
-);
-
 // ============================================
-// ✅ Error Handling
+// 404 HANDLER
 // ============================================
-
-// 404 Handler
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`,
+    message: `Route '${req.originalUrl}' not found`,
+    method: req.method,
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Global Error Handler
+// ============================================
+// GLOBAL ERROR HANDLER
+// ============================================
 app.use(errorHandler);
 
 // ============================================
-// ✅ Server Setup
+// SERVER STARTUP
 // ============================================
-
 const PORT = process.env.PORT || 5000;
 
-// Helper function to get all registered routes
-const getRegisteredRoutes = () => {
+// Function to list all registered routes
+const listRoutes = () => {
   const routes = [];
-  
-  try {
-    if (app._router && app._router.stack) {
-      app._router.stack.forEach((middleware) => {
-        if (middleware.route) {
-          // Direct routes
-          routes.push({
-            path: middleware.route.path,
-            methods: Object.keys(middleware.route.methods).join(", ").toUpperCase(),
-          });
-        } else if (middleware.name === "router" && middleware.handle && middleware.handle.stack) {
-          // Nested router routes
-          const basePath = middleware.regexp.source
-            .replace('\\/?(?=\\/|$)', '')
-            .replace('^\\/', '/')
-            .replace('\\/', '/')
+
+  const extractRoutes = (stack, basePath = '') => {
+    stack.forEach((layer) => {
+      if (layer.route) {
+        // Direct route
+        const methods = Object.keys(layer.route.methods)
+          .join(', ')
+          .toUpperCase();
+        routes.push({
+          method: methods,
+          path: basePath + layer.route.path,
+        });
+      } else if (layer.name === 'router' && layer.handle?.stack) {
+        // Router middleware
+        let routerPath = basePath;
+        if (layer.regexp) {
+          const match = layer.regexp
+            .toString()
+            .replace('/^', '')
+            .replace('\\/?(?=\\/|$)/i', '')
             .replace('(?=\\/|$)', '')
-            .replace(/\\\//g, '/');
-          
-          middleware.handle.stack.forEach((handler) => {
-            if (handler.route) {
-              const fullPath = basePath + handler.route.path;
-              routes.push({
-                path: fullPath.replace(/\/\//g, '/'), // Remove double slashes
-                methods: Object.keys(handler.route.methods).join(", ").toUpperCase(),
-              });
-            }
-          });
+            .replace(/\\\//g, '/')
+            .replace(/\/\//g, '/');
+          routerPath = basePath + '/' + match.replace(/^\/|\/$/g, '');
         }
-      });
-    }
-  } catch (error) {
-    console.warn("⚠️ Could not list routes:", error.message);
+        extractRoutes(layer.handle.stack, routerPath);
+      }
+    });
+  };
+
+  if (app._router?.stack) {
+    extractRoutes(app._router.stack);
   }
-  
+
   return routes;
 };
 
-// Start Server with better error handling
+// Start server
 const startServer = async () => {
   try {
+    // Connect to MongoDB
     await connectDB();
-    
-    console.log('📋 Registered Models:', mongoose.modelNames());
+    console.log('✅ MongoDB Connected Successfully');
 
-    const server = app.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n🚀 Server is running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(`🌐 CORS Origins: ${allowedOrigins.join(", ")}`);
-      
-      // Show all registered routes
-      console.log("\n📋 Registered Routes:");
-      const routes = getRegisteredRoutes();
-      if (routes.length > 0) {
-        console.table(routes);
-      } else {
-        console.log("  No routes found or unable to list routes");
+    // List registered models
+    const modelNames = mongoose.modelNames();
+    console.log(`📦 Registered Models (${modelNames.length}): ${modelNames.join(', ')}`);
+
+    // Start listening
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`
+╔══════════════════════════════════════════════╗
+║  🚀 SERVER STARTED SUCCESSFULLY              ║
+╠══════════════════════════════════════════════╣
+║  📍 Port: ${PORT}                              ║
+║  🌍 Environment: ${(process.env.NODE_ENV || 'development').padEnd(26)} ║
+║  📦 Models: ${String(modelNames.length).padEnd(31)} ║
+║  🛣️  API Base: http://localhost:${PORT}/api      ║
+║  ❤️  Health: http://localhost:${PORT}/api/health ║
+╚══════════════════════════════════════════════╝
+      `);
+
+      // List all routes in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n📋 Registered API Routes:');
+        const routes = listRoutes();
+        const apiRoutes = routes.filter((r) => r.path.includes('/api/'));
+        
+        if (apiRoutes.length > 0) {
+          console.table(apiRoutes.slice(0, 50)); // Show first 50
+          if (apiRoutes.length > 50) {
+            console.log(`... and ${apiRoutes.length - 50} more routes`);
+          }
+        }
+        console.log(`\n📊 Total Routes: ${routes.length}`);
       }
     });
 
-    // Graceful Shutdown
-    const shutdown = () => {
-      console.log("\n🛑 Shutting down gracefully...");
+    // Graceful shutdown
+    const gracefulShutdown = (signal) => {
+      console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
       server.close(() => {
-        console.log("✅ Server closed");
-        process.exit(0);
+        console.log('✅ HTTP server closed');
+        mongoose.connection.close(false).then(() => {
+          console.log('✅ MongoDB connection closed');
+          process.exit(0);
+        });
       });
-      
-      // Force close after 10 seconds
+
+      // Force shutdown after 10 seconds
       setTimeout(() => {
-        console.error("❌ Could not close connections in time, forcefully shutting down");
+        console.error('❌ Forced shutdown after timeout');
         process.exit(1);
       }, 10000);
     };
 
-    process.on("SIGTERM", shutdown);
-    process.on("SIGINT", shutdown);
+    // Handle termination signals
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+    // Handle unhandled errors
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+      if (process.env.NODE_ENV === 'production') {
+        // Don't crash in production, just log
+        console.error('Continuing despite unhandled rejection...');
+      } else {
+        server.close(() => process.exit(1));
+      }
+    });
+
+    process.on('uncaughtException', (error) => {
+      console.error('❌ Uncaught Exception:', error);
+      server.close(() => process.exit(1));
+    });
+
+    return server;
   } catch (error) {
-    console.error("❌ Server startup error:", error.message);
+    console.error('❌ Server startup failed:', error.message);
+    console.error('Stack:', error.stack);
     process.exit(1);
   }
 };
 
-// Handle unhandled rejections
-process.on("unhandledRejection", (err) => {
-  console.error("❌ Unhandled Rejection:", err);
-  // Don't exit in production, just log
-  if (process.env.NODE_ENV === "development") {
-    process.exit(1);
-  }
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err);
-  process.exit(1);
-});
-
 // Start the server
-startServer();
+const server = await startServer();
 
 export default app;

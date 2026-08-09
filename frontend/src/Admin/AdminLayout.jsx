@@ -1,50 +1,29 @@
+// frontend/src/Admin/AdminLayout.jsx
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 
 export default function AdminLayout() {
-  const { isAuthenticated, user } = useAuth();
+  const { user, isAdmin, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // ✅ Check if user is admin
+  // Redirect if not admin
   useEffect(() => {
-    const adminData = localStorage.getItem("admin");
-    const token = localStorage.getItem("token");
-    
-    if (!token || !adminData) {
-      toast.error("Please login as admin");
-      navigate("/admin/login");
-      return;
+    if (!loading && (!user || !isAdmin)) {
+      navigate("/admin/login", { replace: true });
     }
+  }, [user, isAdmin, loading, navigate]);
 
-    try {
-      const admin = JSON.parse(adminData);
-      if (admin.role !== "admin") {
-        toast.error("Access Denied. Admin only.");
-        navigate("/admin/login");
-      }
-    } catch (error) {
-      console.error("Error parsing admin data:", error);
-      navigate("/admin/login");
-    }
-  }, [navigate]);
-
-  // ✅ Handle responsive
+  // Handle responsive
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(!mobile);
     };
 
     handleResize();
@@ -52,13 +31,28 @@ export default function AdminLayout() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Toggle sidebar
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen(prev => !prev);
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Loading admin panel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
-    <div className="bg-gray-100 ">
+    <div className="h-screen flex overflow-hidden bg-gray-100">
       {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -66,18 +60,18 @@ export default function AdminLayout() {
         isMobile={isMobile}
       />
 
-      {/* Main Content */}
-      <div 
-        className={`transition-all mt-12 duration-300 ${
-          isSidebarOpen && !isMobile ? "ml-64" : "ml-0"
-        }`}
-      >
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
+        isSidebarOpen && !isMobile ? "lg:ml-64" : "lg:ml-20"
+      }`}>
+        {/* Topbar */}
         <Topbar 
-          toggleSidebar={toggleSidebar} 
+          toggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
         />
 
-        <main className="pt-16 p-4 md:p-6 min-h-screen">
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto mt-16 p-4 lg:p-6">
           <Outlet />
         </main>
       </div>
@@ -85,7 +79,7 @@ export default function AdminLayout() {
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
           onClick={toggleSidebar}
           aria-hidden="true"
         />

@@ -1,236 +1,129 @@
-// frontend/src/Admin/components/deal/EditDeal.jsx
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { getDealById, updateDeal } from "../../../api/dealApi";
-import toast from "react-hot-toast";
-import { ArrowLeft } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Save, Loader2, Upload, X } from "lucide-react";
+import { dealApi, productApi } from "../../api";
 
-const EditDeal = () => {
+export default function EditDeal() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    title: "",
-    brand: "",
-    price: "",
-  });
-  const [image, setImage] = useState(null);
-  const [existingImage, setExistingImage] = useState("");
+  const queryClient = useQueryClient();
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
-  // ✅ Fetch deal
-  const {
-    data: deal,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const [form, setForm] = useState({
+    title: "", description: "", brand: "", originalPrice: "", dealPrice: "",
+    discountType: "percentage", startDate: "", endDate: "",
+    productId: "", tags: "", isFeatured: false, priority: 0, status: "active",
+  });
+
+  const { data: productsData } = useQuery({
+    queryKey: ["products-list"],
+    queryFn: () => productApi.getProducts({ limit: 100 }).then(r => r.data),
+  });
+  const products = productsData?.data || [];
+
+  const { isLoading } = useQuery({
     queryKey: ["deal", id],
-    queryFn: () => getDealById(id),
+    queryFn: () => dealApi.getById(id).then(res => res.data.data || res.data),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    onSuccess: (data) => {
+      const d = data.data || data;
+      setForm({
+        title: d.title || "", description: d.description || "", brand: d.brand || "",
+        originalPrice: d.originalPrice || "", dealPrice: d.dealPrice || "",
+        discountType: d.discountType || "percentage",
+        startDate: d.startDate ? new Date(d.startDate).toISOString().split("T")[0] : "",
+        endDate: d.endDate ? new Date(d.endDate).toISOString().split("T")[0] : "",
+        productId: d.productId || "", tags: d.tags?.join(", ") || "",
+        isFeatured: d.isFeatured || false, priority: d.priority || 0, status: d.status || "active",
+      });
+      if (d.image) setImagePreview(d.image);
+    },
   });
 
-  // ✅ Set form data when deal loads
-  useEffect(() => {
-    if (deal) {
-      setFormData({
-        title: deal.title || "",
-        brand: deal.brand || "",
-        price: deal.price || "",
-      });
-      setExistingImage(deal.image || "");
-    }
-  }, [deal]);
-
-  // ✅ Update deal mutation
-  const updateDealMutation = useMutation({
-    mutationFn: ({ id, data }) => updateDeal(id, data),
-    onSuccess: () => {
-      toast.success("Deal updated successfully! ✅");
-      navigate("/admin/deals");
-    },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to update deal ❌");
-    },
+  const updateMutation = useMutation({
+    mutationFn: (fd) => dealApi.update(id, fd),
+    onSuccess: () => { toast.success("Deal updated!"); queryClient.invalidateQueries(["deal", id]); navigate("/admin/deals"); },
+    onError: (e) => toast.error(e.response?.data?.message || "Failed"),
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm(p => ({ ...p, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-    }
+    if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const requiredFields = ["title", "brand", "price"];
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        toast.error(`❌ ${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
-        return;
-      }
-    }
-
-    const dealData = new FormData();
-    dealData.append("title", formData.title);
-    dealData.append("brand", formData.brand);
-    dealData.append("price", formData.price);
-    
-    if (image) {
-      dealData.append("image", image);
-    }
-
-    updateDealMutation.mutate({ id, data: dealData });
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => {
+      if (k === "tags") fd.append(k, JSON.stringify(v.split(",").map(t => t.trim()).filter(Boolean)));
+      else fd.append(k, v);
+    });
+    if (imageFile) fd.append("image", imageFile);
+    updateMutation.mutate(fd);
   };
 
-  // ✅ Loading state
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
-          <div className="bg-white rounded-xl shadow p-6 space-y-5">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i}>
-                <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
-                <div className="h-12 bg-gray-200 rounded"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ✅ Error state
-  if (isError) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600 text-lg mb-2">⚠️ Failed to load deal</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const isPending = updateDealMutation.isPending;
+  if (isLoading) return <div className="p-6 flex justify-center"><Loader2 className="animate-spin" size={40} /></div>;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button
-          onClick={() => navigate("/admin/deals")}
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Deal</h1>
-          <p className="text-gray-500 mt-1">Update deal details</p>
-        </div>
+    <div className="p-4 md:p-6 max-w-3xl mx-auto">
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={() => navigate("/admin/deals")} className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={20} /></button>
+        <h1 className="text-2xl font-bold">Edit Deal</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 space-y-5">
-        <div>
-          <label className="block font-medium mb-2">Title *</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isPending}
-          />
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label className="block text-sm font-medium mb-1">Title *</label><input name="title" value={form.title} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" required /></div>
+          <div><label className="block text-sm font-medium mb-1">Brand *</label><input name="brand" value={form.brand} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" required /></div>
+          <div><label className="block text-sm font-medium mb-1">Original Price *</label><input name="originalPrice" type="number" value={form.originalPrice} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" required /></div>
+          <div><label className="block text-sm font-medium mb-1">Deal Price *</label><input name="dealPrice" type="number" value={form.dealPrice} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" required /></div>
+          <div><label className="block text-sm font-medium mb-1">Start Date</label><input name="startDate" type="date" value={form.startDate} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
+          <div><label className="block text-sm font-medium mb-1">End Date</label><input name="endDate" type="date" value={form.endDate} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select name="status" value={form.status} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm">
+              <option value="active">Active</option><option value="paused">Paused</option><option value="expired">Expired</option>
+            </select>
+          </div>
+          <div><label className="block text-sm font-medium mb-1">Priority</label><input name="priority" type="number" value={form.priority} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" /></div>
         </div>
 
         <div>
-          <label className="block font-medium mb-2">Brand *</label>
-          <input
-            type="text"
-            name="brand"
-            value={formData.brand}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isPending}
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-2">Price *</label>
-          <input
-            type="number"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={isPending}
-            min="0"
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-2">Image</label>
-          {existingImage && !image && (
-            <div className="mb-3">
-              <p className="text-sm text-gray-500 mb-2">Current Image</p>
-              <img
-                src={existingImage}
-                alt="Deal"
-                className="w-32 h-32 object-cover rounded-lg border"
-              />
+          <label className="block text-sm font-medium mb-1">Deal Image</label>
+          {imagePreview ? (
+            <div className="relative inline-block">
+              <img src={imagePreview} alt="" className="w-40 h-28 object-cover rounded-lg border" />
+              <button type="button" onClick={() => { setImagePreview(null); setImageFile(null); }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={14} /></button>
             </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isPending}
-          />
-          {image && (
-            <p className="text-sm text-green-600 mt-1">✓ {image.name} selected</p>
+          ) : (
+            <label className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center cursor-pointer hover:border-blue-400">
+              <Upload size={24} className="text-gray-400 mb-2" /><span className="text-sm text-gray-500">Upload image</span>
+              <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
+            </label>
           )}
         </div>
 
-        <div className="flex gap-4 pt-4">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/deals")}
-            className="px-6 py-3 border rounded-lg hover:bg-gray-50 transition"
-            disabled={isPending}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className={`px-8 py-3 text-white rounded-lg transition ${
-              isPending ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isPending ? "Updating..." : "Update Deal"}
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="rounded" /> Featured Deal
+        </label>
+
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <button type="button" onClick={() => navigate("/admin/deals")} className="px-4 py-2 bg-gray-200 rounded-lg text-sm">Cancel</button>
+          <button type="submit" disabled={updateMutation.isPending}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-2">
+            {updateMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Update
           </button>
         </div>
       </form>
     </div>
   );
-};
-
-export default EditDeal;
+}

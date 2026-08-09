@@ -1,99 +1,120 @@
-// frontend/src/hooks/useCart.js
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
-import API from "../api/axios";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { cartApi } from '../api';
+import { toast } from 'react-hot-toast';
 
-// API functions (aapko implement karni hongi)
-const getCart = async () => {
-  const response = await API.get("/cart");
-  return response.data;
+// ========== QUERY KEYS ==========
+export const cartKeys = {
+  all: ['cart'],
+  cart: () => [...cartKeys.all, 'details'],
+  summary: () => [...cartKeys.all, 'summary'],
 };
 
-const addToCart = async (productId, quantity) => {
-  const response = await API.post("/cart", { productId, quantity });
-  return response.data;
-};
+// ========== HOOKS ==========
 
-const removeFromCart = async (productId) => {
-  const response = await API.delete(`/cart/${productId}`);
-  return response.data;
-};
-
-const updateCartItem = async ({ productId, quantity }) => {
-  const response = await API.put(`/cart/${productId}`, { quantity });
-  return response.data;
-};
-
-// ============================================
-// ✅ GET CART
-// ============================================
+// Get cart
 export const useCart = () => {
   return useQuery({
-    queryKey: ["cart"],
-    queryFn: getCart,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000,
+    queryKey: cartKeys.cart(),
+    queryFn: () => cartApi.getCart().then(res => res.data.data),
+    staleTime: 30 * 1000, // 30 seconds
   });
 };
 
-// ============================================
-// ✅ ADD TO CART
-// ============================================
+// Get cart summary
+export const useCartSummary = () => {
+  return useQuery({
+    queryKey: cartKeys.summary(),
+    queryFn: () => cartApi.getSummary().then(res => res.data.data),
+    staleTime: 30 * 1000,
+  });
+};
+
+// Add to cart
 export const useAddToCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, quantity }) => addToCart(productId, quantity),
-    
+    mutationFn: (data) => cartApi.addToCart(data).then(res => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Added to cart! 🛒");
+      queryClient.invalidateQueries(cartKeys.all);
+      toast.success('Added to cart!');
     },
-    
     onError: (error) => {
-      toast.error("Failed to add to cart ❌");
-      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to add to cart');
     },
   });
 };
 
-// ============================================
-// ✅ REMOVE FROM CART
-// ============================================
-export const useRemoveFromCart = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: removeFromCart,
-    
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Removed from cart");
-    },
-    
-    onError: (error) => {
-      toast.error("Failed to remove from cart ❌");
-      console.error(error);
-    },
-  });
-};
-
-// ============================================
-// ✅ UPDATE CART ITEM
-// ============================================
+// Update cart item
 export const useUpdateCartItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateCartItem,
-    
+    mutationFn: ({ itemId, quantity }) =>
+      cartApi.updateItem(itemId, quantity).then(res => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries(cartKeys.all);
     },
-    
     onError: (error) => {
-      toast.error("Failed to update cart ❌");
-      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to update cart');
+    },
+  });
+};
+
+// Remove from cart
+export const useRemoveFromCart = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId) => cartApi.removeItem(itemId).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(cartKeys.all);
+      toast.success('Removed from cart');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to remove item');
+    },
+  });
+};
+
+// Clear cart
+export const useClearCart = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => cartApi.clearCart().then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(cartKeys.all);
+      toast.success('Cart cleared');
+    },
+  });
+};
+
+// Apply coupon
+export const useApplyCoupon = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (code) => cartApi.applyCoupon(code).then(res => res.data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(cartKeys.all);
+      toast.success(data.message || 'Coupon applied!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Invalid coupon');
+    },
+  });
+};
+
+// Remove coupon
+export const useRemoveCoupon = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => cartApi.removeCoupon().then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(cartKeys.all);
+      toast.success('Coupon removed');
     },
   });
 };

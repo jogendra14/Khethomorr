@@ -1,54 +1,63 @@
-// frontend/src/api/categoryApi.js
-import API from "./axios";
+import API from './axios';
 
-const CategoryAPI = {
+const categoryApi = {
+  // ========== PUBLIC ==========
   // Get all categories
-  getAllCategories: async () => {
-    const response = await API.get("/categories");
-    return response.data;
-  },
+  getCategories: (params) =>
+    API.get('/api/categories', { params }),
 
-  // Get single category
-  getCategoryById: async (categoryId) => {
-    const response = await API.get(`/categories/${categoryId}`);
-    return response.data;
-  },
+  // Get featured categories
+  getFeatured: (limit) =>
+    API.get('/api/categories/featured', { params: { limit } }),
+
+  // Search categories
+  search: (query) =>
+    API.get('/api/categories/search', { params: { q: query } }),
+
+  // Get category by ID
+  getById: (id) =>
+    API.get(`/api/categories/${id}`),
 
   // Get category by slug
-  getCategoryBySlug: async (slug) => {
-    const response = await API.get(`/categories/slug/${slug}`);
-    return response.data;
-  },
+  getBySlug: (slug) =>
+    API.get(`/api/categories/slug/${slug}`),
 
-  // Get subcategories
-  getSubCategories: async (categoryId) => {
-    const response = await API.get(`/categories/${categoryId}/subcategories`);
-    return response.data;
-  },
+  // ========== ADMIN ==========
+  // Create category
+  create: (data) =>
+    API.post('/api/categories', data),
 
-  // Create category (Admin)
-  createCategory: async (categoryData) => {
-    const response = await API.post("/categories", categoryData);
-    return response.data;
-  },
+  // Get all categories (admin)
+  getAll: (params) =>
+    API.get('/api/categories/admin/all', { params }),
 
-  // Update category (Admin)
-  updateCategory: async (categoryId, categoryData) => {
-    const response = await API.put(`/categories/${categoryId}`, categoryData);
-    return response.data;
-  },
+  // Get category stats
+  getStats: () =>
+    API.get('/api/categories/admin/stats'),
 
-  // Delete category (Admin)
-  deleteCategory: async (categoryId) => {
-    const response = await API.delete(`/categories/${categoryId}`);
-    return response.data;
-  },
-  
-  // --- get tree stucture ---
-  getCategoryTree: async () => {
-    const response = await API.get("/categories/tree");
-    return response.data;
-  },
+  // Update category
+  update: (id, data) =>
+    API.put(`/api/categories/${id}`, data),
+
+  // Delete category
+  delete: (id, force) =>
+    API.delete(`/api/categories/${id}`, { params: { force } }),
+
+  // Bulk delete
+  bulkDelete: (ids) =>
+    API.delete('/api/categories/bulk/delete', { data: { ids } }),
+
+  // Toggle status
+  toggleStatus: (id) =>
+    API.patch(`/api/categories/${id}/toggle`),
+
+  // Bulk toggle
+  bulkToggle: (data) =>
+    API.patch('/api/categories/bulk/toggle', data),
+
+  // Reorder
+  reorder: (orders) =>
+    API.patch('/api/categories/reorder/list', { data: { orders } }),
 };
 
-export default CategoryAPI;
+export default categoryApi;

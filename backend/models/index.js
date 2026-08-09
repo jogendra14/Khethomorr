@@ -1,27 +1,39 @@
-// backend/models/index.js
-import User from './User.js';
-import Product from './Product.js';
 import Category from './Category.js';
 import SubCategory from './SubCategory.js';
-import Order from './Order.js';  // Agar hai to
-import Review from './Review.js';  // Agar hai to
+import Product from './Product.js';
+import User from './User.js';
+import Order from './Order.js';
+import Review from './Review.js';
+import Deal from './Deal.js';
+import Cart from './Cart.js';
+import Wishlist from './Wishlist.js';
+import Payment from './Payment.js';
+import Coupon from './Coupon.js';
 
-// Sab models ko export karo taaki sab jagah registered rahe
 export {
-  User,
-  Product,
   Category,
   SubCategory,
+  Product,
+  User,
   Order,
-  Review
+  Review,
+  Deal,
+  Cart,
+  Wishlist,
+  Payment,
+  Coupon,
 };
 
-// Default export for convenience
 export default {
-  User,
-  Product,
   Category,
   SubCategory,
+  Product,
+  User,
   Order,
-  Review
+  Review,
+  Deal,
+  Cart,
+  Wishlist,
+  Payment,
+  Coupon,
 };
