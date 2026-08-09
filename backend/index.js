@@ -27,6 +27,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import subCategoryRoutes from "./routes/subCategoryRoutes.js"
 import dealsRoutes from "./routes/dealsRoutes.js";
 import ordersRoutes from "./routes/ordersRoutes.js";
 import paymentsRoutes from "./routes/paymentsRoutes.js";
@@ -107,6 +108,7 @@ app.use("/api/home", homeRoutes);
 // Mixed Routes (Some public, some protected - handled inside route files)
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/subCategories", subCategoryRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/deals", dealsRoutes);
 

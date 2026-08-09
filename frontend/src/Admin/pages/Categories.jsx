@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../../api/axios';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -28,7 +28,7 @@ const Categories = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/categories/admin/all', {
+      const response = await API.get('/categories/admin/all', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCategories(response.data.data);
@@ -43,7 +43,7 @@ const Categories = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/categories', formData, {
+      await API.post('/categories', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFormData({ name: '', description: '', image: '', order: 0 });
@@ -57,7 +57,7 @@ const Categories = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/categories/${editingCategory._id}`, formData, {
+      await API.put(`/categories/${editingCategory._id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEditingCategory(null);
@@ -72,7 +72,7 @@ const Categories = () => {
     if (window.confirm('Are you sure? This will delete all subcategories too.')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`/api/categories/${categoryId}`, {
+        await API.delete(`/categories/${categoryId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setSelectedCategory(null);
@@ -86,7 +86,7 @@ const Categories = () => {
   const handleToggleCategoryStatus = async (categoryId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`/api/categories/${categoryId}/toggle`, {}, {
+      await API.patch(`/categories/${categoryId}/toggle`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchCategories();
@@ -99,7 +99,7 @@ const Categories = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/subcategories', {
+      await API.post('/subcategories', {
         ...subCategoryForm,
         category: selectedCategory._id
       }, {
@@ -114,7 +114,7 @@ const Categories = () => {
 
   const fetchCategoryDetails = async (categoryId) => {
     try {
-      const response = await axios.get(`/api/categories/${categoryId}`);
+      const response = await API.get(`/categories/${categoryId}`);
       setSelectedCategory(response.data.data);
     } catch (error) {
       console.error('Error fetching category details:', error);
