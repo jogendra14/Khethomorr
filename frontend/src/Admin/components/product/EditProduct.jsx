@@ -368,7 +368,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   
   // Validate required fields
-  const requiredFields = ['name', 'description', 'price', 'category', 'quantity'];
+  const requiredFields = ['name', 'price', 'category', 'quantity'];
   const newErrors = {};
   requiredFields.forEach(field => {
     if (!formData[field]) {

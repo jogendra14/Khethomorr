@@ -43,6 +43,12 @@ const CategoryAPI = {
     const response = await API.delete(`/categories/${categoryId}`);
     return response.data;
   },
+  
+  // --- get tree stucture ---
+  getCategoryTree: async () => {
+    const response = await API.get("/categories/tree");
+    return response.data;
+  },
 };
 
 export default CategoryAPI;

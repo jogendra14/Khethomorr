@@ -42,7 +42,7 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    next();
+    
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -60,6 +60,6 @@ export const authorize = (...roles) => {
         message: `User role '${req.user.role}' is not authorized to access this route`
       });
     }
-    next();
+    
   };
 };

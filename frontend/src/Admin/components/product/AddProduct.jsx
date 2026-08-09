@@ -1,5 +1,5 @@
 // frontend/src/pages/admin/AddProduct.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { 
@@ -117,7 +117,7 @@ const AddProduct = () => {
     if (files.length === 0) return;
 
     // Validate file types
-    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const validTypes = ["image/jpeg", "image/avif", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp"];
     const invalidFiles = files.filter(file => !validTypes.includes(file.type));
     
     if (invalidFiles.length > 0) {
@@ -240,10 +240,6 @@ const handleSubmit = async (e) => {
   }
   if (!formData.price || formData.price <= 0) {
     toast.error("Valid price is required");
-    return;
-  }
-  if (!formData.description.trim()) {
-    toast.error("Product description is required");
     return;
   }
 
@@ -461,7 +457,6 @@ const handleSubmit = async (e) => {
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
-                      required
                       rows="5"
                       placeholder="Enter detailed product description"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

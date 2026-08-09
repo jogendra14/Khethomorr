@@ -14,7 +14,7 @@ import Products from "./Admin/pages/Products.jsx";
 import AddProduct from "./Admin/components/product/AddProduct.jsx";
 import EditProduct from "./Admin/components/product/EditProduct.jsx";
 
-//import Categories from "./Admin/pages/Categories.jsx";
+import Categories from "./Admin/pages/Categories.jsx";
 //import SubCategories from "./Admin/components/subCategories/SubCategories.jsx";
 //import Brands from "./Admin/components/subCategories/Brands.jsx";
 
@@ -73,6 +73,7 @@ const App = () => {
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="products" element={<Products />} />
+            <Route path="categories" element={<Categories />} />
             <Route path="products/create" element={<AddProduct />} /> 
             <Route path="products/:id/edit" element={<EditProduct />} />
 
