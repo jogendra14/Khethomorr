@@ -8,12 +8,12 @@ import {
   FaClock,
 } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
-import { getPublicSettings } from "../../../api/settingsApi.js";
+//import { getPublicSettings } from "../../../api/settingsApi.js";
 
 const Footer = () => {
   const { data: siteSettings } = useQuery({
     queryKey: ["publicSettings"],
-    queryFn: getPublicSettings,
+    //queryFn: getPublicSettings,
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });

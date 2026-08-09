@@ -8,7 +8,7 @@ import {
   FiUpload, FiInfo, FiTag, FiDollarSign, FiPackage,
   FiShoppingCart, FiTruck, FiEye, FiSettings
 } from "react-icons/fi";
-import { productApi, categoryApi } from "../../api";
+import { productApi, categoryApi } from "../../../api";
 
 // ============================================
 // INITIAL FORM STATE

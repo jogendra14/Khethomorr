@@ -8,7 +8,7 @@ import {
   FiPackage, FiDollarSign, FiTag, FiTruck, FiSettings,
   FiChevronDown, FiChevronUp, FiArrowLeft
 } from "react-icons/fi";
-import { productApi, categoryApi } from "../../api";
+import { productApi, categoryApi } from "../../../api";
 
 const SECTIONS = {
   basic: "basic",

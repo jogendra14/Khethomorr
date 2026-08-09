@@ -5,7 +5,7 @@ import { CartContext } from "../../../context/CartContext";
 import { WishlistContext } from "../../../context/WishlistContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { getPublicSettings } from "../../../api/settingsApi.js";
+//import  getPublicSettings  from "../../../api/settingsApi.js";
 
 const Navbar = () => {
   const { cart } = useContext(CartContext);
@@ -20,7 +20,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: siteSettings } = useQuery({
     queryKey: ["publicSettings"],
-    queryFn: getPublicSettings,
+    //queryFn: getPublicSettings,
     staleTime: 10 * 60 * 1000,
     retry: 1,
   });
