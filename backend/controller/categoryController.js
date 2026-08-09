@@ -168,6 +168,7 @@ export const getSubCategories = async (req, res) => {
 // @desc    Create category (Admin)
 // @route   POST /api/categories
 // @access  Private/Admin
+// backend/controllers/categoryController.js - Updated createCategory
 export const createCategory = async (req, res) => {
   try {
     const { 
@@ -182,7 +183,7 @@ export const createCategory = async (req, res) => {
       isActive 
     } = req.body;
 
-        // Validate name
+    // Validate name
     if (!name || !name.trim()) {
       return res.status(400).json({
         success: false,
@@ -190,16 +191,12 @@ export const createCategory = async (req, res) => {
       });
     }
 
-    // Generate slug manually
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+    // ❌ REMOVE THIS - Let the model handle slug generation
+    // const slug = name.toLowerCase().replace(...);
 
     // Check if category with same name exists
     const existingCategory = await Category.findOne({ 
-      name: { $regex: new RegExp(`^${name}$`, 'i') } 
+      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } 
     });
 
     if (existingCategory) {
@@ -230,7 +227,6 @@ export const createCategory = async (req, res) => {
     // Format image data correctly
     let imageData = {};
     if (image) {
-      // If image is a string URL
       if (typeof image === 'string') {
         imageData = { url: image };
       } else if (typeof image === 'object') {
@@ -239,16 +235,19 @@ export const createCategory = async (req, res) => {
     }
 
     const categoryData = {
-      name,
-      description,
+      name: name.trim(),
+      description: description ? description.trim() : '',
       image: imageData,
       parentCategory: parentCategory || null,
       order: order || 0,
-      metaTitle: metaTitle || name,
-      metaDescription: metaDescription || description?.substring(0, 160),
+      metaTitle: metaTitle || name.trim(),
+      metaDescription: metaDescription || (description ? description.substring(0, 160) : ''),
       metaKeywords: metaKeywords || [],
       isActive: isActive !== undefined ? isActive : true
+      // ❌ REMOVE slug from here - Let the model generate it
     };
+
+    console.log('Creating category with data:', JSON.stringify(categoryData, null, 2));
 
     const category = await Category.create(categoryData);
 
@@ -258,6 +257,8 @@ export const createCategory = async (req, res) => {
       data: category
     });
   } catch (error) {
+    console.error('Create category error:', error);
+    
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -268,10 +269,19 @@ export const createCategory = async (req, res) => {
       });
     }
 
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category with this name already exists'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Server error while creating category',
-      error: error.message
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
