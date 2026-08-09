@@ -22,8 +22,10 @@ router.get('/:id', getCategoryById);
 router.get('/:id/subcategories', getSubCategories);
 
 // Authorize routes (protected)
-router.post('/', createCategory);
-router.put('/:id', updateCategory);
+router.post('/', protect,   authorize('admin', 'vendor')
+, createCategory);
+router.put('/:id', protect,   authorize('admin', 'vendor'),
+ updateCategory);
 router.delete('/:id', protect,   authorize('admin', 'vendor'),
  deleteCategory);
 

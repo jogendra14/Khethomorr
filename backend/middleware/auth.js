@@ -1,6 +1,7 @@
 // backend/middleware/auth.js
 import jwt from 'jsonwebtoken';
-import User from '../models/Category.js';
+import User from '../models/User.js';
+import Category from '../models/Category.js';
 
 // Protect routes - Authentication middleware
 export const protect = async (req, res, next) => {
