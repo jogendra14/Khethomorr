@@ -54,6 +54,20 @@ categorySchema.pre('save', function(next) {
   next();
 });
 
+// Optional: Add a unique slug validator
+categorySchema.pre('save', async function(next) {
+  if (this.isModified('slug')) {
+    const slugRegex = new RegExp(`^${this.slug}(-[0-9]+)?$`, 'i');
+    const existingCategory = await mongoose.model('Category').findOne({
+      slug: slugRegex,
+      _id: { $ne: this._id }
+    });
+    if (existingCategory) {
+      this.slug = `${this.slug}-${Date.now()}`;
+    }
+  }
+  next();
+});
 const Category = mongoose.model('Category', categorySchema);
 
 export default Category;
