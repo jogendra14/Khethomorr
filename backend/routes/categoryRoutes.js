@@ -8,8 +8,9 @@ import {
   updateCategory,
   deleteCategory,
   toggleCategoryStatus
-} from '../controllers/categoryController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+} from '../controller/categoryController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { admin } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 

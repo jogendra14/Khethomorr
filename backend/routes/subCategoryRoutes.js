@@ -7,8 +7,9 @@ import {
   updateSubCategory,
   deleteSubCategory,
   toggleSubCategoryStatus
-} from '../controllers/subCategoryController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+} from '../controller/subCategoryController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { admin } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 
