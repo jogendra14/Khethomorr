@@ -182,6 +182,21 @@ export const createCategory = async (req, res) => {
       isActive 
     } = req.body;
 
+        // Validate name
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category name is required'
+      });
+    }
+
+    // Generate slug manually
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
     // Check if category with same name exists
     const existingCategory = await Category.findOne({ 
       name: { $regex: new RegExp(`^${name}$`, 'i') } 

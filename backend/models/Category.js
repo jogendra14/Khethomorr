@@ -42,7 +42,8 @@ const categorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// SINGLE pre-save middleware - Combined version
+{/*
+  // SINGLE pre-save middleware - Combined version
 categorySchema.pre('save', async function(next) {
   try {
     console.log('Pre-save middleware called for:', this.name);
@@ -79,6 +80,7 @@ categorySchema.pre('save', async function(next) {
     next(error);
   }
 });
+*/}
 
 const Category = mongoose.model('Category', categorySchema);
 
