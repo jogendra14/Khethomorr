@@ -115,9 +115,11 @@ const Categories = () => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         parentCategory: formData.parentCategory || null,
-        image: formData.image.trim(),
+        image: formData.image.trim() || '', // Send as string, not object
         isActive: formData.isActive,
       };
+      
+      console.log('Sending category data:', categoryData); // Debug log
 
       if (editingCategory) {
         // Update existing category

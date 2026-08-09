@@ -212,10 +212,21 @@ export const createCategory = async (req, res) => {
       }
     }
 
+    // Format image data correctly
+    let imageData = {};
+    if (image) {
+      // If image is a string URL
+      if (typeof image === 'string') {
+        imageData = { url: image };
+      } else if (typeof image === 'object') {
+        imageData = image;
+      }
+    }
+
     const categoryData = {
       name,
       description,
-      image: image || {},
+      image: imageData,
       parentCategory: parentCategory || null,
       order: order || 0,
       metaTitle: metaTitle || name,

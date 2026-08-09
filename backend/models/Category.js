@@ -42,32 +42,44 @@ const categorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate slug before saving
-categorySchema.pre('save', function(next) {
-  if (this.isModified('name')) {
-    this.slug = this.name
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+// SINGLE pre-save middleware - Combined version
+categorySchema.pre('save', async function(next) {
+  try {
+    console.log('Pre-save middleware called for:', this.name);
+    
+    // Generate slug from name if name is modified
+    if (this.isModified('name') && this.name) {
+      // Generate base slug
+      let baseSlug = this.name
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      // Check if slug already exists in the database
+      const existingCategory = await mongoose.model('Category').findOne({
+        slug: baseSlug,
+        _id: { $ne: this._id }
+      });
+      
+      if (existingCategory) {
+        // Add timestamp to make it unique
+        this.slug = `${baseSlug}-${Date.now()}`;
+        console.log('Slug already exists, generated unique slug:', this.slug);
+      } else {
+        this.slug = baseSlug;
+        console.log('Generated slug:', this.slug);
+      }
+    }
+    
+    // Continue with the save operation
+    next();
+  } catch (error) {
+    console.error('Error in pre-save middleware:', error);
+    next(error);
   }
-  next();
 });
 
-// Optional: Add a unique slug validator
-categorySchema.pre('save', async function(next) {
-  if (this.isModified('slug')) {
-    const slugRegex = new RegExp(`^${this.slug}(-[0-9]+)?$`, 'i');
-    const existingCategory = await mongoose.model('Category').findOne({
-      slug: slugRegex,
-      _id: { $ne: this._id }
-    });
-    if (existingCategory) {
-      this.slug = `${this.slug}-${Date.now()}`;
-    }
-  }
-  next();
-});
 const Category = mongoose.model('Category', categorySchema);
 
 export default Category;
