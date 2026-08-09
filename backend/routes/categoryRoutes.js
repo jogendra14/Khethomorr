@@ -1,33 +1,28 @@
-// backend/routes/categoryRoutes.js
 import express from 'express';
 import {
+  createCategory,
+  getCategories,
   getAllCategories,
   getCategoryById,
   getCategoryBySlug,
-  getSubCategories,
-  createCategory,
   updateCategory,
   deleteCategory,
-  getCategoryTree
-} from '../controller/categoryController.js';
-import { protect, authorize } from '../middleware/auth.js';
+  toggleCategoryStatus
+} from '../controllers/categoryController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Public routes
-router.get('/', getAllCategories);
-router.get('/tree', getCategoryTree); // Important: Place before /:id routes
+router.get('/', getCategories);
 router.get('/slug/:slug', getCategoryBySlug);
 router.get('/:id', getCategoryById);
-router.get('/:id/subcategories', getSubCategories);
 
-// Authorize routes (protected)
-router.post('/', protect,   authorize('admin', 'vendor')
-, createCategory);
-router.put('/:id', protect,   authorize('admin', 'vendor'),
- updateCategory);
-router.delete('/:id', protect,   authorize('admin', 'vendor'),
- deleteCategory);
+// Admin routes
+router.post('/', protect, admin, createCategory);
+router.get('/admin/all', protect, admin, getAllCategories);
+router.put('/:id', protect, admin, updateCategory);
+router.delete('/:id', protect, admin, deleteCategory);
+router.patch('/:id/toggle', protect, admin, toggleCategoryStatus);
 
 export default router;
-

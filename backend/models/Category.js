@@ -1,4 +1,3 @@
-// backend/models/Category.js
 import mongoose from 'mongoose';
 
 const categorySchema = new mongoose.Schema({
@@ -19,13 +18,8 @@ const categorySchema = new mongoose.Schema({
     maxlength: [500, 'Description cannot exceed 500 characters']
   },
   image: {
-    url: String,
-    alt: String
-  },
-  parentCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    default: null
+    type: String,
+    default: 'default-category.png'
   },
   isActive: {
     type: Boolean,
@@ -34,52 +28,25 @@ const categorySchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 0
-  },
-  metaTitle: String,
-  metaDescription: String,
-  metaKeywords: [String]
-}, {
-  timestamps: true
-});
-
-// SINGLE pre-save middleware - Combined version
-categorySchema.pre('save', async function(next) {
-  try {
-    console.log('Pre-save middleware called for:', this.name);
-    
-    // Generate slug from name if name is modified
-    if (this.isModified('name') && this.name) {
-      // Generate base slug
-      let baseSlug = this.name
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-      
-      // Check if slug already exists in the database
-      const existingCategory = await mongoose.model('Category').findOne({
-        slug: baseSlug,
-        _id: { $ne: this._id }
-      });
-      
-      if (existingCategory) {
-        // Add timestamp to make it unique
-        this.slug = `${baseSlug}-${Date.now()}`;
-        console.log('Slug already exists, generated unique slug:', this.slug);
-      } else {
-        this.slug = baseSlug;
-        console.log('Generated slug:', this.slug);
-      }
-    }
-    
-    // Continue with the save operation
-    next();
-  } catch (error) {
-    console.error('Error in pre-save middleware:', error);
-    next(error);
   }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
+// Virtual for subcategories
+categorySchema.virtual('subcategories', {
+  ref: 'SubCategory',
+  localField: '_id',
+  foreignField: 'category'
+});
+
+// Create slug before saving
+categorySchema.pre('save', function(next) {
+  this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
+  next();
+});
 
 const Category = mongoose.model('Category', categorySchema);
 

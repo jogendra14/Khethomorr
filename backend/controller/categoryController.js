@@ -1,500 +1,206 @@
-// backend/controllers/categoryController.js
 import Category from '../models/Category.js';
-import mongoose from 'mongoose';
+import SubCategory from '../models/SubCategory.js';
+import asyncHandler from 'express-async-handler';
 
-// @desc    Get all categories
+// @desc    Create new category
+// @route   POST /api/categories
+// @access  Admin
+const createCategory = asyncHandler(async (req, res) => {
+  const { name, description, image, order } = req.body;
+
+  const categoryExists = await Category.findOne({ name });
+  if (categoryExists) {
+    res.status(400);
+    throw new Error('Category already exists');
+  }
+
+  const category = await Category.create({
+    name,
+    description,
+    image,
+    order
+  });
+
+  res.status(201).json({
+    success: true,
+    data: category
+  });
+});
+
+// @desc    Get all categories with subcategories (Public)
 // @route   GET /api/categories
 // @access  Public
-export const getAllCategories = async (req, res) => {
-  try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort = '-createdAt',
-      activeOnly = false,
-      parentOnly = false 
-    } = req.query;
+const getCategories = asyncHandler(async (req, res) => {
+  const categories = await Category.find({ isActive: true })
+    .populate({
+      path: 'subcategories',
+      match: { isActive: true },
+      select: 'name slug description image order',
+      options: { sort: { order: 1 } }
+    })
+    .sort({ order: 1 });
 
-    const query = {};
-    
-    // Filter only active categories if requested
-    if (activeOnly === 'true') {
-      query.isActive = true;
-    }
-    
-    // Get only parent categories (no parentCategory)
-    if (parentOnly === 'true') {
-      query.parentCategory = null;
-    }
+  res.json({
+    success: true,
+    count: categories.length,
+    data: categories
+  });
+});
 
-    const categories = await Category.find(query)
-      .populate('parentCategory', 'name slug')
-      .sort(sort)
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit));
+// @desc    Get all categories for admin (including inactive)
+// @route   GET /api/categories/admin/all
+// @access  Admin
+const getAllCategories = asyncHandler(async (req, res) => {
+  const categories = await Category.find()
+    .populate({
+      path: 'subcategories',
+      select: 'name slug description image isActive order',
+      options: { sort: { order: 1 } }
+    })
+    .sort({ order: 1 });
 
-    const total = await Category.countDocuments(query);
+  res.json({
+    success: true,
+    count: categories.length,
+    data: categories
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      data: categories,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        pages: Math.ceil(total / Number(limit))
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching categories',
-      error: error.message
-    });
-  }
-};
-
-// @desc    Get single category by ID
+// @desc    Get single category with subcategories
 // @route   GET /api/categories/:id
 // @access  Public
-export const getCategoryById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid category ID'
-      });
-    }
-
-    const category = await Category.findById(id)
-      .populate('parentCategory', 'name slug');
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: category
+const getCategoryById = asyncHandler(async (req, res) => {
+  const category = await Category.findById(req.params.id)
+    .populate({
+      path: 'subcategories',
+      match: { isActive: true },
+      select: 'name slug description image order'
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching category',
-      error: error.message
-    });
+
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
-};
+
+  res.json({
+    success: true,
+    data: category
+  });
+});
 
 // @desc    Get category by slug
 // @route   GET /api/categories/slug/:slug
 // @access  Public
-export const getCategoryBySlug = async (req, res) => {
-  try {
-    const { slug } = req.params;
-
-    const category = await Category.findOne({ slug: slug.toLowerCase() })
-      .populate('parentCategory', 'name slug');
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found with this slug'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: category
+const getCategoryBySlug = asyncHandler(async (req, res) => {
+  const category = await Category.findOne({ slug: req.params.slug })
+    .populate({
+      path: 'subcategories',
+      match: { isActive: true },
+      select: 'name slug description image order'
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching category by slug',
-      error: error.message
-    });
+
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
-};
 
-// @desc    Get subcategories of a category
-// @route   GET /api/categories/:id/subcategories
-// @access  Public
-export const getSubCategories = async (req, res) => {
-  try {
-    const { id } = req.params;
+  res.json({
+    success: true,
+    data: category
+  });
+});
 
-    // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid category ID'
-      });
-    }
-
-    // Check if parent category exists
-    const parentCategory = await Category.findById(id);
-    if (!parentCategory) {
-      return res.status(404).json({
-        success: false,
-        message: 'Parent category not found'
-      });
-    }
-
-    const subcategories = await Category.find({ 
-      parentCategory: id,
-      isActive: true 
-    }).sort('order name');
-
-    res.status(200).json({
-      success: true,
-      count: subcategories.length,
-      data: subcategories
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching subcategories',
-      error: error.message
-    });
-  }
-};
-
-// @desc    Create category (Admin)
-// @route   POST /api/categories
-// @access  Private/Admin
-// backend/controllers/categoryController.js - Updated createCategory
-export const createCategory = async (req, res) => {
-  try {
-    const { 
-      name, 
-      description, 
-      image, 
-      parentCategory, 
-      order, 
-      metaTitle, 
-      metaDescription, 
-      metaKeywords,
-      isActive 
-    } = req.body;
-
-    // Validate name
-    if (!name || !name.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category name is required'
-      });
-    }
-
-    // ❌ REMOVE THIS - Let the model handle slug generation
-    // const slug = name.toLowerCase().replace(...);
-
-    // Check if category with same name exists
-    const existingCategory = await Category.findOne({ 
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } 
-    });
-
-    if (existingCategory) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category with this name already exists'
-      });
-    }
-
-    // Validate parent category if provided
-    if (parentCategory) {
-      if (!mongoose.Types.ObjectId.isValid(parentCategory)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid parent category ID'
-        });
-      }
-
-      const parentExists = await Category.findById(parentCategory);
-      if (!parentExists) {
-        return res.status(404).json({
-          success: false,
-          message: 'Parent category not found'
-        });
-      }
-    }
-
-    // Format image data correctly
-    let imageData = {};
-    if (image) {
-      if (typeof image === 'string') {
-        imageData = { url: image };
-      } else if (typeof image === 'object') {
-        imageData = image;
-      }
-    }
-
-    const categoryData = {
-      name: name.trim(),
-      description: description ? description.trim() : '',
-      image: imageData,
-      parentCategory: parentCategory || null,
-      order: order || 0,
-      metaTitle: metaTitle || name.trim(),
-      metaDescription: metaDescription || (description ? description.substring(0, 160) : ''),
-      metaKeywords: metaKeywords || [],
-      isActive: isActive !== undefined ? isActive : true
-      // ❌ REMOVE slug from here - Let the model generate it
-    };
-
-    console.log('Creating category with data:', JSON.stringify(categoryData, null, 2));
-
-    const category = await Category.create(categoryData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Category created successfully',
-      data: category
-    });
-  } catch (error) {
-    console.error('Create category error:', error);
-    
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-
-    // Handle duplicate key error
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Category with this name already exists'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Server error while creating category',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-};
-
-// @desc    Update category (Admin)
+// @desc    Update category
 // @route   PUT /api/categories/:id
-// @access  Private/Admin
-export const updateCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
+// @access  Admin
+const updateCategory = asyncHandler(async (req, res) => {
+  const { name, description, image, isActive, order } = req.body;
 
-    // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid category ID'
-      });
-    }
+  const category = await Category.findById(req.params.id);
 
-    let category = await Category.findById(id);
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
-
-    // Check if new name conflicts with existing category
-    if (req.body.name && req.body.name !== category.name) {
-      const existingCategory = await Category.findOne({
-        name: { $regex: new RegExp(`^${req.body.name}$`, 'i') },
-        _id: { $ne: id }
-      });
-
-      if (existingCategory) {
-        return res.status(400).json({
-          success: false,
-          message: 'Category with this name already exists'
-        });
-      }
-    }
-
-    // Validate parent category if provided
-    if (req.body.parentCategory) {
-      if (!mongoose.Types.ObjectId.isValid(req.body.parentCategory)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid parent category ID'
-        });
-      }
-
-      // Prevent circular reference
-      if (req.body.parentCategory === id) {
-        return res.status(400).json({
-          success: false,
-          message: 'Category cannot be its own parent'
-        });
-      }
-
-      const parentExists = await Category.findById(req.body.parentCategory);
-      if (!parentExists) {
-        return res.status(404).json({
-          success: false,
-          message: 'Parent category not found'
-        });
-      }
-    }
-
-    // Update fields
-    const updateFields = {};
-    const allowedFields = [
-      'name', 
-      'description', 
-      'image', 
-      'parentCategory', 
-      'order', 
-      'isActive',
-      'metaTitle',
-      'metaDescription',
-      'metaKeywords'
-    ];
-
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        updateFields[field] = req.body[field];
-      }
-    });
-
-    // Update category
-    category = await Category.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true, runValidators: true }
-    ).populate('parentCategory', 'name slug');
-
-    res.status(200).json({
-      success: true,
-      message: 'Category updated successfully',
-      data: category
-    });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating category',
-      error: error.message
-    });
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
-};
 
-// @desc    Delete category (Admin)
+  // Check if new name conflicts with existing
+  if (name && name !== category.name) {
+    const nameExists = await Category.findOne({ 
+      name, 
+      _id: { $ne: req.params.id } 
+    });
+    if (nameExists) {
+      res.status(400);
+      throw new Error('Category name already exists');
+    }
+  }
+
+  const updatedCategory = await Category.findByIdAndUpdate(
+    req.params.id,
+    {
+      name: name || category.name,
+      description: description !== undefined ? description : category.description,
+      image: image || category.image,
+      isActive: isActive !== undefined ? isActive : category.isActive,
+      order: order !== undefined ? order : category.order
+    },
+    { new: true, runValidators: true }
+  );
+
+  res.json({
+    success: true,
+    data: updatedCategory
+  });
+});
+
+// @desc    Delete category and its subcategories
 // @route   DELETE /api/categories/:id
-// @access  Private/Admin
-export const deleteCategory = async (req, res) => {
-  try {
-    const { id } = req.params;
+// @access  Admin
+const deleteCategory = asyncHandler(async (req, res) => {
+  const category = await Category.findById(req.params.id);
 
-    // Validate MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid category ID'
-      });
-    }
-
-    const category = await Category.findById(id);
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: 'Category not found'
-      });
-    }
-
-    // Check for subcategories
-    const hasSubcategories = await Category.exists({ parentCategory: id });
-    
-    if (hasSubcategories) {
-      // Option 1: Prevent deletion if subcategories exist
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete category with subcategories. Delete subcategories first or reassign them.'
-      });
-
-      // Option 2: Uncomment below to allow deletion and remove parent reference from subcategories
-      // await Category.updateMany(
-      //   { parentCategory: id },
-      //   { parentCategory: null }
-      // );
-    }
-
-    await Category.findByIdAndDelete(id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Category deleted successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while deleting category',
-      error: error.message
-    });
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
-};
 
-// @desc    Get category tree (hierarchical structure)
-// @route   GET /api/categories/tree
-// @access  Public
-export const getCategoryTree = async (req, res) => {
-  try {
-    const categories = await Category.find({ isActive: true })
-      .select('name slug parentCategory order')
-      .sort('order name');
+  // Delete all subcategories associated with this category
+  await SubCategory.deleteMany({ category: req.params.id });
+  await Category.findByIdAndDelete(req.params.id);
 
-    // Build tree structure
-    const buildTree = (parentId = null) => {
-      return categories
-        .filter(cat => {
-          if (parentId === null) {
-            return cat.parentCategory === null;
-          }
-          return cat.parentCategory && cat.parentCategory.toString() === parentId.toString();
-        })
-        .map(cat => ({
-          _id: cat._id,
-          name: cat.name,
-          slug: cat.slug,
-          order: cat.order,
-          children: buildTree(cat._id)
-        }));
-    };
+  res.json({
+    success: true,
+    message: 'Category and associated subcategories deleted successfully'
+  });
+});
 
-    const categoryTree = buildTree();
+// @desc    Toggle category active status
+// @route   PATCH /api/categories/:id/toggle
+// @access  Admin
+const toggleCategoryStatus = asyncHandler(async (req, res) => {
+  const category = await Category.findById(req.params.id);
 
-    res.status(200).json({
-      success: true,
-      data: categoryTree
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching category tree',
-      error: error.message
-    });
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
+
+  category.isActive = !category.isActive;
+  await category.save();
+
+  res.json({
+    success: true,
+    data: category
+  });
+});
+
+export {
+  createCategory,
+  getCategories,
+  getAllCategories,
+  getCategoryById,
+  getCategoryBySlug,
+  updateCategory,
+  deleteCategory,
+  toggleCategoryStatus
 };

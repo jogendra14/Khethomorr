@@ -1,4 +1,3 @@
-// backend/models/SubCategory.js
 import mongoose from 'mongoose';
 
 const subCategorySchema = new mongoose.Schema({
@@ -12,18 +11,18 @@ const subCategorySchema = new mongoose.Schema({
     type: String,
     lowercase: true
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
-    required: true
-  },
   description: {
     type: String,
     maxlength: [500, 'Description cannot exceed 500 characters']
   },
   image: {
-    url: String,
-    alt: String
+    type: String,
+    default: 'default-subcategory.png'
+  },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: [true, 'Category is required']
   },
   isActive: {
     type: Boolean,
@@ -37,20 +36,14 @@ const subCategorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate slug before saving
+// Compound index for unique subcategory name within same category
+subCategorySchema.index({ name: 1, category: 1 }, { unique: true });
+
+// Create slug before saving
 subCategorySchema.pre('save', function(next) {
-  if (this.isModified('name')) {
-    this.slug = this.name
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
+  this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
   next();
 });
-
-// Compound unique index for name within a category
-subCategorySchema.index({ name: 1, category: 1 }, { unique: true });
 
 const SubCategory = mongoose.model('SubCategory', subCategorySchema);
 

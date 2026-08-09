@@ -1,542 +1,390 @@
-// frontend/src/pages/admin/Categories.jsx
-import React, { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
-import CategoryAPI from "../../api/categoryApi";
-import { FiEdit2, FiTrash2, FiPlus, FiChevronRight, FiChevronDown } from "react-icons/fi";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
-  const [categoryTree, setCategoryTree] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [expandedCategories, setExpandedCategories] = useState({});
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    parentCategory: "",
-    image: "",
-    isActive: true,
+    name: '',
+    description: '',
+    image: '',
+    order: 0
   });
-  const [viewMode, setViewMode] = useState("flat"); // 'flat' or 'tree'
+  const [subCategoryForm, setSubCategoryForm] = useState({
+    name: '',
+    description: '',
+    image: '',
+    order: 0
+  });
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingSubCategory, setEditingSubCategory] = useState(null);
 
-  // Fetch categories on component mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        await fetchCategories();
-      } catch(e) { /* ignore */ }
-
-      try {
-        await fetchCategoryTree();
-      } catch(e) { /* ignore */ }
-    };
-
-    loadData();
+    fetchCategories();
   }, []);
 
-  // Fetch all categories (flat list)
   const fetchCategories = async () => {
-    setLoading(true);
     try {
-      const response = await CategoryAPI.getAllCategories();
-      setCategories(response.data || response.categories || []);
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/categories/admin/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCategories(response.data.data);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to fetch categories");
-      console.error("Error fetching categories:", error);
+      console.error('Error fetching categories:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch category tree (hierarchical)
-  const fetchCategoryTree = async () => {
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
     try {
-      const response = await CategoryAPI.getCategoryTree();
-      setCategoryTree(response.data || []);
+      const token = localStorage.getItem('token');
+      await axios.post('/api/categories', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFormData({ name: '', description: '', image: '', order: 0 });
+      fetchCategories();
     } catch (error) {
-      console.error("Error fetching category tree:", error);
+      console.error('Error creating category:', error);
     }
   };
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+  const handleUpdateCategory = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/categories/${editingCategory._id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEditingCategory(null);
+      setFormData({ name: '', description: '', image: '', order: 0 });
+      fetchCategories();
+    } catch (error) {
+      console.error('Error updating category:', error);
+    }
   };
 
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      parentCategory: "",
-      image: "",
-      isActive: true,
-    });
-    setEditingCategory(null);
+  const handleDeleteCategory = async (categoryId) => {
+    if (window.confirm('Are you sure? This will delete all subcategories too.')) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`/api/categories/${categoryId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSelectedCategory(null);
+        fetchCategories();
+      } catch (error) {
+        console.error('Error deleting category:', error);
+      }
+    }
   };
 
-  // Open modal for creating new category
-  const handleAddNew = () => {
-    resetForm();
-    setShowModal(true);
+  const handleToggleCategoryStatus = async (categoryId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`/api/categories/${categoryId}/toggle`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchCategories();
+    } catch (error) {
+      console.error('Error toggling category status:', error);
+    }
   };
 
-  // Open modal for editing existing category
-  const handleEdit = (category) => {
+  const handleCreateSubCategory = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/subcategories', {
+        ...subCategoryForm,
+        category: selectedCategory._id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSubCategoryForm({ name: '', description: '', image: '', order: 0 });
+      fetchCategoryDetails(selectedCategory._id);
+    } catch (error) {
+      console.error('Error creating subcategory:', error);
+    }
+  };
+
+  const fetchCategoryDetails = async (categoryId) => {
+    try {
+      const response = await axios.get(`/api/categories/${categoryId}`);
+      setSelectedCategory(response.data.data);
+    } catch (error) {
+      console.error('Error fetching category details:', error);
+    }
+  };
+
+  const handleEditClick = (category) => {
     setEditingCategory(category);
     setFormData({
-      name: category.name || "",
-      description: category.description || "",
-      parentCategory: category.parentCategory?._id || category.parentCategory || "",
-      image: category.image || "",
-      isActive: category.isActive !== undefined ? category.isActive : true,
+      name: category.name,
+      description: category.description || '',
+      image: category.image || '',
+      order: category.order || 0
     });
-    setShowModal(true);
-  };
-
-  // Create or update category
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!formData.name.trim()) {
-      toast.error("Category name is required");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const categoryData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        parentCategory: formData.parentCategory || null,
-        image: formData.image.trim() || '', // Send as string, not object
-        isActive: formData.isActive,
-      };
-      
-      console.log('Sending category data:', categoryData); // Debug log
-
-      if (editingCategory) {
-        // Update existing category
-        await CategoryAPI.updateCategory(editingCategory._id, categoryData);
-        toast.success("Category updated successfully");
-      } else {
-        // Create new category
-        await CategoryAPI.createCategory(categoryData);
-        toast.success("Category created successfully");
-      }
-
-      setShowModal(false);
-      resetForm();
-      fetchCategories();
-      fetchCategoryTree();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Operation failed");
-      console.error("Error saving category:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete category
-  const handleDelete = async (categoryId) => {
-    if (!window.confirm("Are you sure you want to delete this category? This action cannot be undone.")) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await CategoryAPI.deleteCategory(categoryId);
-      toast.success("Category deleted successfully");
-      fetchCategories();
-      fetchCategoryTree();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete category");
-      console.error("Error deleting category:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Toggle subcategories visibility
-  const toggleExpand = (categoryId) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [categoryId]: !prev[categoryId]
-    }));
-  };
-
-  // Fetch subcategories
-  const fetchSubCategories = async (categoryId) => {
-    try {
-      const response = await CategoryAPI.getSubCategories(categoryId);
-      return response.data || [];
-    } catch (error) {
-      console.error("Error fetching subcategories:", error);
-      return [];
-    }
-  };
-
-  // Handle view mode toggle
-  const handleViewModeChange = async (mode) => {
-    setViewMode(mode);
-    if (mode === "tree") {
-      await fetchCategoryTree();
-    } else {
-      await fetchCategories();
-    }
-  };
-
-  // Render tree view recursively
-  const renderTreeView = (categories, level = 0) => {
-    return categories.map((category) => (
-      <div key={category._id} className="ml-4">
-        <div className={`flex items-center justify-between p-3 border rounded-lg mb-2 hover:bg-gray-50 ${level > 0 ? 'ml-' + (level * 4) : ''}`}>
-          <div className="flex items-center gap-3">
-            {category.subCategories && category.subCategories.length > 0 && (
-              <button
-                onClick={() => toggleExpand(category._id)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                {expandedCategories[category._id] ? <FiChevronDown /> : <FiChevronRight />}
-              </button>
-            )}
-            {category.image && (
-              <img
-                src={category.image}
-                alt={category.name}
-                className="w-10 h-10 rounded-lg object-cover"
-              />
-            )}
-            <div>
-              <h3 className="font-medium text-gray-900">{category.name}</h3>
-              {category.description && (
-                <p className="text-sm text-gray-500">{category.description}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`px-2 py-1 text-xs rounded-full ${
-              category.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              {category.isActive ? 'Active' : 'Inactive'}
-            </span>
-            <button
-              onClick={() => handleEdit(category)}
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-            >
-              <FiEdit2 size={16} />
-            </button>
-            <button
-              onClick={() => handleDelete(category._id)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-            >
-              <FiTrash2 size={16} />
-            </button>
-          </div>
-        </div>
-        {expandedCategories[category._id] && category.subCategories && (
-          <div className="ml-6">
-            {renderTreeView(category.subCategories, level + 1)}
-          </div>
-        )}
-      </div>
-    ));
-  };
-
-  // Get parent category options (exclude current editing category and its children)
-  const getParentCategoryOptions = () => {
-    if (editingCategory) {
-      return categories.filter(cat => cat._id !== editingCategory._id);
-    }
-    return categories;
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories Management</h1>
-          <p className="text-gray-600 mt-1">Manage your product categories</p>
-        </div>
-        <div className="flex gap-3">
-          {/* View Mode Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => handleViewModeChange('flat')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'flat' ? 'bg-white shadow text-gray-900' : 'text-gray-600'
-              }`}
-            >
-              Flat View
-            </button>
-            <button
-              onClick={() => handleViewModeChange('tree')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                viewMode === 'tree' ? 'bg-white shadow text-gray-900' : 'text-gray-600'
-              }`}
-            >
-              Tree View
-            </button>
-          </div>
-          <button
-            type="submit"
-            onClick={handleAddNew}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <FiPlus />
-            Add Category
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Category Management</h1>
 
-      {/* Categories List */}
-      {loading && !showModal ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      ) : viewMode === "flat" ? (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Parent Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
-                    No categories found. Click "Add Category" to create one.
-                  </td>
-                </tr>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Side - Category List */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Categories</h2>
+              
+              {loading ? (
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
               ) : (
-                categories.map((category) => (
-                  <tr key={category._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {category.image && (
-                          <img
-                            className="h-10 w-10 rounded-lg object-cover mr-3"
-                            src={category.image}
-                            alt={category.name}
-                          />
-                        )}
-                        <div className="text-sm font-medium text-gray-900">
-                          {category.name}
+                <div className="space-y-2">
+                  {categories.map(category => (
+                    <div
+                      key={category._id}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        selectedCategory?._id === category._id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex-1"
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            fetchCategoryDetails(category._id);
+                          }}
+                        >
+                          <h3 className="font-medium">{category.name}</h3>
+                          <p className="text-sm text-gray-500">
+                            {category.subcategories?.length || 0} subcategories
+                          </p>
+                        </div>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(category);
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-800"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleCategoryStatus(category._id);
+                            }}
+                            className={`p-1 ${category.isActive ? 'text-green-600' : 'text-gray-400'}`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCategory(category._id);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-800"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 max-w-xs truncate">
-                        {category.description || "—"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {category.parentCategory?.name || "—"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          category.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {category.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        <FiEdit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(category._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <FiTrash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                    </div>
+                  ))}
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow p-6">
-          {categoryTree.length === 0 ? (
-            <div className="text-center text-gray-500 py-12">
-              No categories found in tree view.
             </div>
-          ) : (
-            renderTreeView(categoryTree)
-          )}
-        </div>
-      )}
+          </div>
 
-      {/* Modal for Add/Edit Category */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-            {/*<div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => setShowModal(false)}></div>
-            </div>*/}
-
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-                  {editingCategory ? "Edit Category" : "Add New Category"}
-                </h3>
-                
-                <form onSubmit={handleSubmit}>
-                  <div className="space-y-4">
-                    {/* Category Name */}
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Category Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter category name"
-                        required
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows="3"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter category description"
-                      />
-                    </div>
-
-                    {/* Parent Category */}
-                    <div>
-                      <label htmlFor="parentCategory" className="block text-sm font-medium text-gray-700 mb-1">
-                        Parent Category
-                      </label>
-                      <select
-                        id="parentCategory"
-                        name="parentCategory"
-                        value={formData.parentCategory}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">None (Top Level Category)</option>
-                        {getParentCategoryOptions().map((cat) => (
-                          <option key={cat._id} value={cat._id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Image URL */}
-                    <div>
-                      <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-                        Image URL
-                      </label>
-                      <input
-                        type="url"
-                        id="image"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-
-                    {/* Active Status */}
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="isActive"
-                        name="isActive"
-                        checked={formData.isActive}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                        Active
-                      </label>
-                    </div>
+          {/* Right Side - Details and Forms */}
+          <div className="lg:col-span-2">
+            {/* Category Form */}
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">
+                {editingCategory ? 'Edit Category' : 'Add New Category'}
+              </h2>
+              <form onSubmit={editingCategory ? handleUpdateCategory : handleCreateCategory}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Category name"
+                    />
                   </div>
-
-                  {/* Modal Footer */}
-                  <div className="mt-6 flex justify-end gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                    <input
+                      type="number"
+                      value={formData.order}
+                      onChange={(e) => setFormData({...formData, order: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows="3"
+                      placeholder="Category description"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                    <input
+                      type="text"
+                      value={formData.image}
+                      onChange={(e) => setFormData({...formData, image: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Image URL"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex space-x-3">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    {editingCategory ? 'Update Category' : 'Create Category'}
+                  </button>
+                  {editingCategory && (
                     <button
                       type="button"
                       onClick={() => {
-                        setShowModal(false);
-                        resetForm();
+                        setEditingCategory(null);
+                        setFormData({ name: '', description: '', image: '', order: 0 });
                       }}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
                     >
                       Cancel
                     </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <span className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Saving...
-                        </span>
-                      ) : editingCategory ? (
-                        "Update Category"
-                      ) : (
-                        "Create Category"
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                  )}
+                </div>
+              </form>
             </div>
+
+            {/* SubCategory Section */}
+            {selectedCategory && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  SubCategories of {selectedCategory.name}
+                </h2>
+
+                {/* Add SubCategory Form */}
+                <form onSubmit={handleCreateSubCategory} className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-medium mb-3">Add New SubCategory</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      required
+                      placeholder="SubCategory name"
+                      value={subCategoryForm.name}
+                      onChange={(e) => setSubCategoryForm({...subCategoryForm, name: e.target.value})}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Image URL"
+                      value={subCategoryForm.image}
+                      onChange={(e) => setSubCategoryForm({...subCategoryForm, image: e.target.value})}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Order"
+                      value={subCategoryForm.order}
+                      onChange={(e) => setSubCategoryForm({...subCategoryForm, order: e.target.value})}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="mt-3">
+                    <textarea
+                      placeholder="Description (optional)"
+                      value={subCategoryForm.description}
+                      onChange={(e) => setSubCategoryForm({...subCategoryForm, description: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows="2"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Add SubCategory
+                  </button>
+                </form>
+
+                {/* SubCategories List */}
+                <div className="space-y-2">
+                  {selectedCategory.subcategories?.length > 0 ? (
+                    selectedCategory.subcategories.map(sub => (
+                      <div
+                        key={sub._id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <div>
+                          <h4 className="font-medium">{sub.name}</h4>
+                          {sub.description && (
+                            <p className="text-sm text-gray-500">{sub.description}</p>
+                          )}
+                          <span className={`text-xs ${sub.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                            {sub.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleToggleSubCategoryStatus(sub._id)}
+                            className={`p-1 ${sub.isActive ? 'text-green-600' : 'text-gray-400'} hover:text-green-800`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSubCategory(sub._id)}
+                            className="p-1 text-red-600 hover:text-red-800"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No subcategories yet</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
