@@ -7,10 +7,6 @@ const subCategorySchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'SubCategory name cannot exceed 50 characters']
   },
-  slug: {
-    type: String,
-    lowercase: true
-  },
   description: {
     type: String,
     maxlength: [500, 'Description cannot exceed 500 characters']
@@ -36,14 +32,6 @@ const subCategorySchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound index for unique subcategory name within same category
-subCategorySchema.index({ name: 1, category: 1 }, { unique: true });
-
-// Create slug before saving
-subCategorySchema.pre('save', function(next) {
-  this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
-  next();
-});
 
 const SubCategory = mongoose.model('SubCategory', subCategorySchema);
 

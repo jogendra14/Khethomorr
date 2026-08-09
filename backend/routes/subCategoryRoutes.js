@@ -13,7 +13,6 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getSubCategories);
-router.get('/category/:categoryId', getSubCategoriesByCategory);
 router.get('/:id', getSubCategoryById);
 
 // Admin routes

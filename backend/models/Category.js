@@ -8,11 +8,6 @@ const categorySchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Category name cannot exceed 50 characters']
   },
-  slug: {
-    type: String,
-    unique: true,
-    lowercase: true
-  },
   description: {
     type: String,
     maxlength: [500, 'Description cannot exceed 500 characters']
@@ -42,11 +37,6 @@ categorySchema.virtual('subcategories', {
   foreignField: 'category'
 });
 
-// Create slug before saving
-categorySchema.pre('save', function(next) {
-  this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
-  next();
-});
 
 const Category = mongoose.model('Category', categorySchema);
 
