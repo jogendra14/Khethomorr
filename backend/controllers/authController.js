@@ -39,7 +39,9 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
   user.refreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
   user.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   user.lastLogin = new Date();
-  user.save({ validateBeforeSave: false });
+
+
+  await user.save({ validateBeforeSave: false });
 
   // Remove password from output
   user.password = undefined;

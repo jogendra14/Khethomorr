@@ -6,7 +6,7 @@ const API = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Important for cookies
+  withCredentials: true,
 });
 
 // Request Interceptor - Add Token
@@ -19,7 +19,6 @@ API.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add refresh token to headers if needed
     if (refreshToken && config.url?.includes('/refresh-token')) {
       config.headers['x-refresh-token'] = refreshToken;
     }
@@ -70,8 +69,16 @@ API.interceptors.response.use(
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
         
-        // Redirect to login
-        window.location.href = "/login";
+        // FIX: Smart redirect based on current path
+        const currentPath = window.location.pathname;
+        const isAdminRoute = currentPath.startsWith('/admin');
+        
+        if (isAdminRoute) {
+          window.location.href = "/admin/login";
+        } else {
+          window.location.href = "/login";
+        }
+        
         return Promise.reject(refreshError);
       }
     }

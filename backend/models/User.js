@@ -98,7 +98,7 @@ userSchema.index({ role: 1 });
 // ============================================
 userSchema.pre('save', async function () {
   // Only run if password is modified
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password'));
 
   try {
     const salt = await bcrypt.genSalt(12); // Increased to 12 rounds for better security
@@ -110,7 +110,6 @@ userSchema.pre('save', async function () {
     }
 
   } catch (error) {
-    next(error);
   }
 });
 
