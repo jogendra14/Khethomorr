@@ -63,7 +63,7 @@ subCategorySchema.virtual('products', {
 });
 
 // Auto-generate slug
-subCategorySchema.pre('save', function (next) {
+subCategorySchema.pre('save', function () {
   if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
@@ -73,7 +73,6 @@ subCategorySchema.pre('save', function (next) {
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '');
   }
-  next();
 });
 
 // Handle duplicate slug errors

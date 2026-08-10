@@ -49,7 +49,7 @@ categorySchema.virtual('subcategories', {
 });
 
 // Auto-generate slug before saving
-categorySchema.pre('save', function (next) {
+categorySchema.pre('save', function () {
   if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
@@ -59,7 +59,6 @@ categorySchema.pre('save', function (next) {
       .replace(/-+/g, '-') // Replace multiple hyphens with single
       .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
   }
-  next();
 });
 
 // Error handling for duplicate key
