@@ -324,7 +324,7 @@ const Coupons = () => {
                 }`}>
                   {/* Expired Ribbon */}
                   {expired && (
-                    <div className="absolute top-3 right-[-30px] bg-red-500 text-white text-xs px-8 py-0.5 rotate-45 font-medium">
+                    <div className="absolute top-3 -right-7.5 bg-red-500 text-white text-xs px-8 py-0.5 rotate-45 font-medium">
                       Expired
                     </div>
                   )}

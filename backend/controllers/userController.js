@@ -38,10 +38,11 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
     filter.isActive = req.query.isActive === 'true';
   }
 
-  // Email verified filter
+{/*  // Email verified filter
   if (req.query.isEmailVerified !== undefined) {
     filter.isEmailVerified = req.query.isEmailVerified === 'true';
   }
+  */}
 
   // Search by name or email
   if (req.query.search) {
