@@ -65,7 +65,8 @@ categorySchema.pre('save', function (next) {
 // Error handling for duplicate key
 categorySchema.post('save', function (error, doc, next) {
   if (error.name === 'MongoServerError' && error.code === 11000) {
-    next(new Error('Category with this name already exists'));
+    const appError = new AppError('Category with this name already exists', 400);
+    next(appError);
   } else {
     next(error);
   }

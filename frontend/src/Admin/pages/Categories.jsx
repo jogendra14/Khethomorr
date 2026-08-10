@@ -363,7 +363,7 @@ export default function Categories() {
                       placeholder="Category name" disabled={isMutating} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    <label className=" text-sm font-medium mb-1 flex items-center gap-1">
                       <Hash size={14} /> Order
                     </label>
                     <input type="number" value={categoryForm.order}

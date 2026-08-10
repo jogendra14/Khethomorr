@@ -1,16 +1,28 @@
-import { Navigate } from "react-router-dom";
+// Admin/components/ProtectedRoute.jsx
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-  console.log("ProtectedRoute Render");
+  const { user, isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
-  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-  console.log(admin);
+  if (!isAuthenticated) {
+    // Redirect to login page but save the location they tried to access
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
 
-  // ✅ FIX: "admin" OR "superadmin" dono allow karo
-  if (!admin || (admin.role !== "admin" && admin.role !== "superadmin")) {
-    console.log("Redirecting to Login");
-    return <Navigate to="/admin/login" replace />;
+  // Check if user is admin
+  if (user?.role !== 'admin' && user?.role !== 'superadmin') {
+    // If logged in but not admin, redirect to home
+    return <Navigate to="/" replace />;
   }
 
   return children;

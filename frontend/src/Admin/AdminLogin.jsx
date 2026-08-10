@@ -2,7 +2,7 @@
 import { FaLock, FaEnvelope, FaEye, FaEyeSlash } from "react-icons/fa";
 import { ShieldCheck } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import authApi from "../api/authApi";
@@ -11,39 +11,50 @@ import { useAuth } from "../context/AuthContext";
 const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Get redirect path from location state
   const from = location.state?.from?.pathname || "/admin/dashboard";
+
+  // ✅ Check if already authenticated and redirect immediately
+  useEffect(() => {
+    if (isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin')) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, from]);
 
   // ✅ React Query - Login Mutation
   const loginMutation = useMutation({
     mutationFn: (credentials) => authApi.login(credentials),
     
     onSuccess: (response) => {
-      const { user, token, refreshToken } = response.data.data;
+      const { user: userData, token, refreshToken } = response.data.data || response.data;
 
       // Check if user is admin
-      if (user.role !== 'admin' && user.role !== 'superadmin') {
+      if (userData.role !== 'admin' && userData.role !== 'superadmin') {
         toast.error("Access denied! Admin only.");
         setError("This account doesn't have admin access.");
         return;
       }
 
       // ✅ Use AuthContext login
-      login(user, token, refreshToken);
+      login(userData, token, refreshToken);
       
-      toast.success(`Welcome back, ${user.name}! 👋`);
+      toast.success(`Welcome back, ${userData.name}! 👋`);
       
-      // Redirect to intended page or dashboard
+      // ✅ Set redirecting state
+      setIsRedirecting(true);
+      
+      // ✅ Longer delay to ensure auth state is updated
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 300);
+      }, 500); // Increased delay
     },
     
     onError: (error) => {
@@ -90,12 +101,24 @@ const AdminLogin = () => {
 
   const { isPending } = loginMutation;
 
+  // If already logged in as admin, show loading
+  if (isRedirecting || (isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin'))) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto"></div>
+          <p className="text-white mt-4 text-lg">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-950 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-8 px-6 text-center text-white">
+          <div className="bg-linear-to-r from-blue-600 to-blue-800 py-8 px-6 text-center text-white">
             <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4 ring-4 ring-white/30">
               <ShieldCheck size={45} className="text-white" />
             </div>
