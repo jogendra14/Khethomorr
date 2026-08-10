@@ -468,7 +468,7 @@ productSchema.virtual('isOnSale').get(function () {
 // ============================================
 // PRE-SAVE HOOKS
 // ============================================
-productSchema.pre('save', function (next) {
+productSchema.pre('save', function () {
   // Generate slug from name
   if (this.isModified('name')) {
     this.slug = this.name
@@ -497,7 +497,6 @@ productSchema.pre('save', function (next) {
     this.publishedAt = new Date();
   }
 
-  next();
 });
 
 // ============================================

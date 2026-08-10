@@ -293,7 +293,7 @@ orderSchema.virtual('orderDate').get(function () {
 });
 
 // ==================== PRE-SAVE HOOKS ====================
-orderSchema.pre('save', async function (next) {
+orderSchema.pre('save', async function () {
   try {
     // Generate order number on first save
     if (this.isNew) {
@@ -352,7 +352,6 @@ orderSchema.pre('save', async function (next) {
       throw new Error('COD is not available for orders above ₹50,000');
     }
 
-    next();
   } catch (error) {
     next(error);
   }

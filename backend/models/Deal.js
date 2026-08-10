@@ -277,7 +277,7 @@ dealSchema.virtual('stockRemaining').get(function () {
 });
 
 // ==================== PRE-SAVE HOOKS ====================
-dealSchema.pre('save', function (next) {
+dealSchema.pre('save', function () {
   // Generate slug from title
   if (this.isModified('title')) {
     this.slug = this.title
@@ -299,7 +299,6 @@ dealSchema.pre('save', function (next) {
     this.status = 'expired';
   }
 
-  next();
 });
 
 // ==================== STATIC METHODS ====================

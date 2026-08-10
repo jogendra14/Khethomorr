@@ -113,7 +113,7 @@ wishlistSchema.virtual('totalValue').get(function () {
 });
 
 // ==================== PRE-SAVE HOOKS ====================
-wishlistSchema.pre('save', async function (next) {
+wishlistSchema.pre('save', async function () {
   // Ensure only one default wishlist per user
   if (this.isDefault) {
     await this.constructor.updateMany(
@@ -121,7 +121,6 @@ wishlistSchema.pre('save', async function (next) {
       { isDefault: false }
     );
   }
-  next();
 });
 
 // ==================== STATIC METHODS ====================

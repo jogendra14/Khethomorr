@@ -43,9 +43,9 @@ router.get('/:id/related', getRelatedProducts);
 // Admin/Vendor routes
 router.post('/', protect, authorize('admin', 'vendor'), uploadProductImages, createProduct);
 router.put('/:id', protect, authorize('admin', 'vendor'), uploadProductImages, updateProduct);
+router.delete('/bulk', protect, authorize('admin'), bulkDeleteProducts);
 router.delete('/:id', protect, authorize('admin'), deleteProduct);
 router.delete('/:id/permanent', protect, authorize('admin'), permanentDeleteProduct);
-router.delete('/bulk', protect, authorize('admin'), bulkDeleteProducts);
 router.patch('/bulk', protect, authorize('admin'), bulkUpdateProducts);
 
 // Stock management

@@ -96,7 +96,7 @@ userSchema.index({ role: 1 });
 // ============================================
 // PRE-SAVE HOOK - Hash Password
 // ============================================
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   // Only run if password is modified
   if (!this.isModified('password')) return next();
 
@@ -109,7 +109,6 @@ userSchema.pre('save', async function (next) {
       this.passwordChangedAt = new Date(Date.now() - 1000);
     }
 
-    next();
   } catch (error) {
     next(error);
   }

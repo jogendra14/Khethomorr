@@ -149,7 +149,7 @@ cartSchema.virtual('isEmpty').get(function () {
 });
 
 // ==================== PRE-SAVE HOOKS ====================
-cartSchema.pre('save', function (next) {
+cartSchema.pre('save', function () {
   // Calculate subtotal for each item
   this.items.forEach((item) => {
     item.subtotal = item.price * item.quantity;
@@ -167,7 +167,6 @@ cartSchema.pre('save', function (next) {
   // Update last activity
   this.lastActivity = new Date();
 
-  next();
 });
 
 // ==================== STATIC METHODS ====================

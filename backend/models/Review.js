@@ -201,7 +201,7 @@ reviewSchema.virtual('reviewDate').get(function () {
 });
 
 // ==================== PRE-SAVE HOOKS ====================
-reviewSchema.pre('save', async function (next) {
+reviewSchema.pre('save', async function () {
   try {
     // Check if user has purchased the product
     if (this.isNew || this.isModified('userId')) {
@@ -232,7 +232,6 @@ reviewSchema.pre('save', async function (next) {
       }
     }
 
-    next();
   } catch (error) {
     next(error);
   }

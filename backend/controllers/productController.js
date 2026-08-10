@@ -1,12 +1,12 @@
-import mongoose from 'mongoose'; // ← ADD THIS
-import path from 'path'; // ← ADD THIS
-import Product from '../models/Product.js';
-import Category from '../models/Category.js';
-import SubCategory from '../models/SubCategory.js';
-import asyncHandler from '../utils/asyncHandler.js';
-import AppError from '../utils/AppError.js';
-import APIFeatures from '../utils/APIFeatures.js';
-import { deleteFile, deleteFiles } from '../utils/fileManager.js';
+import mongoose from "mongoose"; // ← ADD THIS
+import path from "path"; // ← ADD THIS
+import Product from "../models/Product.js";
+import Category from "../models/Category.js";
+import SubCategory from "../models/SubCategory.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import APIFeatures from "../utils/APIFeatures.js";
+import { deleteFile, deleteFiles } from "../utils/fileManager.js";
 
 // ... baaki sab same hai
 /**
@@ -23,24 +23,66 @@ import { deleteFile, deleteFiles } from '../utils/fileManager.js';
 // @route   POST /api/products
 // @access  Private/Admin/Vendor
 const createProduct = asyncHandler(async (req, res, next) => {
-  // Destructure all fields with defaults
+  let productData = req.body;
+
+  // If the data was sent as a JSON string in FormData, parse it
+  if (req.body.data) {
+    try {
+      productData = typeof req.body.data === "string" ? JSON.parse(req.body.data) : req.body.data;
+    } catch (error) {
+      throw new AppError("Invalid product data format", 400);
+    }
+  }
+
+  // Destructure all fields with defaults from parsed data
   const {
-    name, description, shortDescription, price, compareAtPrice,
-    costPerItem, sku, barcode, quantity, lowStockThreshold,
-    category, subCategory, tags, brand, variants, attributes,
-    metaTitle, metaDescription, metaKeywords, weight, dimensions,
-    isPhysicalProduct, isDigitalProduct, digitalFileUrl,
-    shippingClass, freeShipping, status, isFeatured, visibility,
-    discount, relatedProducts, frequentlyBoughtTogether,
-    vendor, minOrderQuantity, maxOrderQuantity, taxClass,
-    isReturnable, returnPeriod, warranty, customFields
-  } = req.body;
+    name,
+    description,
+    shortDescription,
+    price,
+    compareAtPrice,
+    costPerItem,
+    sku,
+    barcode,
+    quantity,
+    lowStockThreshold,
+    category,
+    subCategory,
+    tags,
+    brand,
+    variants,
+    attributes,
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    weight,
+    dimensions,
+    isPhysicalProduct,
+    isDigitalProduct,
+    digitalFileUrl,
+    shippingClass,
+    freeShipping,
+    status,
+    isFeatured,
+    visibility,
+    discount,
+    relatedProducts,
+    frequentlyBoughtTogether,
+    vendor,
+    minOrderQuantity,
+    maxOrderQuantity,
+    taxClass,
+    isReturnable,
+    returnPeriod,
+    warranty,
+    customFields,
+  } = productData; // Use parsed data instead of req.body
 
   // Validate category exists
   if (category) {
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
-      throw new AppError('Category not found', 404);
+      throw new AppError("Category not found", 404);
     }
   }
 
@@ -48,13 +90,10 @@ const createProduct = asyncHandler(async (req, res, next) => {
   if (subCategory) {
     const subCategoryExists = await SubCategory.findOne({
       _id: subCategory,
-      category: category
+      category: category,
     });
     if (!subCategoryExists) {
-      throw new AppError(
-        'SubCategory not found or does not belong to selected category',
-        400
-      );
+      throw new AppError("SubCategory not found or does not belong to selected category", 400);
     }
   }
 
@@ -62,7 +101,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
   if (sku) {
     const existingSKU = await Product.findOne({ sku: sku.trim() });
     if (existingSKU) {
-      throw new AppError('Product with this SKU already exists', 400);
+      throw new AppError("Product with this SKU already exists", 400);
     }
   }
 
@@ -70,18 +109,18 @@ const createProduct = asyncHandler(async (req, res, next) => {
   if (barcode) {
     const existingBarcode = await Product.findOne({ barcode: barcode.trim() });
     if (existingBarcode) {
-      throw new AppError('Product with this barcode already exists', 400);
+      throw new AppError("Product with this barcode already exists", 400);
     }
   }
 
-  // Process image uploads
+  // But keep req.files as is for image uploads
   let images = [];
   if (req.files && req.files.length > 0) {
     images = req.files.map((file, index) => ({
       url: `/uploads/products/${file.filename}`,
       alt: `${name} - Image ${index + 1}`,
       isPrimary: index === 0,
-      order: index + 1
+      order: index + 1,
     }));
   }
 
@@ -112,11 +151,11 @@ const createProduct = asyncHandler(async (req, res, next) => {
     isPhysicalProduct: isPhysicalProduct !== undefined ? isPhysicalProduct : true,
     isDigitalProduct: isDigitalProduct || false,
     digitalFileUrl,
-    shippingClass: shippingClass || 'standard',
+    shippingClass: shippingClass || "standard",
     freeShipping: freeShipping || false,
-    status: status || 'draft',
+    status: status || "draft",
     isFeatured: isFeatured || false,
-    visibility: visibility || 'visible',
+    visibility: visibility || "visible",
     discount,
     relatedProducts: Array.isArray(relatedProducts) ? relatedProducts : [],
     frequentlyBoughtTogether: Array.isArray(frequentlyBoughtTogether) ? frequentlyBoughtTogether : [],
@@ -124,24 +163,24 @@ const createProduct = asyncHandler(async (req, res, next) => {
     createdBy: req.user._id,
     minOrderQuantity: minOrderQuantity || 1,
     maxOrderQuantity,
-    taxClass: taxClass || 'standard',
+    taxClass: taxClass || "standard",
     isReturnable: isReturnable !== undefined ? isReturnable : true,
     returnPeriod: returnPeriod || 30,
     warranty,
-    customFields: customFields || {}
+    customFields: customFields || {},
   });
 
   // Populate references
   const populatedProduct = await Product.findById(product._id)
-    .populate('category', 'name slug image')
-    .populate('subCategory', 'name slug')
-    .populate('vendor', 'name email')
-    .populate('createdBy', 'name email');
+    .populate("category", "name slug image")
+    .populate("subCategory", "name slug")
+    .populate("vendor", "name email")
+    .populate("createdBy", "name email");
 
   res.status(201).json({
     success: true,
-    message: 'Product created successfully',
-    data: populatedProduct
+    message: "Product created successfully",
+    data: populatedProduct,
   });
 });
 
@@ -156,14 +195,8 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
 
   // Search functionality
   if (req.query.search) {
-    const searchRegex = new RegExp(req.query.search, 'i');
-    filter.$or = [
-      { name: searchRegex },
-      { description: searchRegex },
-      { brand: searchRegex },
-      { sku: searchRegex },
-      { tags: { $in: [searchRegex] } }
-    ];
+    const searchRegex = new RegExp(req.query.search, "i");
+    filter.$or = [{ name: searchRegex }, { description: searchRegex }, { brand: searchRegex }, { sku: searchRegex }, { tags: { $in: [searchRegex] } }];
   }
 
   // Category filter
@@ -178,7 +211,7 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
 
   // Brand filter
   if (req.query.brand) {
-    filter.brand = { $regex: req.query.brand, $options: 'i' };
+    filter.brand = { $regex: req.query.brand, $options: "i" };
   }
 
   // Price range filter
@@ -193,24 +226,24 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
     filter.status = req.query.status;
   } else {
     // Public API shows only active products
-    filter.status = 'active';
+    filter.status = "active";
   }
 
   // Featured filter
-  if (req.query.isFeatured === 'true') {
+  if (req.query.isFeatured === "true") {
     filter.isFeatured = true;
   }
 
   // In stock only
-  if (req.query.inStock === 'true') {
+  if (req.query.inStock === "true") {
     filter.quantity = { $gt: 0 };
   }
 
   // Has discount
-  if (req.query.hasDiscount === 'true') {
-    filter['discount.isActive'] = true;
-    filter['discount.startDate'] = { $lte: new Date() };
-    filter['discount.endDate'] = { $gte: new Date() };
+  if (req.query.hasDiscount === "true") {
+    filter["discount.isActive"] = true;
+    filter["discount.startDate"] = { $lte: new Date() };
+    filter["discount.endDate"] = { $gte: new Date() };
   }
 
   // Rating filter
@@ -221,7 +254,7 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
   // Tags filter (comma separated)
   if (req.query.tags) {
     filter.tags = {
-      $in: req.query.tags.split(',').map(tag => tag.trim().toLowerCase())
+      $in: req.query.tags.split(",").map((tag) => tag.trim().toLowerCase()),
     };
   }
 
@@ -235,28 +268,23 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
   // Execute query with APIFeatures
   const features = new APIFeatures(
     Product.find(filter).populate([
-      { path: 'category', select: 'name slug image' },
-      { path: 'subCategory', select: 'name slug' }
+      { path: "category", select: "name slug image" },
+      { path: "subCategory", select: "name slug" },
     ]),
-    req.query
+    req.query,
   )
     .filter()
     .sort()
     .limitFields()
     .paginate();
 
-  const [products, totalProducts] = await Promise.all([
-    features.query.lean(),
-    Product.countDocuments(filter)
-  ]);
+  const [products, totalProducts] = await Promise.all([features.query.lean(), Product.countDocuments(filter)]);
 
   // Get price range for filters
-  const priceRange = await Product.getPriceRange
-    ? await Product.getPriceRange()
-    : { min: 0, max: 0 };
+  const priceRange = (await Product.getPriceRange) ? await Product.getPriceRange() : { min: 0, max: 0 };
 
   // Get available brands for filter sidebar
-  const brands = await Product.distinct('brand', { status: 'active' });
+  const brands = await Product.distinct("brand", { status: "active" });
 
   res.status(200).json({
     success: true,
@@ -264,13 +292,13 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
     total: totalProducts,
     pagination: {
       ...features.pagination,
-      totalPages: Math.ceil(totalProducts / (features.pagination.limit || 10))
+      totalPages: Math.ceil(totalProducts / (features.pagination.limit || 10)),
     },
     filters: {
       priceRange,
       availableBrands: brands.filter(Boolean).sort(),
     },
-    data: products
+    data: products,
   });
 });
 
@@ -284,18 +312,18 @@ const getFeaturedProducts = asyncHandler(async (req, res, next) => {
 
   const products = await Product.find({
     isFeatured: true,
-    status: 'active',
-    quantity: { $gt: 0 }
+    status: "active",
+    quantity: { $gt: 0 },
   })
-    .sort('-createdAt')
+    .sort("-createdAt")
     .limit(limit)
-    .populate('category', 'name slug')
-    .select('name slug price compareAtPrice images averageRating totalReviews totalSold');
+    .populate("category", "name slug")
+    .select("name slug price compareAtPrice images averageRating totalReviews totalSold");
 
   res.status(200).json({
     success: true,
     count: products.length,
-    data: products
+    data: products,
   });
 });
 
@@ -306,18 +334,18 @@ const getBestSellingProducts = asyncHandler(async (req, res, next) => {
   const limit = Math.min(parseInt(req.query.limit) || 10, 50);
 
   const products = await Product.find({
-    status: 'active',
-    totalSold: { $gt: 0 }
+    status: "active",
+    totalSold: { $gt: 0 },
   })
-    .sort('-totalSold')
+    .sort("-totalSold")
     .limit(limit)
-    .populate('category', 'name slug')
-    .select('name slug price compareAtPrice images averageRating totalSold');
+    .populate("category", "name slug")
+    .select("name slug price compareAtPrice images averageRating totalSold");
 
   res.status(200).json({
     success: true,
     count: products.length,
-    data: products
+    data: products,
   });
 });
 
@@ -331,18 +359,18 @@ const getNewArrivals = asyncHandler(async (req, res, next) => {
   const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
   const products = await Product.find({
-    status: 'active',
-    createdAt: { $gte: sinceDate }
+    status: "active",
+    createdAt: { $gte: sinceDate },
   })
-    .sort('-createdAt')
+    .sort("-createdAt")
     .limit(limit)
-    .populate('category', 'name slug')
-    .select('name slug price compareAtPrice images averageRating createdAt');
+    .populate("category", "name slug")
+    .select("name slug price compareAtPrice images averageRating createdAt");
 
   res.status(200).json({
     success: true,
     count: products.length,
-    data: products
+    data: products,
   });
 });
 
@@ -353,7 +381,7 @@ const getRelatedProducts = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   // Get products from same category with similar price range
@@ -362,17 +390,17 @@ const getRelatedProducts = asyncHandler(async (req, res, next) => {
   const relatedProducts = await Product.find({
     _id: { $ne: product._id },
     category: product.category,
-    status: 'active',
-    price: { $gte: priceRange.min, $lte: priceRange.max }
+    status: "active",
+    price: { $gte: priceRange.min, $lte: priceRange.max },
   })
     .limit(8)
-    .populate('category', 'name slug')
-    .select('name slug price compareAtPrice images averageRating');
+    .populate("category", "name slug")
+    .select("name slug price compareAtPrice images averageRating");
 
   res.status(200).json({
     success: true,
     count: relatedProducts.length,
-    data: relatedProducts
+    data: relatedProducts,
   });
 });
 
@@ -385,12 +413,12 @@ const getProductsByCategory = asyncHandler(async (req, res, next) => {
   // Verify category exists
   const categoryExists = await Category.findById(categoryId);
   if (!categoryExists) {
-    throw new AppError('Category not found', 404);
+    throw new AppError("Category not found", 404);
   }
 
   const filter = {
     category: categoryId,
-    status: 'active'
+    status: "active",
   };
 
   // Additional filters
@@ -400,7 +428,7 @@ const getProductsByCategory = asyncHandler(async (req, res, next) => {
     if (req.query.maxPrice) filter.price.$lte = Number(req.query.maxPrice);
   }
   if (req.query.brand) {
-    filter.brand = { $regex: req.query.brand, $options: 'i' };
+    filter.brand = { $regex: req.query.brand, $options: "i" };
   }
   if (req.query.subCategory) {
     filter.subCategory = req.query.subCategory;
@@ -408,30 +436,25 @@ const getProductsByCategory = asyncHandler(async (req, res, next) => {
 
   const features = new APIFeatures(
     Product.find(filter)
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
-      .select('name slug price compareAtPrice images averageRating totalReviews brand'),
-    req.query
+      .populate("category", "name slug")
+      .populate("subCategory", "name slug")
+      .select("name slug price compareAtPrice images averageRating totalReviews brand"),
+    req.query,
   )
     .filter()
     .sort()
     .paginate();
 
-  const [products, totalProducts] = await Promise.all([
-    features.query.lean(),
-    Product.countDocuments(filter)
-  ]);
+  const [products, totalProducts] = await Promise.all([features.query.lean(), Product.countDocuments(filter)]);
 
   // Get filter options
   const [brands, subCategories, priceRange] = await Promise.all([
-    Product.distinct('brand', { category: categoryId, status: 'active' }),
-    SubCategory.find({ category: categoryId, isActive: true })
-      .select('name slug')
-      .sort('name'),
+    Product.distinct("brand", { category: categoryId, status: "active" }),
+    SubCategory.find({ category: categoryId, isActive: true }).select("name slug").sort("name"),
     Product.aggregate([
-      { $match: { category: new mongoose.Types.ObjectId(categoryId), status: 'active' } },
-      { $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } }
-    ])
+      { $match: { category: new mongoose.Types.ObjectId(categoryId), status: "active" } },
+      { $group: { _id: null, min: { $min: "$price" }, max: { $max: "$price" } } },
+    ]),
   ]);
 
   res.status(200).json({
@@ -440,14 +463,14 @@ const getProductsByCategory = asyncHandler(async (req, res, next) => {
     total: totalProducts,
     pagination: {
       ...features.pagination,
-      totalPages: Math.ceil(totalProducts / (features.pagination.limit || 10))
+      totalPages: Math.ceil(totalProducts / (features.pagination.limit || 10)),
     },
     filters: {
       availableBrands: brands.filter(Boolean).sort(),
       subCategories,
-      priceRange: priceRange[0] || { min: 0, max: 0 }
+      priceRange: priceRange[0] || { min: 0, max: 0 },
     },
-    data: products
+    data: products,
   });
 });
 
@@ -458,36 +481,36 @@ const getProductsByCategory = asyncHandler(async (req, res, next) => {
 // @access  Public
 const getProductById = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id)
-    .populate('category', 'name slug description')
-    .populate('subCategory', 'name slug')
-    .populate('vendor', 'name email phone')
-    .populate('createdBy', 'name')
-    .populate('relatedProducts', 'name slug price images averageRating')
-    .populate('frequentlyBoughtTogether', 'name slug price images');
+    .populate("category", "name slug description")
+    .populate("subCategory", "name slug")
+    .populate("vendor", "name email phone")
+    .populate("createdBy", "name")
+    .populate("relatedProducts", "name slug price images averageRating")
+    .populate("frequentlyBoughtTogether", "name slug price images");
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   // Get review stats
-  const Review = mongoose.model('Review');
+  const Review = mongoose.model("Review");
   const reviewStats = await Review.aggregate([
-    { $match: { productId: product._id, status: 'approved' } },
+    { $match: { productId: product._id, status: "approved" } },
     {
       $group: {
         _id: null,
-        averageRating: { $avg: '$rating' },
-        totalReviews: { $sum: 1 }
-      }
-    }
+        averageRating: { $avg: "$rating" },
+        totalReviews: { $sum: 1 },
+      },
+    },
   ]);
 
   res.status(200).json({
     success: true,
     data: {
       ...product.toJSON(),
-      reviewStats: reviewStats[0] || { averageRating: 0, totalReviews: 0 }
-    }
+      reviewStats: reviewStats[0] || { averageRating: 0, totalReviews: 0 },
+    },
   });
 });
 
@@ -496,19 +519,19 @@ const getProductById = asyncHandler(async (req, res, next) => {
 // @access  Public
 const getProductBySlug = asyncHandler(async (req, res, next) => {
   const product = await Product.findOne({ slug: req.params.slug })
-    .populate('category', 'name slug description')
-    .populate('subCategory', 'name slug')
-    .populate('vendor', 'name email')
-    .populate('relatedProducts', 'name slug price images averageRating')
-    .populate('frequentlyBoughtTogether', 'name slug price images');
+    .populate("category", "name slug description")
+    .populate("subCategory", "name slug")
+    .populate("vendor", "name email")
+    .populate("relatedProducts", "name slug price images averageRating")
+    .populate("frequentlyBoughtTogether", "name slug price images");
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   res.status(200).json({
     success: true,
-    data: product
+    data: product,
   });
 });
 
@@ -522,86 +545,192 @@ const updateProduct = asyncHandler(async (req, res, next) => {
   let product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   // Check ownership (vendor can only update their own products)
-  if (req.user.role === 'vendor' && product.vendor?.toString() !== req.user._id.toString()) {
-    throw new AppError('You can only update your own products', 403);
+  if (req.user.role === "vendor" && product.vendor?.toString() !== req.user._id.toString()) {
+    throw new AppError("You can only update your own products", 403);
   }
 
-  // Handle image uploads
+  let updateData = req.body;
+  // If data comes as JSON string in FormData, parse it
+  if (req.body.data) {
+    try {
+      updateData = typeof req.body.data === "string" ? JSON.parse(req.body.data) : req.body.data;
+    } catch (error) {
+      throw new AppError("Invalid update data format", 400);
+    }
+  }
+
+  // Now destructure from the parsed data instead of req.body
+  const {
+    name,
+    description,
+    shortDescription,
+    price,
+    compareAtPrice,
+    costPerItem,
+    sku,
+    barcode,
+    quantity,
+    lowStockThreshold,
+    category,
+    subCategory,
+    tags,
+    brand,
+    variants,
+    attributes,
+    metaTitle,
+    metaDescription,
+    metaKeywords,
+    weight,
+    dimensions,
+    isPhysicalProduct,
+    isDigitalProduct,
+    digitalFileUrl,
+    shippingClass,
+    freeShipping,
+    status,
+    isFeatured,
+    visibility,
+    discount,
+    relatedProducts,
+    frequentlyBoughtTogether,
+    vendor,
+    minOrderQuantity,
+    maxOrderQuantity,
+    taxClass,
+    isReturnable,
+    returnPeriod,
+    warranty,
+    customFields,
+    removeImages, // ← This comes from frontend now
+    primaryImage, // ← This comes from frontend now
+  } = updateData; // ← Use parsed data, not req.body
+
+  // Handle image uploads (req.files remains unchanged - files don't go through JSON)
   let updatedImages = [...product.images];
   if (req.files && req.files.length > 0) {
     const newImages = req.files.map((file, index) => ({
       url: `/uploads/products/${file.filename}`,
-      alt: `${req.body.name || product.name} - Image ${product.images.length + index + 1}`,
+      alt: `${name || product.name} - Image ${product.images.length + index + 1}`,
       isPrimary: product.images.length === 0 && index === 0,
-      order: product.images.length + index + 1
+      order: product.images.length + index + 1,
     }));
     updatedImages = [...updatedImages, ...newImages];
   }
 
   // Handle image removal
-  if (req.body.removeImages) {
-    const imagesToRemove = typeof req.body.removeImages === 'string'
-      ? JSON.parse(req.body.removeImages)
-      : req.body.removeImages;
-
+  if (removeImages && Array.isArray(removeImages)) {
     // Delete files from disk
     await Promise.all(
-      imagesToRemove.map(async (imageUrl) => {
-        const filePath = path.join(process.cwd(), imageUrl);
-        await deleteFile(filePath);
-      })
+      removeImages.map(async (imageUrl) => {
+        try {
+          const filePath = path.join(process.cwd(), imageUrl);
+          await deleteFile(filePath);
+        } catch (err) {
+          console.warn(`Failed to delete image: ${imageUrl}`, err.message);
+        }
+      }),
     );
 
-    updatedImages = updatedImages.filter(
-      img => !imagesToRemove.includes(img.url)
-    );
+    updatedImages = updatedImages.filter((img) => !removeImages.includes(img.url));
   }
 
   // Handle primary image update
-  if (req.body.primaryImage && updatedImages.length > 0) {
-    updatedImages = updatedImages.map(img => ({
+  if (primaryImage && updatedImages.length > 0) {
+    updatedImages = updatedImages.map((img) => ({
       ...img,
-      isPrimary: img.url === req.body.primaryImage
+      isPrimary: img.url === primaryImage,
     }));
+
+    // ✅ ADD: If primaryImage is set, ensure ONLY one image is primary
+    const primaryCount = updatedImages.filter((img) => img.isPrimary).length;
+    if (primaryCount > 1) {
+      // Keep only the first match as primary
+      let found = false;
+      updatedImages = updatedImages.map((img) => {
+        if (img.url === primaryImage) {
+          if (!found) {
+            found = true;
+            return { ...img, isPrimary: true };
+          }
+        }
+        return { ...img, isPrimary: false };
+      });
+    }
   }
 
-  // Prepare update data
-  const updateData = { ...req.body };
-  updateData.images = updatedImages;
-  updateData.updatedBy = req.user._id;
+  // Build the final update object from parsed fields
+  const finalUpdateData = {
+    name,
+    description,
+    shortDescription,
+    price,
+    compareAtPrice,
+    costPerItem,
+    sku,
+    barcode,
+    quantity,
+    lowStockThreshold,
+    images: updatedImages,
+    category,
+    subCategory,
+    tags: Array.isArray(tags) ? tags : [],
+    brand,
+    variants: Array.isArray(variants) ? variants : [],
+    attributes: Array.isArray(attributes) ? attributes : [],
+    metaTitle,
+    metaDescription,
+    metaKeywords: Array.isArray(metaKeywords) ? metaKeywords : [],
+    weight,
+    dimensions,
+    isPhysicalProduct,
+    isDigitalProduct,
+    digitalFileUrl,
+    shippingClass,
+    freeShipping,
+    status,
+    isFeatured,
+    visibility,
+    discount,
+    relatedProducts: Array.isArray(relatedProducts) ? relatedProducts : [],
+    frequentlyBoughtTogether: Array.isArray(frequentlyBoughtTogether) ? frequentlyBoughtTogether : [],
+    vendor,
+    minOrderQuantity,
+    maxOrderQuantity,
+    taxClass,
+    isReturnable,
+    returnPeriod,
+    warranty,
+    customFields,
+    updatedBy: req.user._id,
+  };
 
-  // Remove protected fields
-  const protectedFields = [
-    '_id', 'createdAt', 'createdBy', 'totalSold',
-    'averageRating', 'totalReviews', 'slug'
-  ];
-  protectedFields.forEach(field => delete updateData[field]);
+  // Remove undefined fields to avoid overwriting with undefined
+  Object.keys(finalUpdateData).forEach((key) => {
+    if (finalUpdateData[key] === undefined) {
+      delete finalUpdateData[key];
+    }
+  });
 
   // Update product
-  const updatedProduct = await Product.findByIdAndUpdate(
-    req.params.id,
-    updateData,
-    {
-      new: true,
-      runValidators: true
-    }
-  )
-    .populate('category', 'name slug')
-    .populate('subCategory', 'name slug')
-    .populate('vendor', 'name email')
-    .populate('updatedBy', 'name email');
+  const updatedProduct = await Product.findByIdAndUpdate(req.params.id, finalUpdateData, {
+    new: true,
+    runValidators: true,
+  })
+    .populate("category", "name slug")
+    .populate("subCategory", "name slug")
+    .populate("vendor", "name email")
+    .populate("updatedBy", "name email");
 
   res.status(200).json({
     success: true,
-    message: 'Product updated successfully',
-    data: updatedProduct
+    message: "Product updated successfully",
+    data: updatedProduct,
   });
 });
-
 // ==================== DELETE ====================
 
 // @desc    Delete product (soft delete)
@@ -611,17 +740,17 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   // Soft delete - change status to inactive
-  product.status = 'inactive';
+  product.status = "inactive";
   product.updatedBy = req.user._id;
   await product.save();
 
   res.status(200).json({
     success: true,
-    message: 'Product deleted successfully'
+    message: "Product deleted successfully",
   });
 });
 
@@ -632,14 +761,12 @@ const permanentDeleteProduct = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   // Delete associated images
   if (product.images && product.images.length > 0) {
-    const imagePaths = product.images.map(img =>
-      path.join(process.cwd(), img.url)
-    );
+    const imagePaths = product.images.map((img) => path.join(process.cwd(), img.url));
     await deleteFiles(imagePaths);
   }
 
@@ -647,7 +774,7 @@ const permanentDeleteProduct = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: 'Product permanently deleted'
+    message: "Product permanently deleted",
   });
 });
 
@@ -658,22 +785,22 @@ const bulkDeleteProducts = asyncHandler(async (req, res, next) => {
   const { productIds } = req.body;
 
   if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-    throw new AppError('Please provide an array of product IDs', 400);
+    throw new AppError("Please provide an array of product IDs", 400);
   }
 
   // Soft delete all
   const result = await Product.updateMany(
     { _id: { $in: productIds } },
     {
-      status: 'inactive',
+      status: "inactive",
       updatedBy: req.user._id,
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   );
 
   res.status(200).json({
     success: true,
-    message: `${result.modifiedCount} products deleted successfully`
+    message: `${result.modifiedCount} products deleted successfully`,
   });
 });
 
@@ -683,27 +810,27 @@ const bulkDeleteProducts = asyncHandler(async (req, res, next) => {
 // @route   PATCH /api/products/:id/stock
 // @access  Private/Admin/Vendor
 const updateProductStock = asyncHandler(async (req, res, next) => {
-  const { quantity, operation = 'set' } = req.body;
+  const { quantity, operation = "set" } = req.body;
   // operation: 'set', 'add', 'subtract'
 
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   let newQuantity;
   switch (operation) {
-    case 'add':
+    case "add":
       newQuantity = product.quantity + Number(quantity);
       break;
-    case 'subtract':
+    case "subtract":
       newQuantity = product.quantity - Number(quantity);
       if (newQuantity < 0) {
-        throw new AppError('Insufficient stock', 400);
+        throw new AppError("Insufficient stock", 400);
       }
       break;
-    case 'set':
+    case "set":
     default:
       newQuantity = Number(quantity);
       break;
@@ -713,10 +840,10 @@ const updateProductStock = asyncHandler(async (req, res, next) => {
   product.quantity = newQuantity;
 
   // Auto-update status based on stock
-  if (newQuantity === 0 && product.status === 'active') {
-    product.status = 'outOfStock';
-  } else if (newQuantity > 0 && product.status === 'outOfStock') {
-    product.status = 'active';
+  if (newQuantity === 0 && product.status === "active") {
+    product.status = "outOfStock";
+  } else if (newQuantity > 0 && product.status === "outOfStock") {
+    product.status = "active";
   }
 
   product.updatedBy = req.user._id;
@@ -727,7 +854,7 @@ const updateProductStock = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: 'Stock updated successfully',
+    message: "Stock updated successfully",
     data: {
       productId: product._id,
       name: product.name,
@@ -735,8 +862,8 @@ const updateProductStock = asyncHandler(async (req, res, next) => {
       newQuantity: product.quantity,
       status: product.status,
       lowStock: isLowStock,
-      warning: isLowStock ? `Low stock alert! Only ${newQuantity} items remaining.` : null
-    }
+      warning: isLowStock ? `Low stock alert! Only ${newQuantity} items remaining.` : null,
+    },
   });
 });
 
@@ -745,17 +872,17 @@ const updateProductStock = asyncHandler(async (req, res, next) => {
 // @access  Private/Admin
 const getLowStockProducts = asyncHandler(async (req, res, next) => {
   const products = await Product.find({
-    status: 'active',
-    $expr: { $lte: ['$quantity', '$lowStockThreshold'] }
+    status: "active",
+    $expr: { $lte: ["$quantity", "$lowStockThreshold"] },
   })
-    .populate('category', 'name')
-    .select('name sku quantity lowStockThreshold')
-    .sort('quantity');
+    .populate("category", "name")
+    .select("name sku quantity lowStockThreshold")
+    .sort("quantity");
 
   res.status(200).json({
     success: true,
     count: products.length,
-    data: products
+    data: products,
   });
 });
 
@@ -767,12 +894,9 @@ const getLowStockProducts = asyncHandler(async (req, res, next) => {
 const updateProductStatus = asyncHandler(async (req, res, next) => {
   const { status } = req.body;
 
-  const validStatuses = ['draft', 'active', 'inactive', 'discontinued', 'outOfStock'];
+  const validStatuses = ["draft", "active", "inactive", "discontinued", "outOfStock"];
   if (!validStatuses.includes(status)) {
-    throw new AppError(
-      `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-      400
-    );
+    throw new AppError(`Invalid status. Must be one of: ${validStatuses.join(", ")}`, 400);
   }
 
   const product = await Product.findByIdAndUpdate(
@@ -780,19 +904,19 @@ const updateProductStatus = asyncHandler(async (req, res, next) => {
     {
       status,
       updatedBy: req.user._id,
-      ...(status === 'active' && { publishedAt: new Date() })
+      ...(status === "active" && { publishedAt: new Date() }),
     },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   res.status(200).json({
     success: true,
     message: `Product status updated to ${status}`,
-    data: product
+    data: product,
   });
 });
 
@@ -803,7 +927,7 @@ const toggleFeatured = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   product.isFeatured = !product.isFeatured;
@@ -812,8 +936,8 @@ const toggleFeatured = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: `Product ${product.isFeatured ? 'added to' : 'removed from'} featured`,
-    data: { isFeatured: product.isFeatured }
+    message: `Product ${product.isFeatured ? "added to" : "removed from"} featured`,
+    data: { isFeatured: product.isFeatured },
   });
 });
 
@@ -826,31 +950,29 @@ const addProductVariant = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   const { name, value, sku, barcode, price, quantity, images } = req.body;
 
   // Validate required fields
   if (!name || !value) {
-    throw new AppError('Variant name and value are required', 400);
+    throw new AppError("Variant name and value are required", 400);
   }
 
   // Check duplicate variant
-  const existingVariant = product.variants.find(
-    v => v.name === name && v.value === value
-  );
+  const existingVariant = product.variants.find((v) => v.name === name && v.value === value);
   if (existingVariant) {
-    throw new AppError('This variant already exists', 400);
+    throw new AppError("This variant already exists", 400);
   }
 
   // Check SKU uniqueness
   if (sku) {
     const skuExists = await Product.findOne({
-      'variants.sku': sku
+      "variants.sku": sku,
     });
     if (skuExists) {
-      throw new AppError('Variant SKU already exists', 400);
+      throw new AppError("Variant SKU already exists", 400);
     }
   }
 
@@ -861,7 +983,7 @@ const addProductVariant = asyncHandler(async (req, res, next) => {
     barcode,
     price: price || product.price,
     quantity: quantity || 0,
-    images: images || []
+    images: images || [],
   });
 
   product.hasVariants = true;
@@ -870,8 +992,8 @@ const addProductVariant = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    message: 'Variant added successfully',
-    data: product.variants[product.variants.length - 1]
+    message: "Variant added successfully",
+    data: product.variants[product.variants.length - 1],
   });
 });
 
@@ -882,17 +1004,17 @@ const updateVariant = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   const variant = product.variants.id(req.params.variantId);
   if (!variant) {
-    throw new AppError('Variant not found', 404);
+    throw new AppError("Variant not found", 404);
   }
 
   // Update variant fields
-  const allowedFields = ['name', 'value', 'sku', 'barcode', 'price', 'quantity', 'images'];
-  allowedFields.forEach(field => {
+  const allowedFields = ["name", "value", "sku", "barcode", "price", "quantity", "images"];
+  allowedFields.forEach((field) => {
     if (req.body[field] !== undefined) {
       variant[field] = req.body[field];
     }
@@ -903,8 +1025,8 @@ const updateVariant = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: 'Variant updated successfully',
-    data: variant
+    message: "Variant updated successfully",
+    data: variant,
   });
 });
 
@@ -915,12 +1037,12 @@ const removeProductVariant = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    throw new AppError('Product not found', 404);
+    throw new AppError("Product not found", 404);
   }
 
   const variant = product.variants.id(req.params.variantId);
   if (!variant) {
-    throw new AppError('Variant not found', 404);
+    throw new AppError("Variant not found", 404);
   }
 
   variant.deleteOne();
@@ -934,7 +1056,7 @@ const removeProductVariant = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: 'Variant removed successfully'
+    message: "Variant removed successfully",
   });
 });
 
@@ -947,41 +1069,35 @@ const bulkUpdateProducts = asyncHandler(async (req, res, next) => {
   const { productIds, updates } = req.body;
 
   if (!productIds?.length || !updates) {
-    throw new AppError('Please provide productIds and updates', 400);
+    throw new AppError("Please provide productIds and updates", 400);
   }
 
   // Allowed fields for bulk update
-  const allowedFields = [
-    'status', 'isFeatured', 'category', 'brand',
-    'freeShipping', 'taxClass', 'shippingClass'
-  ];
+  const allowedFields = ["status", "isFeatured", "category", "brand", "freeShipping", "taxClass", "shippingClass"];
 
   const filteredUpdates = {};
-  Object.keys(updates).forEach(key => {
+  Object.keys(updates).forEach((key) => {
     if (allowedFields.includes(key)) {
       filteredUpdates[key] = updates[key];
     }
   });
 
   if (Object.keys(filteredUpdates).length === 0) {
-    throw new AppError('No valid fields to update', 400);
+    throw new AppError("No valid fields to update", 400);
   }
 
   filteredUpdates.updatedBy = req.user._id;
   filteredUpdates.updatedAt = new Date();
 
-  const result = await Product.updateMany(
-    { _id: { $in: productIds } },
-    { $set: filteredUpdates }
-  );
+  const result = await Product.updateMany({ _id: { $in: productIds } }, { $set: filteredUpdates });
 
   res.status(200).json({
     success: true,
     message: `${result.modifiedCount} products updated successfully`,
     data: {
       matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount
-    }
+      modifiedCount: result.modifiedCount,
+    },
   });
 });
 
@@ -998,59 +1114,59 @@ const getProductStats = asyncHandler(async (req, res, next) => {
               _id: null,
               totalProducts: { $sum: 1 },
               activeProducts: {
-                $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+                $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
               },
               outOfStockProducts: {
-                $sum: { $cond: [{ $eq: ['$status', 'outOfStock'] }, 1, 0] }
+                $sum: { $cond: [{ $eq: ["$status", "outOfStock"] }, 1, 0] },
               },
               draftProducts: {
-                $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] }
+                $sum: { $cond: [{ $eq: ["$status", "draft"] }, 1, 0] },
               },
               totalValue: {
-                $sum: { $multiply: ['$price', '$quantity'] }
+                $sum: { $multiply: ["$price", "$quantity"] },
               },
-              averagePrice: { $avg: '$price' },
-              totalSold: { $sum: '$totalSold' },
+              averagePrice: { $avg: "$price" },
+              totalSold: { $sum: "$totalSold" },
               featuredProducts: {
-                $sum: { $cond: ['$isFeatured', 1, 0] }
-              }
-            }
-          }
+                $sum: { $cond: ["$isFeatured", 1, 0] },
+              },
+            },
+          },
         ],
         byCategory: [
-          { $match: { status: 'active' } },
+          { $match: { status: "active" } },
           {
             $group: {
-              _id: '$category',
+              _id: "$category",
               productCount: { $sum: 1 },
-              avgPrice: { $avg: '$price' },
+              avgPrice: { $avg: "$price" },
               totalValue: {
-                $sum: { $multiply: ['$price', '$quantity'] }
-              }
-            }
+                $sum: { $multiply: ["$price", "$quantity"] },
+              },
+            },
           },
           { $sort: { productCount: -1 } },
-          { $limit: 10 }
+          { $limit: 10 },
         ],
         byBrand: [
-          { $match: { status: 'active', brand: { $ne: null } } },
+          { $match: { status: "active", brand: { $ne: null } } },
           {
             $group: {
-              _id: '$brand',
+              _id: "$brand",
               productCount: { $sum: 1 },
-              avgPrice: { $avg: '$price' }
-            }
+              avgPrice: { $avg: "$price" },
+            },
           },
           { $sort: { productCount: -1 } },
-          { $limit: 10 }
-        ]
-      }
-    }
+          { $limit: 10 },
+        ],
+      },
+    },
   ]);
 
   res.status(200).json({
     success: true,
-    data: stats[0]
+    data: stats[0],
   });
 });
 
@@ -1061,24 +1177,24 @@ const searchProducts = asyncHandler(async (req, res, next) => {
   const { q } = req.query;
 
   if (!q || q.trim().length < 2) {
-    throw new AppError('Search query must be at least 2 characters', 400);
+    throw new AppError("Search query must be at least 2 characters", 400);
   }
 
-  const searchRegex = new RegExp(q.trim(), 'i');
+  const searchRegex = new RegExp(q.trim(), "i");
 
   const features = new APIFeatures(
     Product.find({
-      status: 'active',
+      status: "active",
       $or: [
         { name: searchRegex },
         { description: searchRegex },
         { shortDescription: searchRegex },
         { brand: searchRegex },
         { tags: { $in: [searchRegex] } },
-        { sku: searchRegex }
-      ]
-    }).populate('category', 'name slug'),
-    req.query
+        { sku: searchRegex },
+      ],
+    }).populate("category", "name slug"),
+    req.query,
   )
     .sort()
     .limitFields()
@@ -1087,13 +1203,9 @@ const searchProducts = asyncHandler(async (req, res, next) => {
   const [products, total] = await Promise.all([
     features.query.lean(),
     Product.countDocuments({
-      status: 'active',
-      $or: [
-        { name: searchRegex },
-        { description: searchRegex },
-        { brand: searchRegex }
-      ]
-    })
+      status: "active",
+      $or: [{ name: searchRegex }, { description: searchRegex }, { brand: searchRegex }],
+    }),
   ]);
 
   res.status(200).json({
@@ -1102,7 +1214,7 @@ const searchProducts = asyncHandler(async (req, res, next) => {
     results: products.length,
     total,
     pagination: features.pagination,
-    data: products
+    data: products,
   });
 });
 
@@ -1129,5 +1241,5 @@ export {
   removeProductVariant,
   bulkUpdateProducts,
   getProductStats,
-  searchProducts
+  searchProducts,
 };

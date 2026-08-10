@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  Plus, Edit, Trash2, Eye, EyeOff, GripVertical,
+  Plus, Edit, Trash2, Eye, EyeOff, 
   Loader2, AlertTriangle, RefreshCw, FolderTree,
   ChevronRight, ChevronDown, X, Image, Hash
 } from "lucide-react";
@@ -372,7 +372,7 @@ export default function Categories() {
                       disabled={isMutating} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1 flex items-center gap-1">
+                    <label className=" text-sm font-medium mb-1 flex items-center gap-1">
                       <Image size={14} /> Image URL
                     </label>
                     <input type="text" value={categoryForm.image}
@@ -454,7 +454,7 @@ export default function Categories() {
 
               {/* SubCategories List */}
               {selectedCategory.subcategories?.length > 0 ? (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="space-y-2 max-h-100 overflow-y-auto">
                   {selectedCategory.subcategories.map((sub) => (
                     <div key={sub._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                       <div className="min-w-0 flex-1">
