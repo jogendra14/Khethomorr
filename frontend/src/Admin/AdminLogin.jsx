@@ -79,9 +79,9 @@ const AdminLogin = () => {
     e.preventDefault();
     
     const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
+    const passwordValue = password;
     
-    if (!trimmedEmail || !trimmedPassword) {
+    if (!trimmedEmail || !passwordValue) {
       setError("Please fill in all fields");
       return;
     }
@@ -95,7 +95,7 @@ const AdminLogin = () => {
     setError("");
     loginMutation.mutate({ 
       email: trimmedEmail, 
-      password: trimmedPassword 
+      password: passwordValue 
     });
   };
 

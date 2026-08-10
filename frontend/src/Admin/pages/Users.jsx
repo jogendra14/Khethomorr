@@ -1,11 +1,10 @@
 // frontend/src/Admin/pages/Users.jsx
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { 
-  Search, Plus, Edit, Trash2, UserCheck, UserX, Users as UsersIcon,
+  Search, Edit, Trash2, UserCheck, UserX, Users as UsersIcon,
   Shield, User, RefreshCw, ChevronLeft, ChevronRight, X,
-  Mail, Phone, Calendar, Loader2, AlertTriangle, Filter
+  Mail, Phone, Calendar, Loader2, AlertTriangle
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { userApi } from "../../api";
@@ -49,7 +48,6 @@ const TableSkeleton = () => (
 // MAIN COMPONENT
 // ============================================
 export default function Users() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // State

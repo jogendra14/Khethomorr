@@ -30,8 +30,8 @@ const generateToken = (user) => {
   );
 };
 
-// Send token response
-const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
+// Send token response - Now properly async
+const sendTokenResponse = async (user, statusCode, res, message = 'Success') => {
   const token = generateToken(user);
   const refreshToken = user.generateRefreshToken();
 
@@ -39,26 +39,28 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
   user.refreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
   user.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   user.lastLogin = new Date();
-  user.save({ validateBeforeSave: false });
+  
+  // ✅ Await the save operation
+  await user.save({ validateBeforeSave: false });
 
-  // Remove password from output
-  user.password = undefined;
+  // Don't mutate the user object - construct response separately
+  const userResponse = {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    phone: user.phone,
+    isEmailVerified: user.isEmailVerified,
+    lastLogin: user.lastLogin,
+    address: user.address
+  };
 
   res.status(statusCode).json({
     success: true,
     message,
     data: {
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        phone: user.phone,
-        isEmailVerified: user.isEmailVerified,
-        lastLogin: user.lastLogin,
-        address: user.address
-      },
+      user: userResponse,
       token,
       refreshToken,
       expiresIn: process.env.JWT_EXPIRE || '15m'
@@ -141,7 +143,7 @@ const register = asyncHandler(async (req, res, next) => {
     // Don't throw error, user can still login and request new verification
   }
 
-  sendTokenResponse(user, 201, res, 'Registration successful! Please check your email to verify your account.');
+  await sendTokenResponse(user, 201, res, 'Registration successful! Please check your email to verify your account.');
 });
 
 // ==================== LOGIN ====================
@@ -202,7 +204,7 @@ const login = asyncHandler(async (req, res, next) => {
     user.lockUntil = undefined;
   }
 
-  sendTokenResponse(user, 200, res, 'Login successful');
+  await sendTokenResponse(user, 200, res, 'Login successful');
 });
 
 // ==================== EMAIL VERIFICATION ====================
@@ -423,7 +425,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     console.log('Password change notification email failed:', error.message);
   }
 
-  sendTokenResponse(user, 200, res, 'Password reset successful! You are now logged in.');
+  await sendTokenResponse(user, 200, res, 'Password reset successful! You are now logged in.');
 });
 
 // ==================== TOKEN MANAGEMENT ====================
@@ -537,7 +539,7 @@ const updatePassword = asyncHandler(async (req, res, next) => {
   }
 
   // Generate new token
-  sendTokenResponse(user, 200, res, 'Password updated successfully');
+  await sendTokenResponse(user, 200, res, 'Password updated successfully');
 });
 
 // ==================== LOGOUT ====================

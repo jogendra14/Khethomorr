@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import ProtectedRoute from "./Admin/components/ProtectedRoute";
 import AdminLogin from "./Admin/AdminLogin.jsx";
 import AdminLayout from "./Admin/AdminLayout.jsx";
+import AdminProfile from "./Admin/pages/AdminProfile.jsx";
 import Dashboard from "./Admin/pages/Dashboard.jsx";
 
 import Products from "./Admin/pages/Products.jsx";
@@ -22,9 +23,9 @@ import Categories from "./Admin/pages/Categories.jsx";
 //import AddDeal from "./Admin/components/deal/AddDeal.jsx";
 //import EditDeal from "./Admin/components/deal/EditDeal.jsx";
 
-import Orders from "./Admin/pages/Orders.jsx";
 import Users from './Admin/pages/Users.jsx';
-import AdminProfile from "./Admin/pages/AdminProfile.jsx";
+
+import Orders from "./Admin/pages/Orders.jsx";
 
 // USER RELATED
 //import Login from "./pages/Login.jsx";
@@ -76,7 +77,6 @@ const App = () => {
             <Route path="categories" element={<Categories />} />
             <Route path="products/create" element={<AddProduct />} /> 
             <Route path="products/:id/edit" element={<EditProduct />} />
-
             <Route path="users" element={<Users/>}/>
             <Route path="orders" element={<Orders />} />
 

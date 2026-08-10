@@ -97,19 +97,15 @@ userSchema.index({ role: 1 });
 // PRE-SAVE HOOK - Hash Password
 // ============================================
 userSchema.pre('save', async function () {
-  // Only run if password is modified
-  if (!this.isModified('password'))
+  // Skip if password not modified
+  if (!this.isModified('password')) return;
 
-  try {
-    const salt = await bcrypt.genSalt(12); // Increased to 12 rounds for better security
-    this.password = await bcrypt.hash(this.password, salt);
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 
-    // Set passwordChangedAt for existing users
-    if (!this.isNew) {
-      this.passwordChangedAt = new Date(Date.now() - 1000);
-    }
-
-  } catch (error) {
+  // Update passwordChangedAt for existing users
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date(Date.now() - 1000);
   }
 });
 
@@ -232,16 +228,13 @@ userSchema.methods.incrementLoginAttempts = async function () {
   return this.updateOne(updates);
 };
 
-// ============================================
-// ERROR HANDLING
-// ============================================
-userSchema.post('save', function (error, doc, next) {
+// Post-save hook without next (for problematic versions)
+userSchema.post('save', function (error, doc) {
   if (error.name === 'MongoServerError' && error.code === 11000) {
     const field = Object.keys(error.keyValue)[0];
-    next(new Error(`${field} already exists. Please use a different ${field}.`));
-  } else {
-    next(error);
+    throw new Error(`${field} already exists. Please use a different ${field}.`);
   }
+  throw error;
 });
 
 const User = mongoose.model('User', userSchema);
