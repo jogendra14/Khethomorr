@@ -1,84 +1,104 @@
-// frontend/src/api/axios.js
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL:
+    import.meta.env.VITE_API_URL || "http://localhost:5000",
+
   headers: {
     "Content-Type": "application/json",
   },
+
   withCredentials: true,
 });
 
-// Request Interceptor - Add Token
+// ============================================
+// REQUEST INTERCEPTOR
+// ============================================
+
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    const refreshToken = localStorage.getItem("refreshToken");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (refreshToken && config.url?.includes('/refresh-token')) {
-      config.headers['x-refresh-token'] = refreshToken;
-    }
-
     return config;
   },
+
   (error) => {
     return Promise.reject(error);
   }
 );
 
-// Response Interceptor - Token Refresh
+// ============================================
+// RESPONSE INTERCEPTOR
+// ============================================
+
 API.interceptors.response.use(
   (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 and not already retrying
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // No request config
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // Only handle 401 once
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        
-        if (!refreshToken) {
-          throw new Error("No refresh token");
-        }
+      const refreshToken =
+        localStorage.getItem("refreshToken");
 
-        // Call refresh token API
+      // No refresh token
+      if (!refreshToken) {
+        handleAuthFailure();
+        return Promise.reject(error);
+      }
+
+      try {
+        // Refresh access token
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/auth/refresh-token`,
-          { refreshToken }
+          `${
+            import.meta.env.VITE_API_URL ||
+            "http://localhost:5000"
+          }/api/auth/refresh-token`,
+          {
+            refreshToken,
+          }
         );
 
-        const { token, refreshToken: newRefreshToken } = response.data.data;
+        const data =
+          response.data.data || response.data;
 
-        // Store new tokens
-        localStorage.setItem("token", token);
-        localStorage.setItem("refreshToken", newRefreshToken);
+        const newToken = data.token;
+        const newRefreshToken = data.refreshToken;
 
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axios(originalRequest);
+        // Save new tokens
+        localStorage.setItem("token", newToken);
 
-      } catch (refreshError) {
-        // Refresh failed - logout user
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        
-        // FIX: Smart redirect based on current path
-        const currentPath = window.location.pathname;
-        const isAdminRoute = currentPath.startsWith('/admin');
-        
-        if (isAdminRoute) {
-          window.location.href = "/admin/login";
-        } else {
-          window.location.href = "/login";
+        if (newRefreshToken) {
+          localStorage.setItem(
+            "refreshToken",
+            newRefreshToken
+          );
         }
-        
+
+        // Update original request
+        originalRequest.headers.Authorization =
+          `Bearer ${newToken}`;
+
+        // Retry original request
+        return API(originalRequest);
+      } catch (refreshError) {
+        handleAuthFailure();
+
         return Promise.reject(refreshError);
       }
     }
@@ -86,5 +106,23 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ============================================
+// AUTH FAILURE
+// ============================================
+
+const handleAuthFailure = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+
+  const currentPath = window.location.pathname;
+
+  if (currentPath.startsWith("/admin")) {
+    window.location.href = "/admin/login";
+  } else {
+    window.location.href = "/login";
+  }
+};
 
 export default API;

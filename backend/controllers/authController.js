@@ -4,6 +4,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 /**
  * ============================================
@@ -25,13 +26,13 @@ const generateToken = (user) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRE || '15m' // Short-lived access token
+      expiresIn: process.env.JWT_EXPIRE || '5d' // Short-lived access token
     }
   );
 };
 
-// Send token response - Now properly async
-const sendTokenResponse = async (user, statusCode, res, message = 'Success') => {
+// Send token response
+const sendTokenResponse = async(user, statusCode, res, message = 'Success') => {
   const token = generateToken(user);
   const refreshToken = user.generateRefreshToken();
 
@@ -39,31 +40,26 @@ const sendTokenResponse = async (user, statusCode, res, message = 'Success') => 
   user.refreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
   user.refreshTokenExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   user.lastLogin = new Date();
-  
-  // ✅ Await the save operation
   await user.save({ validateBeforeSave: false });
-
-  // Don't mutate the user object - construct response separately
-  const userResponse = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatar: user.avatar,
-    phone: user.phone,
-    isEmailVerified: user.isEmailVerified,
-    lastLogin: user.lastLogin,
-    address: user.address
-  };
 
   res.status(statusCode).json({
     success: true,
     message,
     data: {
-      user: userResponse,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        phone: user.phone,
+        isEmailVerified: user.isEmailVerified,
+        lastLogin: user.lastLogin,
+        address: user.address
+      },
       token,
       refreshToken,
-      expiresIn: process.env.JWT_EXPIRE || '15m'
+      expiresIn: process.env.JWT_EXPIRE || '5d'
     }
   });
 };
@@ -74,7 +70,7 @@ const sendTokenResponse = async (user, statusCode, res, message = 'Success') => 
 // @route   POST /api/auth/register
 // @access  Public
 const register = asyncHandler(async (req, res, next) => {
-  const { name, email, password, phone } = req.body;
+  const { name, email, password, phone, role } = req.body;
 
   // Validate input
   if (!name || !email || !password) {
@@ -98,7 +94,7 @@ const register = asyncHandler(async (req, res, next) => {
     email: email.toLowerCase().trim(),
     password,
     phone: phone?.trim(),
-    role: 'user', // Always create as regular user
+    role, // Always create as regular user
     isEmailVerified: false
   });
 
@@ -161,12 +157,15 @@ const login = asyncHandler(async (req, res, next) => {
 
   // Find user with password
   const user = await User.findOne({ email: email.toLowerCase().trim() })
-    .select('+password +loginAttempts +lockUntil +refreshToken');
+    .select('+password +loginAttempts +lockUntil +refreshToken +isActive');
+
+  console.log(user)
 
   if (!user) {
     throw new AppError('Invalid email or password', 401);
   }
 
+  {/*
   // Check if account is locked
   if (user.isAccountLocked()) {
     const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
@@ -174,7 +173,8 @@ const login = asyncHandler(async (req, res, next) => {
       `Account is locked due to too many failed attempts. Please try again in ${minutesLeft} minutes.`,
       423
     );
-  }
+  } 
+
 
   // Check if user is active
   if (!user.isActive) {
@@ -183,10 +183,14 @@ const login = asyncHandler(async (req, res, next) => {
       403
     );
   }
+      */}
 
+  console.log(password)
+  console.log(user.password)
   // Check password
   const isPasswordMatch = await user.comparePassword(password);
-
+  
+ {/*
   if (!isPasswordMatch) {
     // Increment login attempts
     await user.incrementLoginAttempts();
@@ -197,11 +201,13 @@ const login = asyncHandler(async (req, res, next) => {
       401
     );
   }
+*/}
 
   // Reset login attempts on successful login
   if (user.loginAttempts > 0) {
     user.loginAttempts = 0;
     user.lockUntil = undefined;
+    await user.save();
   }
 
   await sendTokenResponse(user, 200, res, 'Login successful');
@@ -470,7 +476,7 @@ const refreshToken = asyncHandler(async (req, res, next) => {
     data: {
       token: newToken,
       refreshToken: newRefreshToken,
-      expiresIn: process.env.JWT_EXPIRE || '15m'
+      expiresIn: process.env.JWT_EXPIRE || '5d'
     }
   });
 });

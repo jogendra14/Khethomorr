@@ -463,7 +463,7 @@ const AdminProducts = () => {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <Link to={`/admin/products/${product._id}/edit`} className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block max-w-[200px]">
+                              <Link to={`/admin/products/${product._id}/edit`} className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block max-w-50">
                                 {product.name}
                               </Link>
                               <p className="text-xs text-gray-500">{product.category?.name || "—"}</p>

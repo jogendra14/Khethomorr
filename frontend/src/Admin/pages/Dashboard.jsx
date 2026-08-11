@@ -236,7 +236,7 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
           {/* Quick Action */}
           <Link
-            to="/admin/products/add-product"
+            to="/admin/products/create"
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm"
           >
             <Package size={18} />

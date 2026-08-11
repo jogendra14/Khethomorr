@@ -38,7 +38,7 @@ const productApi = {
   getRelatedProducts: (id) =>
     API.get(`/api/products/${id}/related`),
 
-  // ========== ADMIN/VENDOR ==========
+  // ========== ADMIN/ ==========
   // Create product
   createProduct: (formData) =>
     API.post('/api/products', formData, {

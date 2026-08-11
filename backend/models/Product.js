@@ -336,30 +336,6 @@ const productSchema = new mongoose.Schema(
       },
     ],
 
-    // Admin Info
-    vendor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      validate: {
-        validator: async function (value) {
-          if (!value) return true; // Optional field
-          const User = mongoose.model('User');
-          const user = await User.findById(value);
-          return user && user.role === 'vendor';
-        },
-        message: 'Vendor does not exist or is not a vendor',
-      },
-    },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Creator information is required'],
-    },
-    updatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-
     // Custom Fields
     customFields: {
       type: Map,

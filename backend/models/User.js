@@ -96,14 +96,12 @@ userSchema.index({ role: 1 });
 // ============================================
 // PRE-SAVE HOOK - Hash Password
 // ============================================
-userSchema.pre('save', async function () {
-  // Skip if password not modified
-  if (!this.isModified('password')) return;
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
 
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 
-  // Update passwordChangedAt for existing users
   if (!this.isNew) {
     this.passwordChangedAt = new Date(Date.now() - 1000);
   }
@@ -131,25 +129,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return JWTTimestamp < changedTimestamp;
   }
   return false;
-};
-
-// Generate JWT Access Token
-userSchema.methods.generateToken = function () {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined in environment variables');
-  }
-
-  return jwt.sign(
-    {
-      id: this._id,
-      email: this.email,
-      role: this.role,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_EXPIRE || '15m', // Short-lived access token
-    }
-  );
 };
 
 // Generate Refresh Token
@@ -228,13 +207,16 @@ userSchema.methods.incrementLoginAttempts = async function () {
   return this.updateOne(updates);
 };
 
-// Post-save hook without next (for problematic versions)
-userSchema.post('save', function (error, doc) {
+// ============================================
+// ERROR HANDLING
+// ============================================
+userSchema.post('save', function (error, doc, next) {
   if (error.name === 'MongoServerError' && error.code === 11000) {
     const field = Object.keys(error.keyValue)[0];
-    throw new Error(`${field} already exists. Please use a different ${field}.`);
+    next(new Error(`${field} already exists. Please use a different ${field}.`));
+  } else {
+    next(error);
   }
-  throw error;
 });
 
 const User = mongoose.model('User', userSchema);

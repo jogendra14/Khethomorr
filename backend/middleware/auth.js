@@ -67,12 +67,20 @@ export const protect = asyncHandler(async (req, res, next) => {
 // Grant access to specific roles
 export const authorize = (...roles) => {
   return (req, res, next) => {
+    if (!req.user) {
+      throw new AppError(
+        "You must be logged in to access this resource",
+        401
+      );
+    }
+
     if (!roles.includes(req.user.role)) {
       throw new AppError(
         `Role '${req.user.role}' is not authorized to access this resource`,
         403
       );
     }
+
     next();
   };
 };

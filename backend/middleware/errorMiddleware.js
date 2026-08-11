@@ -7,6 +7,7 @@ import AppError from '../utils/AppError.js';
 
 // Handle mongoose validation errors
 const handleValidationError = (err) => {
+  console.error(err.stack)
   const errors = Object.values(err.errors).map((el) => el.message);
   const message = `Invalid input data: ${errors.join('. ')}`;
   return new AppError(message, 400);
@@ -14,6 +15,7 @@ const handleValidationError = (err) => {
 
 // Handle mongoose duplicate key errors
 const handleDuplicateKeyError = (err) => {
+  console.error(err.stack)
   const field = Object.keys(err.keyValue)[0];
   const value = err.keyValue[field];
   const message = `Duplicate value for field '${field}': '${value}'. Please use another value.`;
@@ -22,21 +24,25 @@ const handleDuplicateKeyError = (err) => {
 
 // Handle mongoose cast errors (invalid IDs)
 const handleCastError = (err) => {
+  console.error(err.stack)
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
 // Handle JWT errors
 const handleJWTError = () => {
+  console.error(err.stack)
   return new AppError('Invalid token. Please log in again.', 401);
 };
 
 const handleJWTExpiredError = () => {
+  console.error(err.stack)
   return new AppError('Your token has expired. Please log in again.', 401);
 };
 
 // Handle multer/file upload errors
 const handleMulterError = (err) => {
+  console.error(err.stack)
   if (err.code === 'LIMIT_FILE_SIZE') {
     return new AppError('File too large. Maximum size is 5MB.', 400);
   }
@@ -51,6 +57,7 @@ const handleMulterError = (err) => {
 
 // Send error response in development
 const sendErrorDev = (err, req, res) => {
+  console.error(err.stack)
   // API response
   if (req.originalUrl.startsWith('/api')) {
     return res.status(err.statusCode).json({
@@ -71,6 +78,7 @@ const sendErrorDev = (err, req, res) => {
 
 // Send error response in production
 const sendErrorProd = (err, req, res) => {
+  console.error(err.stack)
   // API response
   if (req.originalUrl.startsWith('/api')) {
     // Operational, trusted error: send message to client
@@ -106,6 +114,7 @@ const sendErrorProd = (err, req, res) => {
 
 // Main error handler
 const errorHandler = (err, req, res, next) => {
+  console.error(err.stack)
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 

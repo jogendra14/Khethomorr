@@ -40,16 +40,16 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 router.get('/:id/related', getRelatedProducts);
 
-// Admin/Vendor routes
-router.post('/', protect, authorize('admin', 'vendor'), uploadProductImages, createProduct);
-router.put('/:id', protect, authorize('admin', 'vendor'), uploadProductImages, updateProduct);
+// Admin routes
+router.post('/', protect, authorize('admin'), uploadProductImages, createProduct);
+router.put('/:id', protect, authorize('admin'), uploadProductImages, updateProduct);
 router.delete('/bulk', protect, authorize('admin'), bulkDeleteProducts);
 router.delete('/:id', protect, authorize('admin'), deleteProduct);
 router.delete('/:id/permanent', protect, authorize('admin'), permanentDeleteProduct);
 router.patch('/bulk', protect, authorize('admin'), bulkUpdateProducts);
 
 // Stock management
-router.patch('/:id/stock', protect, authorize('admin', 'vendor'), updateProductStock);
+router.patch('/:id/stock', protect, authorize('admin'), updateProductStock);
 router.get('/low-stock/list', protect, authorize('admin'), getLowStockProducts);
 
 // Status management
@@ -57,9 +57,9 @@ router.patch('/:id/status', protect, authorize('admin'), updateProductStatus);
 router.patch('/:id/toggle-featured', protect, authorize('admin'), toggleFeatured);
 
 // Variant management
-router.post('/:id/variants', protect, authorize('admin', 'vendor'), addProductVariant);
-router.put('/:id/variants/:variantId', protect, authorize('admin', 'vendor'), updateVariant);
-router.delete('/:id/variants/:variantId', protect, authorize('admin', 'vendor'), removeProductVariant);
+router.post('/:id/variants', protect, authorize('admin'), addProductVariant);
+router.put('/:id/variants/:variantId', protect, authorize('admin'), updateVariant);
+router.delete('/:id/variants/:variantId', protect, authorize('admin'), removeProductVariant);
 
 // Statistics (admin)
 router.get('/stats/overview', protect, authorize('admin'), getProductStats);

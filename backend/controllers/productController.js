@@ -68,7 +68,6 @@ const createProduct = asyncHandler(async (req, res, next) => {
     discount,
     relatedProducts,
     frequentlyBoughtTogether,
-    vendor,
     minOrderQuantity,
     maxOrderQuantity,
     taxClass,
@@ -85,7 +84,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
       throw new AppError("Category not found", 404);
     }
   }
-
+{/**
   // Validate subcategory belongs to category
   if (subCategory) {
     const subCategoryExists = await SubCategory.findOne({
@@ -96,6 +95,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
       throw new AppError("SubCategory not found or does not belong to selected category", 400);
     }
   }
+     */}
 
   // Check SKU uniqueness
   if (sku) {
@@ -159,8 +159,6 @@ const createProduct = asyncHandler(async (req, res, next) => {
     discount,
     relatedProducts: Array.isArray(relatedProducts) ? relatedProducts : [],
     frequentlyBoughtTogether: Array.isArray(frequentlyBoughtTogether) ? frequentlyBoughtTogether : [],
-    vendor: vendor || req.user._id,
-    createdBy: req.user._id,
     minOrderQuantity: minOrderQuantity || 1,
     maxOrderQuantity,
     taxClass: taxClass || "standard",
@@ -174,8 +172,6 @@ const createProduct = asyncHandler(async (req, res, next) => {
   const populatedProduct = await Product.findById(product._id)
     .populate("category", "name slug image")
     .populate("subCategory", "name slug")
-    .populate("vendor", "name email")
-    .populate("createdBy", "name email");
 
   res.status(201).json({
     success: true,
@@ -483,8 +479,6 @@ const getProductById = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id)
     .populate("category", "name slug description")
     .populate("subCategory", "name slug")
-    .populate("vendor", "name email phone")
-    .populate("createdBy", "name")
     .populate("relatedProducts", "name slug price images averageRating")
     .populate("frequentlyBoughtTogether", "name slug price images");
 
@@ -521,7 +515,6 @@ const getProductBySlug = asyncHandler(async (req, res, next) => {
   const product = await Product.findOne({ slug: req.params.slug })
     .populate("category", "name slug description")
     .populate("subCategory", "name slug")
-    .populate("vendor", "name email")
     .populate("relatedProducts", "name slug price images averageRating")
     .populate("frequentlyBoughtTogether", "name slug price images");
 
@@ -546,11 +539,6 @@ const updateProduct = asyncHandler(async (req, res, next) => {
 
   if (!product) {
     throw new AppError("Product not found", 404);
-  }
-
-  // Check ownership (vendor can only update their own products)
-  if (req.user.role === "vendor" && product.vendor?.toString() !== req.user._id.toString()) {
-    throw new AppError("You can only update your own products", 403);
   }
 
   let updateData = req.body;
@@ -597,7 +585,6 @@ const updateProduct = asyncHandler(async (req, res, next) => {
     discount,
     relatedProducts,
     frequentlyBoughtTogether,
-    vendor,
     minOrderQuantity,
     maxOrderQuantity,
     taxClass,
@@ -697,7 +684,6 @@ const updateProduct = asyncHandler(async (req, res, next) => {
     discount,
     relatedProducts: Array.isArray(relatedProducts) ? relatedProducts : [],
     frequentlyBoughtTogether: Array.isArray(frequentlyBoughtTogether) ? frequentlyBoughtTogether : [],
-    vendor,
     minOrderQuantity,
     maxOrderQuantity,
     taxClass,
@@ -722,8 +708,6 @@ const updateProduct = asyncHandler(async (req, res, next) => {
   })
     .populate("category", "name slug")
     .populate("subCategory", "name slug")
-    .populate("vendor", "name email")
-    .populate("updatedBy", "name email");
 
   res.status(200).json({
     success: true,
