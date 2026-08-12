@@ -24,17 +24,21 @@ import crypto from 'crypto';
 // @desc    Get all users (Admin & SuperAdmin only)
 // @route   GET /api/users
 // @access  Private/Admin
+// ==================== ADMIN: GET ALL USERS ====================
+
+// @desc    Get all users (Admin & SuperAdmin only)
+// @route   GET /api/users
+// @access  Private/Admin
 const getAllUsers = asyncHandler(async (req, res, next) => {
-  // Build filter
   const filter = {};
 
   // Role filter
-  if (req.query.role) {
+  if (req.query.role && req.query.role !== 'all') {
     filter.role = req.query.role;
   }
 
   // Active/Inactive filter
-  if (req.query.isActive !== undefined) {
+  if (req.query.isActive !== undefined && req.query.isActive !== 'all') {
     filter.isActive = req.query.isActive === 'true';
   }
 
@@ -43,7 +47,7 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
     filter.isEmailVerified = req.query.isEmailVerified === 'true';
   }
 
-  // Search by name or email
+  // Search by name, email or phone
   if (req.query.search) {
     const searchRegex = new RegExp(req.query.search, 'i');
     filter.$or = [
@@ -60,28 +64,35 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
     if (req.query.endDate) filter.createdAt.$lte = new Date(req.query.endDate);
   }
 
-  // Execute query with APIFeatures
-  const features = new APIFeatures(
-    User.find(filter).select('-password -refreshToken -__v'),
-    req.query
-  )
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+  // Pagination & Sorting
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+  const sort = req.query.sort ? req.query.sort.split(',').join(' ') : '-createdAt';
 
+  // Execute query
   const [users, total] = await Promise.all([
-    features.query.lean(),
+    User.find(filter)
+      .select('-password -refreshToken -__v')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
     User.countDocuments(filter)
   ]);
+
+  const totalPages = Math.ceil(total / limit) || 1;
 
   res.status(200).json({
     success: true,
     results: users.length,
     total,
     pagination: {
-      ...features.pagination,
-      totalPages: Math.ceil(total / (features.pagination.limit || 10))
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
     },
     data: users
   });

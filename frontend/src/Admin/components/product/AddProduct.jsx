@@ -1,5 +1,5 @@
 // frontend/src/Admin/pages/AddProduct.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -39,13 +39,7 @@ const AddProduct = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [errors, setErrors] = useState({});
-
-  // Fetch categories for dropdown
-  const { data: categoriesData } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => categoryApi.getCategories().then((res) => res.data),
-  });
-  const categories = categoriesData?.data || [];
+  const [subCategories, setSubCategories] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -60,6 +54,7 @@ const AddProduct = () => {
     quantity: 0,
     lowStockThreshold: 5,
     category: "",
+    subCategory: "",
     brand: "",
     tags: [],
     status: "draft",
@@ -81,6 +76,69 @@ const AddProduct = () => {
     warranty: { period: "", description: "" },
     customFields: {},
   });
+
+  // ========== QUERY 1: Fetch Categories ==========
+  const { data: categoriesData } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => categoryApi.getCategories().then((res) => res.data),
+  });
+
+  // Extract Categories safely regardless of API response structure
+  const categories = Array.isArray(categoriesData)
+    ? categoriesData
+    : Array.isArray(categoriesData?.data)
+    ? categoriesData.data
+    : Array.isArray(categoriesData?.categories)
+    ? categoriesData.categories
+    : [];
+
+  // ========== QUERY 2: Fetch SubCategories when category changes ==========
+  const { data: subCategoriesData } = useQuery({
+    queryKey: ["subcategories", formData.category],
+    queryFn: () => categoryApi.getSubCategories(formData.category).then((res) => res.data),
+    enabled: !!formData.category,
+  });
+
+  // ========== AUTO-RESOLVE SUBCATEGORIES ==========
+  useEffect(() => {
+    if (!formData.category) {
+      setSubCategories([]);
+      return;
+    }
+
+    // Method 1: Check if subcategories exist inside the selected category object itself
+    const selectedCat = categories.find(
+      (c) => (c._id || c.id) === formData.category
+    );
+    const nestedSubCats =
+      selectedCat?.subCategories ||
+      selectedCat?.subcategories ||
+      selectedCat?.children;
+
+    if (Array.isArray(nestedSubCats) && nestedSubCats.length > 0) {
+      setSubCategories(nestedSubCats);
+      return;
+    }
+
+    // Method 2: Extract from API query response
+    if (subCategoriesData) {
+      const list = Array.isArray(subCategoriesData)
+        ? subCategoriesData
+        : Array.isArray(subCategoriesData?.data)
+        ? subCategoriesData.data
+        : Array.isArray(subCategoriesData?.subCategories)
+        ? subCategoriesData.subCategories
+        : Array.isArray(subCategoriesData?.subcategories)
+        ? subCategoriesData.subcategories
+        : Array.isArray(subCategoriesData?.data?.subCategories)
+        ? subCategoriesData.data.subCategories
+        : Array.isArray(subCategoriesData?.data?.subcategories)
+        ? subCategoriesData.data.subcategories
+        : [];
+
+      setSubCategories(list);
+    }
+  }, [formData.category, categories, subCategoriesData]);
 
   // Variant & Tag temp states
   const [tagInput, setTagInput] = useState("");
@@ -106,6 +164,7 @@ const AddProduct = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+      ...(name === "category" ? { subCategory: "" } : {}), // Reset subCategory on category change
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
@@ -182,32 +241,19 @@ const AddProduct = () => {
 
     const fd = new FormData();
 
-    // Append all product data
     const productData = {
       ...formData,
-
       price: parseFloat(formData.price),
-
       compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
-
       costPerItem: formData.costPerItem ? parseFloat(formData.costPerItem) : undefined,
-
       quantity: parseInt(formData.quantity) || 0,
-
       lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
-
       minOrderQuantity: parseInt(formData.minOrderQuantity) || 1,
-
       maxOrderQuantity: formData.maxOrderQuantity ? parseInt(formData.maxOrderQuantity) : undefined,
-
       returnPeriod: parseInt(formData.returnPeriod) || 30,
-
       metaTitle: formData.metaTitle || formData.name,
-
       metaDescription: formData.metaDescription || formData.shortDescription,
-
       metaKeywords: formData.metaKeywords ? formData.metaKeywords.split(",").map((k) => k.trim()) : [],
-
       variants: formData.variants.map((v) => ({
         ...v,
         price: v.price ? parseFloat(v.price) : undefined,
@@ -215,8 +261,6 @@ const AddProduct = () => {
       })),
     };
 
-    // IMPORTANT:
-    // Empty subCategory should not be sent to MongoDB
     if (!productData.subCategory) {
       delete productData.subCategory;
     }
@@ -238,9 +282,7 @@ const AddProduct = () => {
         <Icon className="text-gray-500" size={20} />
         <h2 className="text-lg font-semibold">{title}</h2>
       </div>
-      {activeSection === section ?
-        <FiChevronUp />
-      : <FiChevronDown />}
+      {activeSection === section ? <FiChevronUp /> : <FiChevronDown />}
     </button>
   );
 
@@ -273,7 +315,7 @@ const AddProduct = () => {
               disabled={createMutation.isPending}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
             >
-              {createMutation.isPending ?
+              {createMutation.isPending ? (
                 <>
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -281,10 +323,11 @@ const AddProduct = () => {
                   </svg>{" "}
                   Saving...
                 </>
-              : <>
+              ) : (
+                <>
                   <FiSave size={16} /> Save Product
                 </>
-              }
+              )}
             </button>
           </div>
         </div>
@@ -335,20 +378,54 @@ const AddProduct = () => {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Category Dropdown */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Category <span className="text-red-500">*</span>
                     </label>
                     <select name="category" value={formData.category} onChange={handleChange} className={inputClass("category")}>
                       <option value="">Select Category</option>
-                      {categories.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                          {cat.name}
-                        </option>
-                      ))}
+                      {categories.map((cat) => {
+                        const id = cat._id || cat.id;
+                        return (
+                          <option key={id} value={id}>
+                            {cat.name}
+                          </option>
+                        );
+                      })}
                     </select>
                     {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
                   </div>
+
+                  {/* Sub-Category Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Sub-Category</label>
+                    <select
+                      name="subCategory"
+                      value={formData.subCategory}
+                      onChange={handleChange}
+                      disabled={!formData.category}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">
+                        {!formData.category
+                          ? "Select Category First"
+                          : subCategories.length === 0
+                          ? "No Sub-Categories Found"
+                          : "Select Sub-Category"}
+                      </option>
+                      {subCategories.map((sub) => {
+                        const subId = sub._id || sub.id || sub;
+                        const subName = typeof sub === "string" ? sub : sub.name || sub.title || subId;
+                        return (
+                          <option key={subId} value={subId}>
+                            {subName}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-1">Brand</label>
                     <input
@@ -675,12 +752,13 @@ const AddProduct = () => {
               disabled={createMutation.isPending}
               className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium flex items-center gap-2"
             >
-              {createMutation.isPending ?
+              {createMutation.isPending ? (
                 "Creating..."
-              : <>
+              ) : (
+                <>
                   <FiSave /> Create Product
                 </>
-              }
+              )}
             </button>
           </div>
         </form>

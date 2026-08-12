@@ -54,114 +54,162 @@ const EditProduct = () => {
   const [newAttribute, setNewAttribute] = useState({ name: "", value: "", isFilterable: false });
 
   // ============================================
-// QUERY: Fetch Product (React Query v5 compatible)
-// ============================================
-const {
-  data: productData,
-  isLoading: productLoading,
-  isError: productError,
-  error: productErrorData,
-} = useQuery({
-  queryKey: ["product", id],
-  queryFn: () => productApi.getProductById(id).then(res => res.data.data || res.data),
-  enabled: !!id,
-  // ❌ REMOVED: onSuccess and onError (not supported in v5)
-});
+  // QUERY: Fetch Product
+  // ============================================
+  const {
+    data: productData,
+    isLoading: productLoading,
+    isError: productError,
+    error: productErrorData,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => productApi.getProductById(id).then(res => res.data.data || res.data),
+    enabled: !!id,
+  });
 
-// ✅ ADD THIS: useEffect to populate form when productData changes
-useEffect(() => {
-  if (productData) {
-    const data = productData;
-    setFormData({
-      ...INITIAL_FORM,
-      ...data,
-      tags: Array.isArray(data.tags) ? data.tags.join(", ") : (data.tags || ""),
-      metaKeywords: Array.isArray(data.metaKeywords) ? data.metaKeywords.join(", ") : (data.metaKeywords || ""),
-      weight: data.weight || { value: "", unit: "kg" },
-      dimensions: data.dimensions || { length: "", width: "", height: "", unit: "cm" },
-      discount: data.discount ? {
-        ...data.discount,
-        startDate: data.discount.startDate ? new Date(data.discount.startDate).toISOString().slice(0, 16) : "",
-        endDate: data.discount.endDate ? new Date(data.discount.endDate).toISOString().slice(0, 16) : "",
-      } : { type: "percentage", value: "", startDate: "", endDate: "", isActive: false },
-      warranty: data.warranty || { period: "", description: "" },
-      video: data.video || { url: "", thumbnail: "", provider: "youtube" },
-      publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : "",
-    });
-  }
-}, [productData]);
+  // ✅ UPDATED: Safely extract category & subCategory IDs if populated as objects from backend
+  useEffect(() => {
+    if (productData) {
+      const data = productData;
 
-// ✅ ADD THIS: Separate useEffect for error handling
-useEffect(() => {
-  if (productError) {
-    toast.error(productErrorData?.message || "Failed to load product");
-    navigate("/admin/products");
-  }
-}, [productError, productErrorData, navigate]);
+      // Extract string ID if category or subCategory is populated as an object
+      const categoryId = typeof data.category === "object" && data.category !== null 
+        ? (data.category._id || data.category.id || "") 
+        : (data.category || "");
+
+      const subCategoryId = typeof data.subCategory === "object" && data.subCategory !== null 
+        ? (data.subCategory._id || data.subCategory.id || "") 
+        : (data.subCategory || "");
+
+      setFormData({
+        ...INITIAL_FORM,
+        ...data,
+        category: categoryId,
+        subCategory: subCategoryId,
+        tags: Array.isArray(data.tags) ? data.tags.join(", ") : (data.tags || ""),
+        metaKeywords: Array.isArray(data.metaKeywords) ? data.metaKeywords.join(", ") : (data.metaKeywords || ""),
+        weight: data.weight || { value: "", unit: "kg" },
+        dimensions: data.dimensions || { length: "", width: "", height: "", unit: "cm" },
+        discount: data.discount ? {
+          ...data.discount,
+          startDate: data.discount.startDate ? new Date(data.discount.startDate).toISOString().slice(0, 16) : "",
+          endDate: data.discount.endDate ? new Date(data.discount.endDate).toISOString().slice(0, 16) : "",
+        } : { type: "percentage", value: "", startDate: "", endDate: "", isActive: false },
+        warranty: data.warranty || { period: "", description: "" },
+        video: data.video || { url: "", thumbnail: "", provider: "youtube" },
+        publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : "",
+      });
+    }
+  }, [productData]);
+
+  // useEffect for error handling
+  useEffect(() => {
+    if (productError) {
+      toast.error(productErrorData?.message || "Failed to load product");
+      navigate("/admin/products");
+    }
+  }, [productError, productErrorData, navigate]);
 
   // ============================================
-  // QUERY: Fetch Categories
+  // QUERY 1: Fetch Categories
   // ============================================
   const { data: categoriesData } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoryApi.getCategories().then(res => res.data),
   });
-  const categories = categoriesData?.data || [];
+
+  // ✅ Extract categories safely
+  const categories = Array.isArray(categoriesData)
+    ? categoriesData
+    : Array.isArray(categoriesData?.data)
+    ? categoriesData.data
+    : Array.isArray(categoriesData?.categories)
+    ? categoriesData.categories
+    : [];
 
   // ============================================
-  // QUERY: Fetch SubCategories when category changes
+  // QUERY 2: Fetch SubCategories when category changes
   // ============================================
   const { data: subCategoriesData } = useQuery({
     queryKey: ["subcategories", formData.category],
     queryFn: () => categoryApi.getSubCategories(formData.category).then(res => res.data),
-    enabled: !!formData.category,
+    enabled: !!formData.category && typeof formData.category === "string",
   });
   
-  // ✅ This useEffect is already correct for v5
+  // ✅ UPDATED: Robust SubCategories resolver (Nested + API Multi-Format Support)
   useEffect(() => {
-    if (subCategoriesData?.data) {
-      setSubCategories(subCategoriesData.data);
-    } else {
+    if (!formData.category) {
       setSubCategories([]);
+      return;
     }
-  }, [subCategoriesData]);
 
-// ============================================
-// MUTATION: Update Product (v5 compatible - ✅ already correct)
-// ============================================
-const updateMutation = useMutation({
-  mutationFn: (formDataToSend) => productApi.updateProduct(id, formDataToSend),
-  onSuccess: () => {
-    toast.success("Product updated successfully!");
-    queryClient.invalidateQueries(["product", id]);
-    queryClient.invalidateQueries(["admin-products"]);
-    navigate("/admin/products");
-  },
-  onError: (error) => {
-    const msg = error.response?.data?.message || "Failed to update product";
-    toast.error(msg);
-    if (error.response?.data?.errors) {
-      setErrors(error.response.data.errors);
+    // Method 1: Check if subcategories exist inside selected category object itself
+    const selectedCat = categories.find(
+      (c) => (c._id || c.id) === formData.category
+    );
+    const nestedSubCats =
+      selectedCat?.subCategories ||
+      selectedCat?.subcategories ||
+      selectedCat?.children;
+
+    if (Array.isArray(nestedSubCats) && nestedSubCats.length > 0) {
+      setSubCategories(nestedSubCats);
+      return;
     }
-  },
-});
+
+    // Method 2: Extract from API query response
+    if (subCategoriesData) {
+      const list = Array.isArray(subCategoriesData)
+        ? subCategoriesData
+        : Array.isArray(subCategoriesData?.data)
+        ? subCategoriesData.data
+        : Array.isArray(subCategoriesData?.subCategories)
+        ? subCategoriesData.subCategories
+        : Array.isArray(subCategoriesData?.subcategories)
+        ? subCategoriesData.subcategories
+        : Array.isArray(subCategoriesData?.data?.subCategories)
+        ? subCategoriesData.data.subCategories
+        : Array.isArray(subCategoriesData?.data?.subcategories)
+        ? subCategoriesData.data.subcategories
+        : [];
+
+      setSubCategories(list);
+    }
+  }, [formData.category, categories, subCategoriesData]);
+
+  // ============================================
+  // MUTATION: Update Product
+  // ============================================
+  const updateMutation = useMutation({
+    mutationFn: (formDataToSend) => productApi.updateProduct(id, formDataToSend),
+    onSuccess: () => {
+      toast.success("Product updated successfully!");
+      queryClient.invalidateQueries(["product", id]);
+      queryClient.invalidateQueries(["admin-products"]);
+      navigate("/admin/products");
+    },
+    onError: (error) => {
+      const msg = error.response?.data?.message || "Failed to update product";
+      toast.error(msg);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      }
+    },
+  });
 
   // ============================================
   // HANDLERS
   // ============================================
-
-  // Simple field change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+      ...(name === "category" ? { subCategory: "" } : {}), // Reset subCategory on category change
     }));
-    // Clear error for this field
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  // Nested field change (e.g., weight.value)
   const handleNestedChange = (parent, child, value) => {
     setFormData(prev => ({
       ...prev,
@@ -169,7 +217,6 @@ const updateMutation = useMutation({
     }));
   };
 
-  // Discount field change
   const handleDiscountChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -177,7 +224,6 @@ const updateMutation = useMutation({
     }));
   };
 
-  // Warranty field change
   const handleWarrantyChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -223,22 +269,20 @@ const updateMutation = useMutation({
     }
   };
 
- const handleSetPrimary = (imageUrl, isTemp = false) => {
-  if (isTemp) {
-    // Set this temp image as primary
-    setTempImageFiles(prev =>
-      prev.map(img => ({ ...img, isPrimary: img.url === imageUrl }))
-    );
-  }
-  // ✅ Always update formData.images - unset ALL existing primaries, set the new one
-  setFormData(prev => ({
-    ...prev,
-    images: prev.images.map(img => ({ 
-      ...img, 
-      isPrimary: img.url === imageUrl  // true for the selected one, false for others
-    })),
-  }));
-};
+  const handleSetPrimary = (imageUrl, isTemp = false) => {
+    if (isTemp) {
+      setTempImageFiles(prev =>
+        prev.map(img => ({ ...img, isPrimary: img.url === imageUrl }))
+      );
+    }
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map(img => ({ 
+        ...img, 
+        isPrimary: img.url === imageUrl
+      })),
+    }));
+  };
 
   // ============================================
   // VARIANT HANDLERS
@@ -289,92 +333,84 @@ const updateMutation = useMutation({
   // ============================================
   // FORM SUBMIT
   // ============================================
-  // ============================================
-// FORM SUBMIT
-// ============================================
-const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  // Validate required fields
-  const validationErrors = {};
-  if (!formData.name?.trim()) validationErrors.name = "Product name is required";
-  if (!formData.price || parseFloat(formData.price) <= 0) validationErrors.price = "Valid price is required";
-  if (!formData.category) validationErrors.category = "Category is required";
+    const validationErrors = {};
+    if (!formData.name?.trim()) validationErrors.name = "Product name is required";
+    if (!formData.price || parseFloat(formData.price) <= 0) validationErrors.price = "Valid price is required";
+    if (!formData.category) validationErrors.category = "Category is required";
 
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    toast.error("Please fix the validation errors");
-    return;
-  }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fix the validation errors");
+      return;
+    }
 
-  // ✅ Find the primary image URL
-  const primaryImage = formData.images.find(img => img.isPrimary)?.url || null;
+    const primaryImage = formData.images.find(img => img.isPrimary)?.url || null;
 
-  // Build submit data
-  const submitData = {
-    name: formData.name,
-    description: formData.description,
-    shortDescription: formData.shortDescription,
-    price: parseFloat(formData.price),
-    compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
-    costPerItem: formData.costPerItem ? parseFloat(formData.costPerItem) : undefined,
-    sku: formData.sku || undefined,
-    barcode: formData.barcode || undefined,
-    quantity: parseInt(formData.quantity) || 0,
-    lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
-    category: formData.category,
-    subCategory: formData.subCategory || undefined,
-    brand: formData.brand || undefined,
-    status: formData.status,
-    isFeatured: formData.isFeatured,
-    visibility: formData.visibility,
-    publishedAt: formData.publishedAt || undefined,
-    hasVariants: formData.hasVariants,
-    minOrderQuantity: parseInt(formData.minOrderQuantity) || 1,
-    maxOrderQuantity: formData.maxOrderQuantity ? parseInt(formData.maxOrderQuantity) : undefined,
-    taxClass: formData.taxClass,
-    isReturnable: formData.isReturnable,
-    returnPeriod: parseInt(formData.returnPeriod) || 30,
-    isPhysicalProduct: formData.isPhysicalProduct,
-    isDigitalProduct: formData.isDigitalProduct,
-    digitalFileUrl: formData.digitalFileUrl || undefined,
-    shippingClass: formData.shippingClass,
-    freeShipping: formData.freeShipping,
-    metaTitle: formData.metaTitle || formData.name,
-    metaDescription: formData.metaDescription || formData.shortDescription?.substring(0, 160),
-    weight: formData.weight,
-    dimensions: formData.dimensions,
-    discount: formData.discount.isActive ? formData.discount : undefined,
-    warranty: formData.warranty,
-    video: formData.video.url ? formData.video : undefined,
-    tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
-    metaKeywords: formData.metaKeywords ? formData.metaKeywords.split(",").map(k => k.trim()).filter(Boolean) : [],
-    variants: formData.variants.map(v => ({
-      name: v.name,
-      value: v.value,
-      sku: v.sku || undefined,
-      barcode: v.barcode || undefined,
-      price: v.price ? parseFloat(v.price) : undefined,
-      quantity: v.quantity ? parseInt(v.quantity) : 0,
-    })),
-    attributes: formData.attributes,
-    relatedProducts: formData.relatedProducts || [],
-    frequentlyBoughtTogether: formData.frequentlyBoughtTogether || [],
-    removeImages: removeImages,
-    primaryImage: primaryImage,  // ✅ ADD THIS LINE
+    const submitData = {
+      name: formData.name,
+      description: formData.description,
+      shortDescription: formData.shortDescription,
+      price: parseFloat(formData.price),
+      compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
+      costPerItem: formData.costPerItem ? parseFloat(formData.costPerItem) : undefined,
+      sku: formData.sku || undefined,
+      barcode: formData.barcode || undefined,
+      quantity: parseInt(formData.quantity) || 0,
+      lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
+      category: formData.category,
+      subCategory: formData.subCategory || undefined,
+      brand: formData.brand || undefined,
+      status: formData.status,
+      isFeatured: formData.isFeatured,
+      visibility: formData.visibility,
+      publishedAt: formData.publishedAt || undefined,
+      hasVariants: formData.hasVariants,
+      minOrderQuantity: parseInt(formData.minOrderQuantity) || 1,
+      maxOrderQuantity: formData.maxOrderQuantity ? parseInt(formData.maxOrderQuantity) : undefined,
+      taxClass: formData.taxClass,
+      isReturnable: formData.isReturnable,
+      returnPeriod: parseInt(formData.returnPeriod) || 30,
+      isPhysicalProduct: formData.isPhysicalProduct,
+      isDigitalProduct: formData.isDigitalProduct,
+      digitalFileUrl: formData.digitalFileUrl || undefined,
+      shippingClass: formData.shippingClass,
+      freeShipping: formData.freeShipping,
+      metaTitle: formData.metaTitle || formData.name,
+      metaDescription: formData.metaDescription || formData.shortDescription?.substring(0, 160),
+      weight: formData.weight,
+      dimensions: formData.dimensions,
+      discount: formData.discount.isActive ? formData.discount : undefined,
+      warranty: formData.warranty,
+      video: formData.video.url ? formData.video : undefined,
+      tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+      metaKeywords: formData.metaKeywords ? formData.metaKeywords.split(",").map(k => k.trim()).filter(Boolean) : [],
+      variants: formData.variants.map(v => ({
+        name: v.name,
+        value: v.value,
+        sku: v.sku || undefined,
+        barcode: v.barcode || undefined,
+        price: v.price ? parseFloat(v.price) : undefined,
+        quantity: v.quantity ? parseInt(v.quantity) : 0,
+      })),
+      attributes: formData.attributes,
+      relatedProducts: formData.relatedProducts || [],
+      frequentlyBoughtTogether: formData.frequentlyBoughtTogether || [],
+      removeImages: removeImages,
+      primaryImage: primaryImage,
+    };
+
+    const fd = new FormData();
+    fd.append("data", JSON.stringify(submitData));
+
+    tempImageFiles.forEach(img => {
+      if (img.file) fd.append("images", img.file);
+    });
+
+    updateMutation.mutate(fd);
   };
-
-  // Create FormData
-  const fd = new FormData();
-  fd.append("data", JSON.stringify(submitData));
-
-  // Append new image files
-  tempImageFiles.forEach(img => {
-    if (img.file) fd.append("images", img.file);
-  });
-
-  updateMutation.mutate(fd);
-};
 
   // ============================================
   // LOADING STATE
@@ -561,22 +597,48 @@ const handleSubmit = (e) => {
                   <FiTag className="text-orange-600" /> Categories & Tags
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Category Dropdown */}
                   <div>
                     <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
                     <select name="category" value={formData.category} onChange={handleChange} className={inputClass("category")}>
                       <option value="">Select Category</option>
-                      {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
+                      {categories.map(cat => {
+                        const catId = cat._id || cat.id;
+                        return (
+                          <option key={catId} value={catId}>{cat.name}</option>
+                        );
+                      })}
                     </select>
                     {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
                   </div>
+
+                  {/* Sub-Category Dropdown */}
                   <div>
                     <label className="block text-sm font-medium mb-1">Sub-Category</label>
-                    <select name="subCategory" value={formData.subCategory} onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                      <option value="">Select Sub-Category</option>
-                      {subCategories.map(sub => <option key={sub._id} value={sub._id}>{sub.name}</option>)}
+                    <select
+                      name="subCategory"
+                      value={formData.subCategory}
+                      onChange={handleChange}
+                      disabled={!formData.category}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">
+                        {!formData.category
+                          ? "Select Category First"
+                          : subCategories.length === 0
+                          ? "No Sub-Categories Found"
+                          : "Select Sub-Category"}
+                      </option>
+                      {subCategories.map(sub => {
+                        const subId = sub._id || sub.id || sub;
+                        const subName = typeof sub === "string" ? sub : sub.name || sub.title || subId;
+                        return (
+                          <option key={subId} value={subId}>{subName}</option>
+                        );
+                      })}
                     </select>
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-1">Brand</label>
                     <input type="text" name="brand" value={formData.brand} onChange={handleChange}
@@ -596,9 +658,7 @@ const handleSubmit = (e) => {
                   <FiImage className="text-pink-600" /> Images
                 </h2>
 
-                {/* Existing + Temp Images Grid */}
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-4">
-                  {/* Existing Images */}
                   {formData.images.map((image, i) => (
                     <div key={`existing-${i}`} className="relative group aspect-square">
                       <img src={image.url} alt={image.alt || ""} className="w-full h-full object-cover rounded-lg" />
@@ -618,7 +678,6 @@ const handleSubmit = (e) => {
                     </div>
                   ))}
 
-                  {/* Temp Images */}
                   {tempImageFiles.map((image, i) => (
                     <div key={`temp-${i}`} className="relative group aspect-square">
                       <img src={image.url} alt="" className="w-full h-full object-cover rounded-lg" />
@@ -635,7 +694,6 @@ const handleSubmit = (e) => {
                     </div>
                   ))}
 
-                  {/* Upload Button */}
                   <label className="border-2 border-dashed border-gray-300 rounded-lg aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition">
                     <FiUpload className="text-gray-400 mb-1" size={22} />
                     <span className="text-xs text-gray-500">Add</span>
@@ -651,7 +709,6 @@ const handleSubmit = (e) => {
                   <FiShoppingCart className="text-indigo-600" /> Variants
                 </h2>
 
-                {/* Existing Variants */}
                 {formData.variants.length > 0 && (
                   <div className="overflow-x-auto mb-4">
                     <table className="min-w-full text-sm">
@@ -685,7 +742,6 @@ const handleSubmit = (e) => {
                   </div>
                 )}
 
-                {/* Add Variant Form */}
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                   <input type="text" placeholder="Name (Size)" value={newVariant.name}
                     onChange={e => setNewVariant(p => ({ ...p, name: e.target.value }))}

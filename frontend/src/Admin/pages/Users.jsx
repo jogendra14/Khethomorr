@@ -16,7 +16,7 @@ const ROLES = ["user", "vendor", "admin", "superadmin"];
 const ROLE_COLORS = {
   superadmin: "bg-red-100 text-red-700 border-red-300",
   admin: "bg-purple-100 text-purple-700 border-purple-300",
-  vendor: "bg-blue-100 text-blue-700 border-blue-300",
+  vendor: "bg-orange-100 text-orange-700 border-orange-300",
   user: "bg-gray-100 text-gray-700 border-gray-300",
 };
 
@@ -70,27 +70,43 @@ export default function Users() {
     refetch,
   } = useQuery({
     queryKey: ["admin-users", page, limit, search, roleFilter, statusFilter],
-    queryFn: () =>
-      userApi.getUsers({
+    queryFn: async () => {
+      const res = await userApi.getUsers({
         page,
         limit,
         ...(search && { search }),
         ...(roleFilter !== "all" && { role: roleFilter }),
         ...(statusFilter !== "all" && { isActive: statusFilter === "active" ? "true" : "false" }),
-      }).then(res => res.data),
+      });
+      return res.data || res;
+    },
     keepPreviousData: true,
     staleTime: 60 * 1000,
   });
 
-  const users = usersData?.data || [];
-  const total = usersData?.total || 0;
-  const totalPages = usersData?.pagination?.totalPages || 1;
+  // ✅ Safe Data Extraction (Handles both Direct Array & Wrapped Object)
+  const rawUsers = Array.isArray(usersData)
+    ? usersData
+    : Array.isArray(usersData?.data)
+    ? usersData.data
+    : Array.isArray(usersData?.users)
+    ? usersData.users
+    : [];
+
+  // ✅ CRASH PREVENTION: Filter out any null or undefined items
+  const validUsers = rawUsers.filter((u) => u && typeof u === "object");
+
+  const total = typeof usersData?.total === "number"
+    ? usersData.total
+    : Array.isArray(usersData)
+    ? usersData.length
+    : validUsers.length;
+
+  const totalPages = usersData?.pagination?.totalPages || Math.ceil(total / limit) || 1;
 
   // ============================================
   // MUTATIONS
   // ============================================
-  
-  // Update User
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => userApi.updateUser(id, data),
     onSuccess: () => {
@@ -98,37 +114,34 @@ export default function Users() {
       setEditModal({ show: false, user: null });
       toast.success("User updated successfully!");
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to update user");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update user");
     },
   });
 
-  // Toggle Status
   const toggleStatusMutation = useMutation({
     mutationFn: (id) => userApi.toggleUserStatus(id),
     onSuccess: () => {
       queryClient.invalidateQueries(["admin-users"]);
       toast.success("User status updated!");
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to update status");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update status");
       refetch();
     },
   });
 
-  // Update Role
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, role }) => userApi.updateUserRole(id, role),
     onSuccess: () => {
       queryClient.invalidateQueries(["admin-users"]);
       toast.success("User role updated!");
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to update role");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update role");
     },
   });
 
-  // Delete User
   const deleteMutation = useMutation({
     mutationFn: (id) => userApi.deleteUser(id),
     onSuccess: () => {
@@ -136,8 +149,8 @@ export default function Users() {
       setDeleteModal({ show: false, id: null, name: "" });
       toast.success("User deleted successfully!");
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to delete user");
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to delete user");
     },
   });
 
@@ -145,14 +158,13 @@ export default function Users() {
   // HANDLERS
   // ============================================
   const handleEdit = (user) => {
-    setEditModal({
-      show: true,
-      user: { ...user },
-    });
+    if (!user) return;
+    setEditModal({ show: true, user: { ...user } });
   };
 
   const handleSaveEdit = (e) => {
     e.preventDefault();
+    if (!editModal.user?._id) return;
     const formData = new FormData(e.target);
     const data = {
       name: formData.get("name"),
@@ -164,18 +176,21 @@ export default function Users() {
   };
 
   const handleToggleStatus = (user) => {
+    if (!user?._id) return;
     const action = user.isActive ? "deactivate" : "activate";
-    if (!window.confirm(`Are you sure you want to ${action} "${user.name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to ${action} "${user.name || 'this user'}"?`)) return;
     toggleStatusMutation.mutate(user._id);
   };
 
   const handleRoleChange = (userId, newRole) => {
+    if (!userId) return;
     if (!window.confirm(`Change role to "${newRole}"?`)) return;
     updateRoleMutation.mutate({ id: userId, role: newRole });
   };
 
   const handleDelete = (user) => {
-    setDeleteModal({ show: true, id: user._id, name: user.name });
+    if (!user?._id) return;
+    setDeleteModal({ show: true, id: user._id, name: user.name || "User" });
   };
 
   const confirmDelete = () => {
@@ -183,13 +198,13 @@ export default function Users() {
   };
 
   // ============================================
-  // COMPUTED
+  // COMPUTED STATS
   // ============================================
   const stats = {
     total: total,
-    active: users.filter(u => u.isActive).length,
-    admin: users.filter(u => u.role === "admin" || u.role === "superadmin").length,
-    vendor: users.filter(u => u.role === "vendor").length,
+    active: validUsers.filter((u) => u?.isActive).length,
+    admin: validUsers.filter((u) => u?.role === "admin" || u?.role === "superadmin").length,
+    vendor: validUsers.filter((u) => u?.role === "vendor").length,
   };
 
   // ============================================
@@ -245,7 +260,7 @@ export default function Users() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder="Search by name, email or phone..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="w-full border border-gray-300 rounded-lg pl-10 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -259,7 +274,7 @@ export default function Users() {
           <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
             <option value="all">All Roles</option>
-            {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+            {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
           </select>
           <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
@@ -275,7 +290,7 @@ export default function Users() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center mb-6">
           <AlertTriangle className="mx-auto text-red-400 mb-3" size={40} />
           <h3 className="font-semibold text-red-800 mb-2">Failed to Load Users</h3>
-          <p className="text-red-600 text-sm mb-4">{error?.message}</p>
+          <p className="text-red-600 text-sm mb-4">{error?.response?.data?.message || error?.message}</p>
           <button onClick={() => refetch()} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm">
             Try Again
           </button>
@@ -300,7 +315,7 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {users.length === 0 ? (
+                {validUsers.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="p-12 text-center">
                       <UsersIcon className="mx-auto text-gray-300 mb-3" size={48} />
@@ -308,96 +323,104 @@ export default function Users() {
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-50/50 transition">
-                      {/* User Info */}
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`}
-                            alt=""
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-900 text-sm">{user.name}</p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
+                  validUsers.map((user, idx) => {
+                    const userId = user?._id || user?.id || idx;
+                    const userName = user?.name || "User";
+                    const userEmail = user?.email || "";
+                    const userRole = user?.role || "user";
+                    const isActive = Boolean(user?.isActive);
+
+                    return (
+                      <tr key={userId} className="hover:bg-gray-50/50 transition">
+                        {/* User Info */}
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff`}
+                              alt=""
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">{userName}</p>
+                              <p className="text-xs text-gray-500">{userEmail}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Contact */}
-                      <td className="p-4 hidden md:table-cell">
-                        <div className="text-sm space-y-0.5">
-                          {user.phone && (
-                            <p className="flex items-center gap-1 text-gray-600">
-                              <Phone size={12} /> {user.phone}
+                        {/* Contact */}
+                        <td className="p-4 hidden md:table-cell">
+                          <div className="text-sm space-y-0.5">
+                            {user?.phone && (
+                              <p className="flex items-center gap-1 text-gray-600">
+                                <Phone size={12} /> {user.phone}
+                              </p>
+                            )}
+                            <p className="flex items-center gap-1 text-gray-500">
+                              <Mail size={12} /> {userEmail}
                             </p>
-                          )}
-                          <p className="flex items-center gap-1 text-gray-500">
-                            <Mail size={12} /> {user.email}
-                          </p>
-                        </div>
-                      </td>
+                          </div>
+                        </td>
 
-                      {/* Role */}
-                      <td className="p-4">
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                          className={`px-2.5 py-1 text-xs font-medium rounded-full border outline-none cursor-pointer ${ROLE_COLORS[user.role] || ROLE_COLORS.user}`}
-                        >
-                          {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-                        </select>
-                      </td>
+                        {/* Role */}
+                        <td className="p-4">
+                          <select
+                            value={userRole}
+                            onChange={(e) => handleRoleChange(userId, e.target.value)}
+                            className={`px-2.5 py-1 text-xs font-medium rounded-full border outline-none cursor-pointer ${ROLE_COLORS[userRole] || ROLE_COLORS.user}`}
+                          >
+                            {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+                          </select>
+                        </td>
 
-                      {/* Status */}
-                      <td className="p-4">
-                        <button
-                          onClick={() => handleToggleStatus(user)}
-                          className={`px-2.5 py-1 text-xs font-medium rounded-full border transition ${
-                            user.isActive
-                              ? "bg-green-100 text-green-700 border-green-300 hover:bg-red-50"
-                              : "bg-red-100 text-red-700 border-red-300 hover:bg-green-50"
-                          }`}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </button>
-                      </td>
-
-                      {/* Joined */}
-                      <td className="p-4 hidden lg:table-cell">
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(user.createdAt).toLocaleDateString("en-IN", {
-                            day: "numeric", month: "short", year: "numeric",
-                          })}
-                        </p>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="p-4">
-                        <div className="flex justify-center gap-1">
-                          <button onClick={() => handleEdit(user)}
-                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
-                            <Edit size={17} />
-                          </button>
-                          <button onClick={() => handleToggleStatus(user)}
-                            className={`p-2 rounded-lg transition ${
-                              user.isActive
-                                ? "text-orange-500 hover:text-orange-700 hover:bg-orange-50"
-                                : "text-green-500 hover:text-green-700 hover:bg-green-50"
+                        {/* Status */}
+                        <td className="p-4">
+                          <button
+                            onClick={() => handleToggleStatus(user)}
+                            className={`px-2.5 py-1 text-xs font-medium rounded-full border transition ${
+                              isActive
+                                ? "bg-green-100 text-green-700 border-green-300 hover:bg-red-50"
+                                : "bg-red-100 text-red-700 border-red-300 hover:bg-green-50"
                             }`}
-                            title={user.isActive ? "Deactivate" : "Activate"}>
-                            {user.isActive ? <UserX size={17} /> : <UserCheck size={17} />}
+                          >
+                            {isActive ? "Active" : "Inactive"}
                           </button>
-                          <button onClick={() => handleDelete(user)}
-                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
-                            <Trash2 size={17} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+
+                        {/* Joined */}
+                        <td className="p-4 hidden lg:table-cell">
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <Calendar size={12} />
+                            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+                              day: "numeric", month: "short", year: "numeric",
+                            }) : "-"}
+                          </p>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="p-4">
+                          <div className="flex justify-center gap-1">
+                            <button onClick={() => handleEdit(user)}
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
+                              <Edit size={17} />
+                            </button>
+                            <button onClick={() => handleToggleStatus(user)}
+                              className={`p-2 rounded-lg transition ${
+                                isActive
+                                  ? "text-orange-500 hover:text-orange-700 hover:bg-orange-50"
+                                  : "text-green-500 hover:text-green-700 hover:bg-green-50"
+                              }`}
+                              title={isActive ? "Deactivate" : "Activate"}>
+                              {isActive ? <UserX size={17} /> : <UserCheck size={17} />}
+                            </button>
+                            <button onClick={() => handleDelete(user)}
+                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                              <Trash2 size={17} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -411,7 +434,7 @@ export default function Users() {
               Page {page} of {totalPages} · {total} users
             </p>
             <div className="flex items-center gap-1">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
                 className="p-2 rounded-lg hover:bg-gray-200 disabled:opacity-30 transition">
                 <ChevronLeft size={16} />
               </button>
@@ -428,7 +451,7 @@ export default function Users() {
                     }`}>{num}</button>
                 );
               })}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
                 className="p-2 rounded-lg hover:bg-gray-200 disabled:opacity-30 transition">
                 <ChevronRight size={16} />
               </button>
@@ -444,13 +467,13 @@ export default function Users() {
           <form onSubmit={handleSaveEdit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Name</label>
-              <input type="text" name="name" defaultValue={editModal.user.name}
+              <input type="text" name="name" defaultValue={editModal.user.name || ""}
                 className="w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required
                 disabled={updateMutation.isPending} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
-              <input type="email" name="email" defaultValue={editModal.user.email}
+              <input type="email" name="email" defaultValue={editModal.user.email || ""}
                 className="w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" required
                 disabled={updateMutation.isPending} />
             </div>
@@ -462,10 +485,10 @@ export default function Users() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Role</label>
-              <select name="role" defaultValue={editModal.user.role}
+              <select name="role" defaultValue={editModal.user.role || "user"}
                 className="w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 disabled={updateMutation.isPending}>
-                {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+                {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
               </select>
             </div>
             <div className="flex gap-3 pt-2">
@@ -515,7 +538,7 @@ export default function Users() {
 const Modal = ({ children, onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
     <div className="fixed inset-0 bg-black/50" />
-    <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md z-10" onClick={e => e.stopPropagation()}>
+    <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md z-10" onClick={(e) => e.stopPropagation()}>
       {children}
     </div>
   </div>
