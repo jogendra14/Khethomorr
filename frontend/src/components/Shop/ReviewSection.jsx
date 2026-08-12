@@ -1,7 +1,8 @@
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProductReviews, getReviewStats, createReview, deleteReview } from "../../api/reviewApi.js";
+//import { getProductReviews, getReviewStats, createReview, deleteReview } from "../../api/reviewApi";
+import reviewApi from "../../api/reviewApi";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -66,7 +67,7 @@ const AddReviewForm = ({ productId, onReviewAdded }) => {
   // ✅ React Query mutation
   const createReviewMutation = useMutation({
     mutationFn: ({ productId, rating, comment }) => 
-      createReview({ productId, rating, comment }),
+      reviewApi.createReview({ productId, rating, comment }),
     
     onSuccess: () => {
       toast.success("Review submitted successfully! ✅");
@@ -162,7 +163,7 @@ export default function ReviewSection({ product }) {
     refetch: refetchReviews,
   } = useQuery({
     queryKey: ['reviews', product._id, page],
-    queryFn: () => getProductReviews(product._id, page),
+    queryFn: () => reviewApi.getProductReviews(product._id, page),
     enabled: !!product._id,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -174,14 +175,14 @@ export default function ReviewSection({ product }) {
     isError: statsError,
   } = useQuery({
     queryKey: ['reviewStats', product._id],
-    queryFn: () => getReviewStats(product._id),
+    queryFn: () => reviewApi.getReviewStats(product._id),
     enabled: !!product._id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // ✅ React Query - Delete Review Mutation
   const deleteReviewMutation = useMutation({
-    mutationFn: (reviewId) => deleteReview(reviewId),
+    mutationFn: (reviewId) => reviewApi.deleteReview(reviewId),
     
     onSuccess: () => {
       toast.success("Review deleted successfully! 🗑️");

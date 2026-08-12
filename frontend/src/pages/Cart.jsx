@@ -5,6 +5,7 @@ import { CartContext } from "../context/CartContext.jsx";
 import { WishlistContext } from "../context/WishlistContext.jsx";
 import { FiHeart, FiTrash2, FiMinus, FiPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { getImageUrl } from "../utils/imageUtils";
 
 function Cart() {
   const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useContext(CartContext);

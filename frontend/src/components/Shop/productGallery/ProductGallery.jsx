@@ -1,107 +1,91 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { getImageUrl } from "../../../utils/imageUtils";
 import "../../../index.css";
 
 export default function ProductGallery({ product }) {
-  const images = useMemo(() => product?.images || [], [product]);
-  const [selectedImage, setSelectedImage] = useState(null);
+  // ✅ Process image URLs through getImageUrl helper
+  const images = useMemo(() => {
+    const rawImages = product?.images || [];
+    if (rawImages.length === 0) return [];
+    return rawImages.map((img) => getImageUrl(img));
+  }, [product]);
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
-  const imageRef = useRef(null);
   const containerRef = useRef(null);
 
-  // ✅ Set initial image when product changes
+  // ✅ Reset index when product changes
   useEffect(() => {
-    if (images.length > 0) {
-      setSelectedImage(images[0]);
-    }
-  }, [images]);
+    setSelectedIndex(0);
+  }, [product]);
+
+  const selectedImage = images[selectedIndex] || "/placeholder-image.jpg";
 
   // ✅ Navigate to next image
   const nextImage = useCallback(() => {
     if (images.length === 0) return;
-    const currentIndex = images.indexOf(selectedImage);
-    if (currentIndex < images.length - 1) {
-      setSelectedImage(images[currentIndex + 1]);
-    }
-  }, [images, selectedImage]);
+    setSelectedIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev));
+  }, [images.length]);
 
   // ✅ Navigate to previous image
   const prevImage = useCallback(() => {
     if (images.length === 0) return;
-    const currentIndex = images.indexOf(selectedImage);
-    if (currentIndex > 0) {
-      setSelectedImage(images[currentIndex - 1]);
-    }
-  }, [images, selectedImage]);
+    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+  }, [images.length]);
 
-  // ✅ Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') prevImage();
-      if (e.key === 'ArrowRight') nextImage();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [prevImage, nextImage]);
-
-  // ✅ Touch event handlers for swipe
-  const handleTouchStart = useCallback((e) => {
+  // ✅ Touch events for swipe
+  const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
-  }, []);
+  };
 
-  const handleTouchMove = useCallback((e) => {
+  const handleTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX);
-  }, []);
+  };
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe) {
+    if (isLeftSwipe && selectedIndex < images.length - 1) {
       nextImage();
-    } else if (isRightSwipe) {
+    }
+    if (isRightSwipe && selectedIndex > 0) {
       prevImage();
     }
 
     setTouchStart(null);
     setTouchEnd(null);
-  }, [touchStart, touchEnd, nextImage, prevImage]);
+  };
 
-  // ✅ Mouse hover zoom
-  const handleMouseMove = useCallback((e) => {
+  // ✅ Zoom events
+  const handleMouseMove = (e) => {
     if (!containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
     setZoomPosition({ x, y });
-  }, []);
+  };
 
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = () => {
     setIsZoomed(true);
-  }, []);
+  };
 
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = () => {
     setIsZoomed(false);
-  }, []);
-
-  // ✅ Current index for indicators
-  const currentIndex = images.indexOf(selectedImage);
+  };
 
   // ✅ If no images
   if (!images || images.length === 0) {
     return (
       <div className="max-w-lg lg:max-w-full mx-auto bg-white rounded-md shadow-lg overflow-hidden">
         <div className="relative w-full bg-gray-100 flex aspect-square items-center justify-center">
-          <p className="text-gray-500">No image available</p>
+          <p className="text-gray-500 font-medium">No image available</p>
         </div>
       </div>
     );
@@ -112,7 +96,7 @@ export default function ProductGallery({ product }) {
       {/* Main Image Container */}
       <div 
         ref={containerRef}
-        className="relative w-full bg-white flex aspect-square items-center justify-center overflow-hidden cursor-zoom-in"
+        className="relative w-full bg-white flex aspect-square items-center justify-center overflow-hidden cursor-zoom-in p-4"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -125,11 +109,15 @@ export default function ProductGallery({ product }) {
             <img
               src={selectedImage}
               alt={product?.name || 'Product'}
-              className={`w-full h-full object-cover transition-transform duration-200 ${
+              className={`w-full h-full object-contain transition-transform duration-200 ${
                 isZoomed ? 'scale-150' : 'scale-100'
               }`}
               draggable={false}
               loading="lazy"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/placeholder-image.jpg";
+              }}
               style={isZoomed ? {
                 transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
               } : {}}
@@ -143,7 +131,7 @@ export default function ProductGallery({ product }) {
             <button
               onClick={prevImage}
               className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg hidden md:flex items-center justify-center transition disabled:opacity-30"
-              disabled={currentIndex === 0}
+              disabled={selectedIndex === 0}
               aria-label="Previous image"
             >
               <FiChevronLeft size={24} />
@@ -151,7 +139,7 @@ export default function ProductGallery({ product }) {
             <button
               onClick={nextImage}
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg hidden md:flex items-center justify-center transition disabled:opacity-30"
-              disabled={currentIndex === images.length - 1}
+              disabled={selectedIndex === images.length - 1}
               aria-label="Next image"
             >
               <FiChevronRight size={24} />
@@ -162,7 +150,7 @@ export default function ProductGallery({ product }) {
         {/* Image Counter */}
         {images.length > 1 && (
           <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-            {currentIndex + 1} / {images.length}
+            {selectedIndex + 1} / {images.length}
           </div>
         )}
 
@@ -173,7 +161,7 @@ export default function ProductGallery({ product }) {
               <span
                 key={idx}
                 className={`h-1.5 rounded-full transition-all ${
-                  idx === currentIndex ? "w-6 bg-green-700" : "w-1.5 bg-gray-400"
+                  idx === selectedIndex ? "w-6 bg-red-600" : "w-1.5 bg-gray-400"
                 }`}
               />
             ))}
@@ -188,7 +176,7 @@ export default function ProductGallery({ product }) {
           <button
             onClick={prevImage}
             className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 shrink-0 disabled:opacity-30 transition"
-            disabled={currentIndex === 0}
+            disabled={selectedIndex === 0}
             aria-label="Previous image"
           >
             <FiChevronLeft size={20} />
@@ -196,19 +184,23 @@ export default function ProductGallery({ product }) {
 
           {/* Thumbnails */}
           <div className="flex gap-4 overflow-x-auto hide-scrollbar">
-            {images.map((img, index) => (
+            {images.map((imgUrl, index) => (
               <div
                 key={index}
-                onClick={() => setSelectedImage(img)}
+                onClick={() => setSelectedIndex(index)}
                 className={`cursor-pointer rounded-xl shrink-0 overflow-hidden border-2 transition ${
-                  selectedImage === img ? "border-green-700 shadow-lg" : "border-transparent hover:border-gray-300"
+                  selectedIndex === index ? "border-red-600 shadow-lg" : "border-transparent hover:border-gray-300"
                 }`}
               >
                 <img 
-                  src={img} 
+                  src={imgUrl} 
                   alt={`Thumbnail ${index + 1}`} 
-                  className="w-22 h-20 object-cover"
+                  className="w-20 h-20 object-contain p-1"
                   loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/placeholder-image.jpg";
+                  }}
                 />
               </div>
             ))}
@@ -218,7 +210,7 @@ export default function ProductGallery({ product }) {
           <button
             onClick={nextImage}
             className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 shrink-0 disabled:opacity-30 transition"
-            disabled={currentIndex === images.length - 1}
+            disabled={selectedIndex === images.length - 1}
             aria-label="Next image"
           >
             <FiChevronRight size={20} />

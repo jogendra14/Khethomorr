@@ -4,6 +4,7 @@ import { FiShoppingCart, FiTrash2 } from "react-icons/fi";
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import { WishlistContext } from "../context/WishlistContext.jsx";
 import { CartContext } from "../context/CartContext.jsx";
+import { getImageUrl } from "../utils/imageUtils";
 
 function Wishlist() {
   const { wishlist, removeFromWishlist, moveAllToCart } = useContext(WishlistContext);
@@ -40,16 +41,24 @@ function Wishlist() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {wishlist.map((item) => (
-              <article key={item._id} className="flex gap-4 rounded-xl border p-4">
+              <article key={item._id} className="flex gap-4 rounded-xl border p-4 bg-white shadow-sm">
                 <Link to={`/product/${item._id}`} className="shrink-0">
-                  <img src={item.images?.[0] || "/placeholder-image.jpg"} alt={item.name} className="h-24 w-24 rounded-lg object-cover" />
+                  <img 
+                    src={getImageUrl(item)} 
+                    alt={item.name} 
+                    className="h-24 w-24 rounded-lg object-contain p-1"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/placeholder-image.jpg";
+                    }}
+                  />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link to={`/product/${item._id}`} className="font-semibold hover:text-red-600 line-clamp-2">{item.name}</Link>
                   <p className="mt-1 text-sm text-gray-500">{item.brand || "Unbranded"}</p>
                   <p className="mt-2 font-bold text-red-600">₹{Number(item.sellingPrice || item.price || 0).toFixed(2)}</p>
                   <div className="mt-3 flex gap-2">
-                    <button onClick={() => moveOneToCart(item)} className="rounded border border-green-300 px-3 py-1.5 text-sm text-green-700 hover:bg-green-50">Add to Cart</button>
+                    <button onClick={() => moveOneToCart(item)} className="rounded border border-green-300 px-3 py-1.5 text-sm text-green-700 hover:bg-green-50 font-medium">Add to Cart</button>
                     <button onClick={() => removeFromWishlist(item._id)} className="rounded border border-red-300 p-1.5 text-red-600 hover:bg-red-50" aria-label={`Remove ${item.name}`}><FiTrash2 /></button>
                   </div>
                 </div>

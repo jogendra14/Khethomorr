@@ -13,7 +13,6 @@ const productSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
       index: true,
     },
@@ -40,13 +39,37 @@ const productSchema = new mongoose.Schema(
         message: 'Please enter a valid price',
       },
     },
+    // ✅ SAFE VALIDATOR: Never blocks deletes or updates if price is not being changed or is missing
     compareAtPrice: {
       type: Number,
       min: [0, 'Compare at price cannot be negative'],
       validate: {
         validator: function (v) {
-          if (!v) return true; // Optional field
-          return v > this.price; // Must be higher than actual price
+          if (v === undefined || v === null || v === '' || v === 0) return true;
+
+          let targetPrice;
+
+          // 1. Query context (findByIdAndUpdate)
+          if (this && typeof this.getUpdate === 'function') {
+            const update = this.getUpdate();
+            const updateData = update.$set || update;
+            targetPrice = updateData.price;
+          } else if (this && this.price !== undefined) {
+            // 2. Document context (.save())
+            targetPrice = this.price;
+          }
+
+          // If price is missing or not a valid number, don't fail validation
+          if (targetPrice === undefined || targetPrice === null || isNaN(targetPrice)) {
+            return true;
+          }
+
+          const numCompare = Number(v);
+          const numPrice = Number(targetPrice);
+
+          if (isNaN(numCompare) || isNaN(numPrice)) return true;
+
+          return numCompare > numPrice;
         },
         message: 'Compare at price must be higher than the actual price',
       },
@@ -59,13 +82,11 @@ const productSchema = new mongoose.Schema(
     // Inventory
     sku: {
       type: String,
-      unique: true,
       sparse: true,
       trim: true,
     },
     barcode: {
       type: String,
-      unique: true,
       sparse: true,
       trim: true,
     },
@@ -123,6 +144,7 @@ const productSchema = new mongoose.Schema(
       index: true,
       validate: {
         validator: async function (value) {
+          if (!value) return false;
           const Category = mongoose.model('Category');
           const category = await Category.findById(value);
           return category !== null;
@@ -139,9 +161,10 @@ const productSchema = new mongoose.Schema(
           const SubCategory = mongoose.model('SubCategory');
           const subCategory = await SubCategory.findById(value);
           
-          // Also check if subcategory belongs to the selected category
-          if (subCategory && this.category) {
-            return subCategory.category.toString() === this.category.toString();
+          const catId = this.category || (this.getUpdate && (this.getUpdate().$set?.category || this.getUpdate().category));
+
+          if (subCategory && catId) {
+            return subCategory.category.toString() === catId.toString();
           }
           return !!subCategory;
         },
@@ -352,12 +375,33 @@ const productSchema = new mongoose.Schema(
       default: 1,
       min: [1, 'Minimum order quantity must be at least 1'],
     },
+    // ✅ SAFE VALIDATOR for Max Order Qty
     maxOrderQuantity: {
       type: Number,
       validate: {
         validator: function (v) {
-          if (!v) return true; // Optional
-          return v >= this.minOrderQuantity;
+          if (v === undefined || v === null || v === '' || v === 0) return true;
+
+          let targetMinQty;
+
+          if (this && typeof this.getUpdate === 'function') {
+            const update = this.getUpdate();
+            const updateData = update.$set || update;
+            targetMinQty = updateData.minOrderQuantity;
+          } else if (this && this.minOrderQuantity !== undefined) {
+            targetMinQty = this.minOrderQuantity;
+          }
+
+          if (targetMinQty === undefined || targetMinQty === null || isNaN(targetMinQty)) {
+            return true;
+          }
+
+          const numMax = Number(v);
+          const numMin = Number(targetMinQty);
+
+          if (isNaN(numMax) || isNaN(numMin)) return true;
+
+          return numMax >= numMin;
         },
         message: 'Maximum order quantity must be greater than minimum',
       },
@@ -396,7 +440,6 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ price: 1, status: 1 });
 productSchema.index({ category: 1, isActive: 1 });
-productSchema.index({ 'variants.sku': 1 });
 productSchema.index({ brand: 1, category: 1 });
 productSchema.index({ createdAt: -1 });
 
@@ -413,7 +456,6 @@ productSchema.virtual('discountPercentage').get(function () {
 });
 
 productSchema.virtual('currentPrice').get(function () {
-  // Check for active time-based discount
   if (this.discount && this.discount.isActive) {
     const now = new Date();
     const startDate = new Date(this.discount.startDate);
@@ -445,7 +487,6 @@ productSchema.virtual('isOnSale').get(function () {
 // PRE-SAVE HOOKS
 // ============================================
 productSchema.pre('save', function () {
-  // Generate slug from name
   if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
@@ -456,23 +497,19 @@ productSchema.pre('save', function () {
       .replace(/^-+|-+$/g, '');
   }
 
-  // Auto-set hasVariants
   if (this.variants && this.variants.length > 0) {
     this.hasVariants = true;
   } else {
     this.hasVariants = false;
   }
 
-  // Auto-update status based on quantity
   if (this.quantity <= 0 && this.status === 'active') {
     this.status = 'outOfStock';
   }
 
-  // Set publishedAt when status changes to active
   if (this.isModified('status') && this.status === 'active' && !this.publishedAt) {
     this.publishedAt = new Date();
   }
-
 });
 
 // ============================================

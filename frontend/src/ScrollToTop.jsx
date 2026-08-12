@@ -8,6 +8,7 @@ const ScrollToTop = () => {
     // In pages par scroll-to-top nahi hoga
     const excludePaths = [
       "/product/:id",
+      "/admin"
     ];
 
     // Check karo ki current path exclude list me hai ya nahi

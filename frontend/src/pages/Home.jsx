@@ -1,7 +1,7 @@
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import Hero from "../components/home/hero/Hero.jsx";
 import Features from "../components/home/feature/Features.jsx";
-//import TrendingProducts from "../components/home/trendingProducts/TrendingProducts.jsx";
+import FeatureProducts from "../components/home/trendingProducts/FeatureProducts.jsx";
 import OurServices from "../components/home/ourServices/OurServices.jsx";
 import Footer from "../components/home/footer/Footer.jsx";
 
@@ -12,6 +12,7 @@ const Home = () => {
         <Navbar />
         <Hero/>
         <Features/>
+        <FeatureProducts/>
         <OurServices/>
         <Footer />
       </div>

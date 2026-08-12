@@ -77,7 +77,7 @@ const AdminProducts = () => {
 
   // Delete single product
   const deleteMutation = useMutation({
-    mutationFn: (id) => productApi.deleteProduct(id),
+    mutationFn: (id) => productApi.permanentDelete(id),
     onSuccess: () => {
       toast.success("Product deleted successfully");
       queryClient.invalidateQueries(["admin-products"]);

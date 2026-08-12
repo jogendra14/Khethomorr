@@ -1,68 +1,37 @@
-// components/Shop/subCategory/SubCategory.jsx
-import { ChevronDown, ChevronRight } from "lucide-react";
-
 export default function SubCategory({ 
   selectedCategory, 
   setSelectedSubCategory, 
   selectedSubCategory,
+  categories = [],
   className = "",
   variant = "default" // "default" or "inline"
 }) {
-  // Define sub-categories for each main category
-  const subCategoriesMap = {
-    fans: [
-      { id: "all-fans", name: "All Fans" },
-      { id: "classic", name: "Classic" },
-      { id: "designer", name: "Designer" },
-      { id: "bldc", name: "BLDC" },
-      { id: "antique", name: "Antique" },
-      { id: "chandelier", name: "Chandelier" },
-    ],
-    lighting: [
-      { id: "all-lighting", name: "All Lighting" },
-      { id: "led-bulbs", name: "LED Bulbs" },
-      { id: "tube-lights", name: "Tube Lights" },
-      { id: "panel-lights", name: "Panel Lights" },
-      { id: "decorative", name: "Decorative Lights" },
-    ],
-    kitchenAppliance: [
-      { id: "all-kitchenAppliance", name: "All" },
-      { id: "chimney", name: "Chimney" },
-      { id: "waterPurifier", name: "Water Purifier" },
-      { id: "cookTop", name: "CookTop" },
-      { id: "hobs", name: "Hobs" },
-      { id: "mixerGrinder", name: "Mixer Grinder" },
-      { id: "vaccumCleaner", name: "Vaccum Cleaner" },
-      { id: "riceCooker", name: "Rice Cooker" },
-      { id: "steamIron", name: "Steam Iron" },
-      { id: "iron", name: "Iron" },
-    ],
-    bathroomAppliance: [
-      { id: "all-bathroomAppliance", name: "All" },
-      { id: "kitchen", name: "Kitchen" },
-      { id: "laundry", name: "Laundry" },
-      { id: "cooling", name: "Cooling" },
-    ],
-    electrical: [
-      { id: "all-electrical", name: "All Electrical" },
-      { id: "switches", name: "Switches" },
-      { id: "wires", name: "Wires & Cables" },
-      { id: "circuit-breakers", name: "Circuit Breakers" },
-    ],
-    solar: [
-      { id: "all-solar", name: "All Solar" },
-      { id: "panels", name: "Solar Panels" },
-      { id: "inverters", name: "Inverters" },
-      { id: "batteries", name: "Solar Batteries" },
-    ],
-  };
+  // ✅ Find the active selected category object from dynamic categories
+  const currentCategory = categories.find(
+    (c) => c.id === selectedCategory || c._id === selectedCategory || c.slug === selectedCategory
+  );
 
-  // Get sub-categories for selected category
-  const subCategories = subCategoriesMap[selectedCategory?.toLowerCase()] || [];
+  const rawSubCategories = currentCategory?.subcategories || [];
 
-  if (subCategories.length === 0) return null;
+  // If no subcategories exist for this category, return null
+  if (rawSubCategories.length === 0) return null;
 
-  // Different styles based on variant
+  // ✅ Build dynamic subcategories list with "All [Category]" option
+  const subCategories = [
+    {
+      id: `all-${selectedCategory}`,
+      _id: `all-${selectedCategory}`,
+      name: `All ${currentCategory?.name || ""}`,
+    },
+    ...rawSubCategories.map((sub) => ({
+      id: sub._id,
+      _id: sub._id,
+      name: sub.name,
+      slug: sub.slug,
+    })),
+  ];
+
+  // Inline variant
   if (variant === "inline") {
     return (
       <div className={`flex flex-wrap items-center gap-2 ${className}`}>
@@ -70,10 +39,10 @@ export default function SubCategory({
           <button
             key={sub.id}
             onClick={() => setSelectedSubCategory(sub.id)}
-            className={`px-2.5 py-1 text-sm rounded-full transition-all duration-200 ${
+            className={`px-3 py-1 text-sm rounded-full transition-all duration-200 ${
               selectedSubCategory === sub.id
-                ? "bg-blue-100 font-medium border border-blue-300"
-                : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
+                ? "bg-blue-600 text-white font-medium shadow-sm"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200"
             }`}
           >
             {sub.name}

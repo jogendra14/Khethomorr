@@ -281,7 +281,6 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
 
   // Get available brands for filter sidebar
   const brands = await Product.distinct("brand", { status: "active" });
-
   res.status(200).json({
     success: true,
     results: products.length,

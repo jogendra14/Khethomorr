@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useProducts } from "../hooks/useProducts.js"; // ✅ hooks/index.js se import
+import { useProducts } from "../hooks/useProducts.js";
 import ShowProduct from "../components/Shop/ShowProduct.jsx";
 import Navbar from "../components/home/navbar/Navbar.jsx";
 import Category from "../components/Shop/category/Category.jsx";
@@ -8,7 +8,7 @@ import Footer from "../components/home/footer/Footer.jsx";
 import "../index.css";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 
-// ✅ BRAND SCROLL SECTION COMPONENT (Optimized)
+// ✅ BRAND SCROLL SECTION COMPONENT
 const BrandScrollSection = ({ brand, products }) => {
   const scrollRef = useRef(null);
 
@@ -81,11 +81,11 @@ const BrandScrollSection = ({ brand, products }) => {
 // ============================
 // MAIN COMPONENT - SHOP
 // ============================
-export default function Shop() {  // ✅ Name changed from Product to Shop
+export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedSubCategory, setSelectedSubCategory] = useState("all-fans");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("all");
 
-  // ✅ Using custom hook
+  // ✅ Fetch products with selected category and subcategory
   const {
     data,
     error,
@@ -97,18 +97,22 @@ export default function Shop() {  // ✅ Name changed from Product to Shop
     refetch,
   } = useProducts({
     category: selectedCategory !== "all" ? selectedCategory : undefined,
-    subCategory: selectedSubCategory && !selectedSubCategory.startsWith("all-") 
-      ? selectedSubCategory 
-      : undefined,
+    subCategory:
+      selectedSubCategory && !selectedSubCategory.startsWith("all")
+        ? selectedSubCategory
+        : undefined,
   });
 
-  // ✅ Memoized products
-  const products = useMemo(
-    () => data?.pages.flatMap((page) => page.products) || [],
-    [data]
-  );
+  // ✅ Safely extract products array from response
+  const products = useMemo(() => {
+    if (!data) return [];
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data)) return data;
+    if (data.pages) return data.pages.flatMap((page) => page.products || page.data || []);
+    return [];
+  }, [data]);
 
-  // ✅ Load more handler with optimization
+  // ✅ Load more handler
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -130,9 +134,11 @@ export default function Shop() {  // ✅ Name changed from Product to Shop
 
   const brandNames = useMemo(() => Object.keys(groupedProducts), [groupedProducts]);
 
-  const isSubCategorySelected = selectedSubCategory && !selectedSubCategory.startsWith("all-");
+  const isSubCategorySelected = Boolean(
+    selectedSubCategory && !selectedSubCategory.startsWith("all")
+  );
 
-  // ✅ Loading State with Skeleton (Better UX)
+  // ✅ Loading State with Skeleton
   if (isLoading) {
     return (
       <>
@@ -197,13 +203,13 @@ export default function Shop() {  // ✅ Name changed from Product to Shop
         setSelectedSubCategory={setSelectedSubCategory}
       />
 
-      <div className="min-h-screen">
-        <div className="max-w-7xl m-2 mx-auto flex gap-2 sm:gap-3 md:gap-5 lg:gap-6">
+      <div className="min-h-screen bg-gray-50/50 py-4">
+        <div className="max-w-7xl mx-auto px-4">
           {products.length > 0 ? (
             <div className="w-full">
               {isSubCategorySelected ? (
                 /* ============================
-                   BRAND SECTIONS
+                   BRAND SECTIONS (When SubCategory Selected)
                 ============================ */
                 <div className="space-y-8 w-full">
                   {brandNames.map((brand) => (
@@ -218,7 +224,7 @@ export default function Shop() {  // ✅ Name changed from Product to Shop
                 /* ============================
                    ALL PRODUCTS GRID
                 ============================ */
-                <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 w-full">
+                <div className="grid mt-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 w-full">
                   {products.map((product) => (
                     <ShowProduct key={product._id} product={product} />
                   ))}
@@ -251,15 +257,21 @@ export default function Shop() {  // ✅ Name changed from Product to Shop
                   ALL PRODUCTS LOADED
               ============================ */}
               {!hasNextPage && products.length > 0 && (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-gray-500 py-8 text-sm">
                   🎉 All products loaded ({products.length} total)
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-10 w-full">
-              🔍 No products found in this category.
-            </p>
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center my-6">
+              <span className="text-4xl">🔍</span>
+              <p className="text-gray-600 text-lg font-medium mt-3">
+                No products found in this category.
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Try selecting another category or clearing filters.
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -101,7 +101,7 @@ export default function OurServices({ services: servicesFromApi, trustFeatures: 
           {services.map((service, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow hover:shadow-lg transition duration-300 overflow-hidden flex"
+              className="bg-white rounded-lg shadow hover:shadow-lg transition duration-300 overflow-hidden flex"
             >
               {/* Image */}
               <div className="w-2/5">
@@ -136,7 +136,7 @@ export default function OurServices({ services: servicesFromApi, trustFeatures: 
 
       {/* WHY CHOOSE US */}
       <section className="max-w-7xl mx-auto py-6 px-3 sm:px-4">
-        <div className="bg-[#111111] rounded-2xl border border-gray-700 overflow-hidden">
+        <div className="bg-[#111111] rounded-xl pb-4 border border-gray-700 overflow-hidden">
 
           {/* Heading */}
           <div className="px-5 sm:px-6 pt-5">

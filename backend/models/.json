@@ -1,0 +1,529 @@
+[
+  {
+    "name": "Atomberg Renesa Prime Crest Ceiling Fan 900mm - Honey Maplewood",
+    "slug": "atomberg-renesa-prime-crest-ceiling-fan-900mm-honey-maplewood",
+
+    "description": "Premium Atomberg Renesa Prime Crest 900mm BLDC ceiling fan with Advance Air+ Technology, 3 aluminium blades, remote control and elegant Honey Maplewood finish. Designed for efficient and focused airflow in compact rooms.",
+    "shortDescription": "900mm BLDC ceiling fan with Advance Air+ Technology, remote control and premium Honey Maplewood finish.",
+
+    "price": 4000,
+    "compareAtPrice": 7020,
+    "costPerItem": 0,
+
+    "sku": "ATOM-RPC-700-HM",
+    "barcode": "",
+
+    "quantity": 20,
+    "lowStockThreshold": 5,
+
+    "images": [],
+
+    "video": {
+      "url": "",
+      "thumbnail": "",
+      "provider": "youtube"
+    },
+
+    "tags": [
+      "atomberg",
+      "renesa prime crest",
+      "renesa prime",
+      "900mm fan",
+      "900mm bldc fan",
+      "bldc ceiling fan",
+      "honey maplewood fan",
+      "5 star ceiling fan",
+      "remote ceiling fan",
+      "energy efficient fan"
+    ],
+
+    "brand": "Atomberg",
+
+    "variants": [],
+
+    "attributes": [
+      {
+        "name": "Motor",
+        "value": "BLDC",
+        "isFilterable": true
+      },
+      {
+        "name": "Sweep Size",
+        "value": "900mm",
+        "isFilterable": true
+      },
+      {
+        "name": "Blade Count",
+        "value": "3",
+        "isFilterable": true
+      },
+      {
+        "name": "Color",
+        "value": "Honey Maplewood",
+        "isFilterable": true
+      },
+      {
+        "name": "Control",
+        "value": "Remote",
+        "isFilterable": true
+      },
+      {
+        "name": "Technology",
+        "value": "Advance Air+ Technology",
+        "isFilterable": false
+      },
+      {
+        "name": "Star Rating",
+        "value": "5 Star",
+        "isFilterable": true
+      },
+      {
+        "name": "Warranty",
+        "value": "2+1 Years",
+        "isFilterable": false
+      }
+    ],
+
+    "metaTitle": "Atomberg Renesa Prime Crest 900mm BLDC Fan - Honey Maplewood",
+    "metaDescription": "Buy Atomberg Renesa Prime Crest 900mm BLDC ceiling fan in Honey Maplewood with Advance Air+ Technology, remote control and 2+1 year warranty.",
+    "metaKeywords": [
+      "Atomberg Renesa Prime Crest 900mm",
+      "Atomberg 900mm BLDC fan",
+      "Renesa Prime 900mm",
+      "Honey Maplewood ceiling fan",
+      "Atomberg BLDC ceiling fan",
+      "900mm remote ceiling fan"
+    ],
+
+    "weight": {
+      "value": 0,
+      "unit": "kg"
+    },
+
+    "dimensions": {
+      "length": 0,
+      "width": 0,
+      "height": 0,
+      "unit": "cm"
+    },
+
+    "isPhysicalProduct": true,
+    "isDigitalProduct": false,
+    "digitalFileUrl": "",
+
+    "shippingClass": "standard",
+    "freeShipping": false,
+
+    "status": "active",
+    "isFeatured": false,
+    "visibility": "visible",
+    "publishedAt": null,
+
+    "averageRating": 5,
+    "totalReviews": 112,
+    "totalSold": 0,
+
+    "discount": {
+      "type": "percentage",
+      "value": 43,
+      "startDate": null,
+      "endDate": null,
+      "isActive": false
+    },
+
+    "relatedProducts": [],
+    "frequentlyBoughtTogether": [],
+
+    "customFields": {
+      "productType": "fan",
+      "modelName": "Renesa Prime Crest",
+      "fanDesign": "Designer Ceiling Fan",
+      "fanType": "Remote",
+      "color": "Honey Maplewood",
+      "motor": "BLDC",
+      "sweepSize": "900mm",
+      "bladeCount": "3",
+      "material": "Aluminium",
+      "airDelivery": "180 CMM",
+      "technology": "Advance Air+ Technology",
+      "starRating": "5 Star",
+      "noiseLevel": "Low Noise",
+      "voltageProtection": "165V - 285V",
+      "includeComponents": [
+        "Ceiling Fan",
+        "Remote Control",
+        "Down Rod",
+        "Canopy",
+        "Mounting Kit",
+        "Warranty Card",
+        "User Manual"
+      ]
+    },
+
+    "hasVariants": false,
+    "minOrderQuantity": 1,
+    "maxOrderQuantity": 5,
+
+    "taxClass": "standard",
+
+    "isReturnable": true,
+    "returnPeriod": 10,
+
+    "warranty": {
+      "period": 3,
+      "description": "2+1 Years warranty as offered by Atomberg."
+    }
+  },
+
+  {
+    "name": "Atomberg Renesa Prime Crest Ceiling Fan 900mm - Gloss Black",
+    "slug": "atomberg-renesa-prime-crest-ceiling-fan-900mm-gloss-black",
+
+    "description": "Premium Atomberg Renesa Prime Crest 900mm BLDC ceiling fan with Advance Air+ Technology, 3 aluminium blades, remote control and elegant Gloss Black finish. Designed for efficient and focused airflow in compact rooms.",
+    "shortDescription": "900mm BLDC ceiling fan with Advance Air+ Technology, remote control and premium Gloss Black finish.",
+
+    "price": 3500,
+    "compareAtPrice": 6150,
+    "costPerItem": 0,
+
+    "sku": "ATOM-RPC-900-GB",
+    "barcode": "",
+
+    "quantity": 20,
+    "lowStockThreshold": 5,
+
+    "images": [],
+
+    "video": {
+      "url": "",
+      "thumbnail": "",
+      "provider": "youtube"
+    },
+
+    "tags": [
+      "atomberg",
+      "renesa prime crest",
+      "renesa prime",
+      "900mm fan",
+      "900mm bldc fan",
+      "bldc ceiling fan",
+      "gloss black fan",
+      "5 star ceiling fan",
+      "remote ceiling fan",
+      "energy efficient fan"
+    ],
+
+    "brand": "Atomberg",
+
+    "variants": [],
+
+    "attributes": [
+      {
+        "name": "Motor",
+        "value": "BLDC",
+        "isFilterable": true
+      },
+      {
+        "name": "Sweep Size",
+        "value": "900mm",
+        "isFilterable": true
+      },
+      {
+        "name": "Blade Count",
+        "value": "3",
+        "isFilterable": true
+      },
+      {
+        "name": "Color",
+        "value": "Gloss Black",
+        "isFilterable": true
+      },
+      {
+        "name": "Control",
+        "value": "Remote",
+        "isFilterable": true
+      },
+      {
+        "name": "Technology",
+        "value": "Advance Air+ Technology",
+        "isFilterable": false
+      },
+      {
+        "name": "Star Rating",
+        "value": "5 Star",
+        "isFilterable": true
+      },
+      {
+        "name": "Warranty",
+        "value": "2+1 Years",
+        "isFilterable": false
+      }
+    ],
+
+    "metaTitle": "Atomberg Renesa Prime Crest 900mm BLDC Fan - Gloss Black",
+    "metaDescription": "Buy Atomberg Renesa Prime Crest 900mm BLDC ceiling fan in Gloss Black with Advance Air+ Technology, remote control and 2+1 year warranty.",
+    "metaKeywords": [
+      "Atomberg Renesa Prime Crest 900mm",
+      "Atomberg 900mm BLDC fan",
+      "Renesa Prime 900mm",
+      "Gloss Black ceiling fan",
+      "Atomberg BLDC ceiling fan",
+      "900mm remote ceiling fan"
+    ],
+
+    "weight": {
+      "value": 0,
+      "unit": "kg"
+    },
+
+    "dimensions": {
+      "length": 0,
+      "width": 0,
+      "height": 0,
+      "unit": "cm"
+    },
+
+    "isPhysicalProduct": true,
+    "isDigitalProduct": false,
+    "digitalFileUrl": "",
+
+    "shippingClass": "standard",
+    "freeShipping": false,
+
+    "status": "active",
+    "isFeatured": false,
+    "visibility": "visible",
+    "publishedAt": null,
+
+    "averageRating": 5,
+    "totalReviews": 112,
+    "totalSold": 0,
+
+    "discount": {
+      "type": "percentage",
+      "value": 43,
+      "startDate": null,
+      "endDate": null,
+      "isActive": false
+    },
+
+    "relatedProducts": [],
+    "frequentlyBoughtTogether": [],
+
+    "customFields": {
+      "productType": "fan",
+      "modelName": "Renesa Prime Crest",
+      "fanDesign": "Designer Ceiling Fan",
+      "fanType": "Remote",
+      "color": "Gloss Black",
+      "motor": "BLDC",
+      "sweepSize": "900mm",
+      "bladeCount": "3",
+      "material": "Aluminium",
+      "airDelivery": "180 CMM",
+      "technology": "Advance Air+ Technology",
+      "starRating": "5 Star",
+      "noiseLevel": "Low Noise",
+      "voltageProtection": "165V - 285V",
+      "includeComponents": [
+        "Ceiling Fan",
+        "Remote Control",
+        "Down Rod",
+        "Canopy",
+        "Mounting Kit",
+        "Warranty Card",
+        "User Manual"
+      ]
+    },
+
+    "hasVariants": false,
+    "minOrderQuantity": 1,
+    "maxOrderQuantity": 5,
+
+    "taxClass": "standard",
+
+    "isReturnable": true,
+    "returnPeriod": 10,
+
+    "warranty": {
+      "period": 3,
+      "description": "2+1 Years warranty as offered by Atomberg."
+    }
+  },
+
+  {
+    "name": "Atomberg Renesa Prime Crest Ceiling Fan 900mm - Gloss White",
+    "slug": "atomberg-renesa-prime-crest-ceiling-fan-900mm-gloss-white",
+
+    "description": "Premium Atomberg Renesa Prime Crest 900mm BLDC ceiling fan with Advance Air+ Technology, 3 aluminium blades, remote control and elegant Gloss White finish. Designed for efficient and focused airflow in compact rooms.",
+    "shortDescription": "900mm BLDC ceiling fan with Advance Air+ Technology, remote control and premium Gloss White finish.",
+
+    "price": 3500,
+    "compareAtPrice": 6150,
+    "costPerItem": 0,
+
+    "sku": "ATOM-RPC-900-GW",
+    "barcode": "",
+
+    "quantity": 20,
+    "lowStockThreshold": 5,
+
+    "images": [],
+
+    "video": {
+      "url": "",
+      "thumbnail": "",
+      "provider": "youtube"
+    },
+
+    "tags": [
+      "atomberg",
+      "renesa prime crest",
+      "renesa prime",
+      "900mm fan",
+      "900mm bldc fan",
+      "bldc ceiling fan",
+      "gloss white fan",
+      "5 star ceiling fan",
+      "remote ceiling fan",
+      "energy efficient fan"
+    ],
+
+    "brand": "Atomberg",
+
+    "variants": [],
+
+    "attributes": [
+      {
+        "name": "Motor",
+        "value": "BLDC",
+        "isFilterable": true
+      },
+      {
+        "name": "Sweep Size",
+        "value": "900mm",
+        "isFilterable": true
+      },
+      {
+        "name": "Blade Count",
+        "value": "3",
+        "isFilterable": true
+      },
+      {
+        "name": "Color",
+        "value": "Gloss White",
+        "isFilterable": true
+      },
+      {
+        "name": "Control",
+        "value": "Remote",
+        "isFilterable": true
+      },
+      {
+        "name": "Technology",
+        "value": "Advance Air+ Technology",
+        "isFilterable": false
+      },
+      {
+        "name": "Star Rating",
+        "value": "5 Star",
+        "isFilterable": true
+      },
+      {
+        "name": "Warranty",
+        "value": "2+1 Years",
+        "isFilterable": false
+      }
+    ],
+
+    "metaTitle": "Atomberg Renesa Prime Crest 900mm BLDC Fan - Gloss White",
+    "metaDescription": "Buy Atomberg Renesa Prime Crest 900mm BLDC ceiling fan in Gloss White with Advance Air+ Technology, remote control and 2+1 year warranty.",
+    "metaKeywords": [
+      "Atomberg Renesa Prime Crest 900mm",
+      "Atomberg 900mm BLDC fan",
+      "Renesa Prime 900mm",
+      "Gloss White ceiling fan",
+      "Atomberg BLDC ceiling fan",
+      "900mm remote ceiling fan"
+    ],
+
+    "weight": {
+      "value": 0,
+      "unit": "kg"
+    },
+
+    "dimensions": {
+      "length": 0,
+      "width": 0,
+      "height": 0,
+      "unit": "cm"
+    },
+
+    "isPhysicalProduct": true,
+    "isDigitalProduct": false,
+    "digitalFileUrl": "",
+
+    "shippingClass": "standard",
+    "freeShipping": false,
+
+    "status": "active",
+    "isFeatured": false,
+    "visibility": "visible",
+    "publishedAt": null,
+
+    "averageRating": 5,
+    "totalReviews": 112,
+    "totalSold": 0,
+
+    "discount": {
+      "type": "percentage",
+      "value": 43,
+      "startDate": null,
+      "endDate": null,
+      "isActive": false
+    },
+
+    "relatedProducts": [],
+    "frequentlyBoughtTogether": [],
+
+    "customFields": {
+      "productType": "fan",
+      "modelName": "Renesa Prime Crest",
+      "fanDesign": "Designer Ceiling Fan",
+      "fanType": "Remote",
+      "color": "Gloss White",
+      "motor": "BLDC",
+      "sweepSize": "900mm",
+      "bladeCount": "3",
+      "material": "Aluminium",
+      "airDelivery": "180 CMM",
+      "technology": "Advance Air+ Technology",
+      "starRating": "5 Star",
+      "noiseLevel": "Low Noise",
+      "voltageProtection": "165V - 285V",
+      "includeComponents": [
+        "Ceiling Fan",
+        "Remote Control",
+        "Down Rod",
+        "Canopy",
+        "Mounting Kit",
+        "Warranty Card",
+        "User Manual"
+      ]
+    },
+
+    "hasVariants": false,
+    "minOrderQuantity": 1,
+    "maxOrderQuantity": 5,
+
+    "taxClass": "standard",
+
+    "isReturnable": true,
+    "returnPeriod": 10,
+
+    "warranty": {
+      "period": 3,
+      "description": "2+1 Years warranty as offered by Atomberg."
+    }
+  }
+]
