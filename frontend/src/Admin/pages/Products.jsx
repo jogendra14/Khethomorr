@@ -501,7 +501,7 @@ const AdminProducts = () => {
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
                               <FiEdit2 size={16} />
                             </Link>
-                            <Link to={`/product/${product.slug || product._id}`} target="_blank"
+                            <Link to={`/product/${product._id}`} target="_blank"
                               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="View">
                               <FiEye size={16} />
                             </Link>

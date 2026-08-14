@@ -84,7 +84,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
       throw new AppError("Category not found", 404);
     }
   }
-{/**
+
   // Validate subcategory belongs to category
   if (subCategory) {
     const subCategoryExists = await SubCategory.findOne({
@@ -95,8 +95,8 @@ const createProduct = asyncHandler(async (req, res, next) => {
       throw new AppError("SubCategory not found or does not belong to selected category", 400);
     }
   }
-     */}
-
+     
+{/**
   // Check SKU uniqueness
   if (sku) {
     const existingSKU = await Product.findOne({ sku: sku.trim() });
@@ -112,6 +112,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
       throw new AppError("Product with this barcode already exists", 400);
     }
   }
+ */}
 
   // But keep req.files as is for image uploads
   let images = [];
@@ -949,6 +950,7 @@ const addProductVariant = asyncHandler(async (req, res, next) => {
     throw new AppError("This variant already exists", 400);
   }
 
+  {/*
   // Check SKU uniqueness
   if (sku) {
     const skuExists = await Product.findOne({
@@ -958,6 +960,7 @@ const addProductVariant = asyncHandler(async (req, res, next) => {
       throw new AppError("Variant SKU already exists", 400);
     }
   }
+  */}
 
   product.variants.push({
     name,

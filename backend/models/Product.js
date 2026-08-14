@@ -78,18 +78,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, 'Cost cannot be negative'],
     },
-
-    // Inventory
-    sku: {
-      type: String,
-      sparse: true,
-      trim: true,
-    },
-    barcode: {
-      type: String,
-      sparse: true,
-      trim: true,
-    },
+  
     quantity: {
       type: Number,
       required: [true, 'Product quantity is required'],
@@ -235,7 +224,7 @@ const productSchema = new mongoose.Schema(
     },
     metaDescription: {
       type: String,
-      maxlength: [160, 'Meta description should not exceed 160 characters'],
+      maxlength: [200, 'Meta description should not exceed 160 characters'],
     },
     metaKeywords: [String],
 
@@ -515,14 +504,12 @@ productSchema.pre('save', function () {
 // ============================================
 // ERROR HANDLING
 // ============================================
-productSchema.post('save', function (error, doc, next) {
-  if (error.name === 'MongoServerError' && error.code === 11000) {
-    const field = Object.keys(error.keyValue)[0];
-    next(new Error(`${field} already exists. Please use a different ${field}.`));
-  } else {
-    next(error);
-  }
-});
+//productSchema.post('save', function (error, doc, next) {
+//  if (error.name === 'MongoServerError' && error.code === 11000) {
+//    const field = Object.keys(error.keyValue)[0];
+//    next(new Error(`${field} already exists. Please use a different ${field}.`));
+  //} else {   next(error); } });
+
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

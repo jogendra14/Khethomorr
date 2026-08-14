@@ -341,6 +341,7 @@ const AddProduct = () => {
             <SectionHeader title="Basic Information" section={SECTIONS.basic} icon={FiPackage} />
             {activeSection === SECTIONS.basic && (
               <div className="p-6 border-t space-y-4">
+
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Product Name <span className="text-red-500">*</span>
@@ -355,6 +356,7 @@ const AddProduct = () => {
                   />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Description</label>
                   <textarea
@@ -366,6 +368,7 @@ const AddProduct = () => {
                     className={inputClass("description")}
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Short Description</label>
                   <textarea
@@ -377,6 +380,7 @@ const AddProduct = () => {
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Category Dropdown */}
                   <div>
@@ -437,6 +441,7 @@ const AddProduct = () => {
                       className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
+                  
                 </div>
               </div>
             )}
